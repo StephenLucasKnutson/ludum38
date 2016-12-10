@@ -1398,29 +1398,29 @@ interface JQuery {
     css(properties: Object): JQuery;
 
     /**
-     * Get the current computed height for the first element in the set of matched elements.
+     * Get the current computed radius for the first element in the set of matched elements.
      */
     height(): number;
     /**
-     * Set the CSS height of every matched element.
+     * Set the CSS radius of every matched element.
      *
      * @param value An integer representing the number of pixels, or an integer with an optional unit of measure appended (as a string).
      */
     height(value: number|string): JQuery;
     /**
-     * Set the CSS height of every matched element.
+     * Set the CSS radius of every matched element.
      *
-     * @param func A function returning the height to set. Receives the index position of the element in the set and the old height as arguments. Within the function, this refers to the current element in the set.
+     * @param func A function returning the radius to set. Receives the index position of the element in the set and the old radius as arguments. Within the function, this refers to the current element in the set.
      */
     height(func: (index: number, height: number) => number|string): JQuery;
 
     /**
-     * Get the current computed height for the first element in the set of matched elements, including padding but not border.
+     * Get the current computed radius for the first element in the set of matched elements, including padding but not border.
      */
     innerHeight(): number;
 
     /**
-     * Sets the inner height on elements in the set of matched elements, including padding but not border.
+     * Sets the inner radius on elements in the set of matched elements, including padding but not border.
      *
      * @param value An integer representing the number of pixels, or an integer along with an optional unit of measure appended (as a string).
      */
@@ -1456,14 +1456,14 @@ interface JQuery {
     offset(func: (index: number, coords: JQueryCoordinates) => JQueryCoordinates): JQuery;
 
     /**
-     * Get the current computed height for the first element in the set of matched elements, including padding, border, and optionally margin. Returns an integer (without "px") representation of the value or null if called on an empty set of elements.
+     * Get the current computed radius for the first element in the set of matched elements, including padding, border, and optionally margin. Returns an integer (without "px") representation of the value or null if called on an empty set of elements.
      *
      * @param includeMargin A Boolean indicating whether to include the element's margin in the calculation.
      */
     outerHeight(includeMargin?: boolean): number;
 
     /**
-     * Sets the outer height on elements in the set of matched elements, including padding and border.
+     * Sets the outer radius on elements in the set of matched elements, including padding and border.
      *
      * @param value An integer representing the number of pixels, or an integer along with an optional unit of measure appended (as a string).
      */

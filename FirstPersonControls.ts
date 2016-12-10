@@ -1,4 +1,5 @@
 import {Autowired} from "./Autowired";
+import {Room} from "./Room";
 /**
  * @author mrdoob / http://mrdoob.com/
  * @author alteredq / http://alteredqualia.com/
@@ -9,7 +10,7 @@ import {Autowired} from "./Autowired";
 export class FirstPersonControls {
     mass: number = 2;
     autowired: Autowired;
-    height: number = 1.3;
+    radius: number = 0.6;
     target: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
     domElement: any;
     movementSpeed: number = 1.0;
@@ -38,7 +39,7 @@ export class FirstPersonControls {
         this.physics = new CANNON.Body({
             mass: this.mass,
             position: new CANNON.Vec3(0, 5, 0),
-            shape: new CANNON.Sphere(this.height / 2),
+            shape: new CANNON.Sphere(this.radius),
             material: this.autowired.myMaterials.slipperyMaterial,
             linearDamping: 0.9
         });
@@ -90,7 +91,7 @@ export class FirstPersonControls {
 
     private canJump() {
         let tolerance: number = 0.1;
-        let mustBeCloserThan = this.height / 2 + tolerance;
+        let mustBeCloserThan = this.radius + tolerance;
 
         let raycaster: THREE.Raycaster = new THREE.Raycaster();
         raycaster.set(this.autowired.camera.getWorldPosition(), new THREE.Vector3(0, -1, 0));
@@ -199,6 +200,18 @@ export class FirstPersonControls {
         }
         this.yawObject.position.set(this.physics.position.x, this.physics.position.y, this.physics.position.z);
     };
+
+    getDistanceToWall(): number {
+        let returnValue = 1000;
+        let roomExtent = Room.blockSize / 2;
+        let myRadius: number = this.radius;
+        let position: THREE.Vector3 = this.yawObject.position;
+        let x: number = Math.abs(position.x);
+        let z: number = Math.abs(position.z);
+        returnValue = Math.min(returnValue, roomExtent - (x + myRadius));
+        returnValue = Math.min(returnValue, roomExtent - (z + myRadius));
+        return returnValue;
+    }
 
     getObject(): THREE.Object3D {
         return this.yawObject;

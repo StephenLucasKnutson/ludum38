@@ -3,6 +3,7 @@ import {CubeManager} from "./CubeManager";
 import {FirstPersonControls} from "./FirstPersonControls";
 import {Room} from "./Room";
 import {CrossHair} from "./CrossHair";
+import {Scoreboard} from "./Scoreboard";
 export class Autowired {
     camera: THREE.Camera;
     scene: THREE.Scene;
@@ -12,6 +13,7 @@ export class Autowired {
     firstPersonControls: FirstPersonControls;
     room: Room;
     crossHair: CrossHair;
+    scoreboard: Scoreboard;
 
     constructor() {
     }

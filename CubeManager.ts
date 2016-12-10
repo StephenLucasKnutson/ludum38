@@ -37,6 +37,7 @@ export class CubeManager {
             }
         }
         if (badCubeIndex != -1) {
+            this.autowired.scoreboard.addScore();
             this.cubes[badCubeIndex].destroy();
             this.cubes.splice(badCubeIndex, 1);
         }

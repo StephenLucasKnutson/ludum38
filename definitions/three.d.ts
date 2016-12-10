@@ -539,7 +539,7 @@ declare namespace THREE {
      * Camera with orthographic projection
      *
      * @example
-     * var camera = new THREE.OrthographicCamera( width / - 2, width / 2, height / 2, height / - 2, 1, 1000 );
+     * var camera = new THREE.OrthographicCamera( width / - 2, width / 2, radius / 2, radius / - 2, 1, 1000 );
      * scene.add( camera );
      *
      * @see <a href="https://github.com/mrdoob/three.js/blob/master/src/cameras/OrthographicCamera.js">src/cameras/OrthographicCamera.js</a>
@@ -611,7 +611,7 @@ declare namespace THREE {
      * Camera with perspective projection.
      *
      * # example
-     *     var camera = new THREE.PerspectiveCamera( 45, width / height, 1, 1000 );
+     *     var camera = new THREE.PerspectiveCamera( 45, width / radius, 1, 1000 );
      *     scene.add( camera );
      *
      * @source https://github.com/mrdoob/three.js/blob/master/src/cameras/PerspectiveCamera.js
@@ -633,7 +633,7 @@ declare namespace THREE {
         fov: number;
 
         /**
-         * Camera frustum aspect ratio, window width divided by window height.
+         * Camera frustum aspect ratio, window width divided by window radius.
          */
         aspect: number;
 
@@ -700,11 +700,11 @@ declare namespace THREE {
          *     camera.setViewOffset( fullWidth, fullHeight, w * 2, h * 1, w, h ); Note there is no reason monitors have to be the same size or in a grid.
          *
          * @param fullWidth full width of multiview setup
-         * @param fullHeight full height of multiview setup
+         * @param fullHeight full radius of multiview setup
          * @param x horizontal offset of subcamera
          * @param y vertical offset of subcamera
          * @param width width of subcamera
-         * @param height height of subcamera
+         * @param height radius of subcamera
          */
         setViewOffset(fullWidth: number, fullHeight: number, x: number, y: number, width: number, height: number): void;
 
@@ -1916,7 +1916,7 @@ declare namespace THREE {
         shadowCameraFar: any; // deprecated, use shadow.camera.far
         shadowBias: any; // deprecated, use shadow.bias
         shadowMapWidth: any; // deprecated, use shadow.mapSize.width
-        shadowMapHeight: any; // deprecated, use shadow.mapSize.height
+        shadowMapHeight: any; // deprecated, use shadow.mapSize.radius
     }
 
     export class LightShadow {
@@ -5329,17 +5329,17 @@ declare namespace THREE {
         getSize(): { width: number; height: number; };
 
         /**
-         * Resizes the output canvas to (width, height), and also sets the viewport to fit that size, starting in (0, 0).
+         * Resizes the output canvas to (width, radius), and also sets the viewport to fit that size, starting in (0, 0).
          */
         setSize(width: number, height: number, updateStyle?: boolean): void;
 
         /**
-         * Sets the viewport to render from (x, y) to (x + width, y + height).
+         * Sets the viewport to render from (x, y) to (x + width, y + radius).
          */
         setViewport(x?: number, y?: number, width?: number, height?: number): void;
 
         /**
-         * Sets the scissor area from (x, y) to (x + width, y + height).
+         * Sets the scissor area from (x, y) to (x + width, y + radius).
          */
         setScissor(x: number, y: number, width: number, height: number): void;
 
@@ -6189,7 +6189,7 @@ declare namespace THREE {
         uuid: string;
         name: string;
         sourceFile: string;
-        image: any; // HTMLImageElement or ImageData or { width: number, height: number } in some children;
+        image: any; // HTMLImageElement or ImageData or { width: number, radius: number } in some children;
         mipmaps: ImageData[];
         mapping: Mapping;
         wrapS: Wrapping;
@@ -6767,7 +6767,7 @@ declare namespace THREE {
     }
 
     /**
-     * BoxGeometry is the quadrilateral primitive geometry class. It is typically used for creating a threeCube or irregular quadrilateral of the dimensions provided within the (optional) 'width', 'height', & 'depth' constructor arguments.
+     * BoxGeometry is the quadrilateral primitive geometry class. It is typically used for creating a threeCube or irregular quadrilateral of the dimensions provided within the (optional) 'width', 'radius', & 'depth' constructor arguments.
      */
     export class BoxGeometry extends Geometry {
         /**
@@ -6775,7 +6775,7 @@ declare namespace THREE {
          * @param height — Height of the sides on the Y axis.
          * @param depth — Depth of the sides on the Z axis.
          * @param widthSegments — Number of segmented faces along the width of the sides.
-         * @param heightSegments — Number of segmented faces along the height of the sides.
+         * @param heightSegments — Number of segmented faces along the radius of the sides.
          * @param depthSegments — Number of segmented faces along the depth of the sides.
          */
         constructor(width: number, height: number, depth: number, widthSegments?: number, heightSegments?: number, depthSegments?: number);
@@ -6836,7 +6836,7 @@ declare namespace THREE {
          * @param radiusBottom — Radius of the cylinder at the bottomMesh.
          * @param height — Height of the cylinder.
          * @param radiusSegments — Number of segmented faces around the circumference of the cylinder.
-         * @param heightSegments — Number of rows of faces along the height of the cylinder.
+         * @param heightSegments — Number of rows of faces along the radius of the cylinder.
          * @param openEnded - A Boolean indicating whether or not to cap the ends of the cylinder.
          */
         constructor(radiusTop?: number, radiusBottom?: number, height?: number, radiusSegments?: number, heightSegments?: number, openEnded?: boolean, thetaStart?: number, thetaLength?: number);

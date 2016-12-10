@@ -10,6 +10,7 @@ import {MyMaterials} from "./MyMaterials";
 import {FirstPersonControls} from "./FirstPersonControls";
 import {Autowired} from "./Autowired";
 import {CrossHair} from "./CrossHair";
+import {Scoreboard} from "./Scoreboard";
 
 let WIDTH = window.innerWidth;
 let HEIGHT = window.innerHeight;
@@ -72,10 +73,7 @@ class Main {
         this.autowired.world.addBody(this.autowired.firstPersonControls.physics);
 
         this.autowired.crossHair = new CrossHair(this.autowired);
-
-        for (let i = 0; i < 100; i++) {
-            this.autowired.world.step(1 / 60)
-        }
+        this.autowired.scoreboard = new Scoreboard(this.autowired, document.body);
     }
 
     render = () => {
@@ -90,6 +88,7 @@ class Main {
         this.autowired.cubeManager.update();
         this.autowired.room.update();
         this.autowired.firstPersonControls.update(fixedTimeStep);
+        this.autowired.scoreboard.update();
 
         this.renderer.render(this.autowired.scene, this.autowired.camera);
     }
