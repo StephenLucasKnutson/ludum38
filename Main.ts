@@ -4,7 +4,7 @@
 
 import ShadowMapType = THREE.ShadowMapType;
 import PCFSoftShadowMap = THREE.PCFSoftShadowMap;
-import {Cube} from "./Cube";
+import {CubeManager} from "./CubeManager";
 import {Room} from "./Room";
 import {MyMaterials} from "./MyMaterials";
 import {FirstPersonControls} from "./FirstPersonControls";
@@ -28,7 +28,7 @@ class Main {
     camera: THREE.PerspectiveCamera;
     firstPersonControls: FirstPersonControls;
 
-    cube: Cube;
+    cubeManager: CubeManager;
     room: Room;
     myMaterials: MyMaterials;
 
@@ -65,7 +65,8 @@ class Main {
         this.world.gravity.set(0, -10, 0); // m/s²
 
         this.myMaterials = new MyMaterials(this.world);
-        this.cube = new Cube(this.scene, this.world, this.myMaterials);
+
+        this.cubeManager = new CubeManager(this.scene, this.world, this.myMaterials);
         this.room = new Room(this.scene, this.world, this.myMaterials);
 
 
@@ -83,7 +84,7 @@ class Main {
         }
 
 
-        this.cube.update();
+        this.cubeManager.update();
         this.room.update();
         this.firstPersonControls.update(fixedTimeStep);
 

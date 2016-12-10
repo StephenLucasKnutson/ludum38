@@ -1,7 +1,9 @@
 /// <reference path="definitions/three.d.ts" />
 import {MyMaterials} from "./MyMaterials";
-let blockSize: number = 20;
+
 export class Room {
+    static blockSize: number = 10;
+
     bottomMesh: THREE.Mesh;
     topMesh: THREE.Mesh;
     leftMesh: THREE.Mesh;
@@ -39,12 +41,12 @@ export class Room {
         this.forwardPhysics = this.createCubePhysics();
         this.backwardPhysics = this.createCubePhysics();
 
-        this.bottomPhysics.position.set(0, -blockSize, 0);
-        this.topPhysics.position.set(0, blockSize, 0);
-        this.leftPhysics.position.set(blockSize, 0, 0);
-        this.rightPhysics.position.set(-blockSize, 0, 0);
-        this.forwardPhysics.position.set(0, 0, blockSize);
-        this.backwardPhysics.position.set(0, 0, -blockSize);
+        this.bottomPhysics.position.set(0, -Room.blockSize, 0);
+        this.topPhysics.position.set(0, Room.blockSize, 0);
+        this.leftPhysics.position.set(Room.blockSize, 0, 0);
+        this.rightPhysics.position.set(-Room.blockSize, 0, 0);
+        this.forwardPhysics.position.set(0, 0, Room.blockSize);
+        this.backwardPhysics.position.set(0, 0, -Room.blockSize);
 
         for (let mesh of this.meshes()) {
             this.scene.add(mesh)
@@ -54,13 +56,13 @@ export class Room {
         }
     }
 
-    createCubeThree(width = blockSize, height = blockSize, depth = blockSize) {
+    createCubeThree(width = Room.blockSize, height = Room.blockSize, depth = Room.blockSize) {
         let geometry = new THREE.BoxGeometry(width, height, depth);
         let material = new THREE.MeshNormalMaterial();
         return new THREE.Mesh(geometry, material);
     }
 
-    createCubePhysics(width = blockSize, height = blockSize, depth = blockSize): CANNON.Body {
+    createCubePhysics(width = Room.blockSize, height = Room.blockSize, depth = Room.blockSize): CANNON.Body {
         let sphereBody = new CANNON.Body({
             mass: 0,
             shape: new CANNON.Box(new CANNON.Vec3(width / 2, height / 2, depth / 2)),
