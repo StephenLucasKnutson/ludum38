@@ -1,8 +1,12 @@
 /// <reference path="Cube.ts" />
+/// <reference path="Room.ts" />
+/// <reference path="PointerLockControls.ts" />
 
 import ShadowMapType = THREE.ShadowMapType;
 import PCFSoftShadowMap = THREE.PCFSoftShadowMap;
 import {Cube} from "./Cube";
+import {Room} from "./Room";
+import {PointerLockControls} from "./PointerLockControls";
 
 let WIDTH = 800;
 let HEIGHT = 600;
@@ -18,10 +22,10 @@ class Main {
     renderer: THREE.WebGLRenderer;
     scene: THREE.Scene;
     camera: THREE.PerspectiveCamera;
-    geometry: THREE.BoxGeometry;
-    material: THREE.MeshNormalMaterial;
+    pointerLockControls: PointerLockControls;
 
     cube: Cube;
+    room: Room;
 
     constructor() {
         console.log("here");
@@ -42,17 +46,23 @@ class Main {
             NEAR,
             FAR);
         this.cube = new Cube();
-        // create a threeCube and add it to the scene
         this.scene.add(this.cube.threeCube);
-        // add the camera to the scene
-        this.scene.add(this.camera);
-        // move camera back so we can see the threeCube
+
+        this.room = new Room();
+        for (let mesh of this.room.meshes()) {
+            this.scene.add(mesh)
+        }
+
         this.camera.position.z = 2;
-        // set the renderer size
         this.renderer.setSize(WIDTH, HEIGHT);
+
+        this.pointerLockControls = new PointerLockControls(this.camera);
+        this.scene.add(this.pointerLockControls.getObject());
+
     }
 
     render = () => {
+        console.log("rendering")
         requestAnimationFrame(this.render);
         this.renderer.render(this.scene, this.camera);
     }
