@@ -11,24 +11,8 @@ class FirstPersonControls {
     domElement: any;
     movementSpeed: number = 1.0;
     lookSpeed: number = 0.05;
-    noFly: boolean = false;
-    lookVertical: boolean = true;
     autoForward: boolean = false;
-    activeLook: boolean = true;
-    heightSpeed: boolean = false;
-    heightCoef: number = 1.0;
-    heightMin: number = 0;
-    heightMax: number = 10;
-    constrainVertical: boolean = false;
-    verticalMin: number = 0;
-    verticalMax: number = Math.PI;
     autoSpeedFactor: number = 0.0;
-    mouseX: number = 0;
-    mouseY: number = 0;
-    lat: number = 0;
-    lon: number = 0;
-    phi: number = 0;
-    theta: number = 0;
     moveForward: boolean = false;
     moveBackward: boolean = false;
     moveLeft: boolean = false;
@@ -36,22 +20,19 @@ class FirstPersonControls {
     moveUp: boolean = false;
     moveDown: boolean = false;
     freeze: boolean = false;
-    mouseDragOn: boolean = false;
 
-    viewHalfX: number;
-    viewHalfY: number;
+    pitchObject: THREE.Object3D;
+    yawObject: THREE.Object3D;
 
-    constructor(camera: THREE.Camera, domElement: Element) {
+
+    constructor(camera: THREE.Camera, domElement: any) {
         this.camera = camera;
+        this.pitchObject = new THREE.Object3D();
+        this.pitchObject.add(this.camera);
+        this.yawObject = new THREE.Object3D();
+        this.yawObject.add(this.pitchObject);
+
         this.domElement = ( domElement !== undefined ) ? domElement : document;
-        if (this.domElement === document) {
-            this.viewHalfX = window.innerWidth / 2;
-            this.viewHalfY = window.innerHeight / 2;
-        } else {
-            this.viewHalfX = this.domElement.offsetWidth / 2;
-            this.viewHalfY = this.domElement.offsetHeight / 2;
-            this.domElement.setAttribute('tabindex', -1);
-        }
 
         this.domElement.addEventListener('contextmenu', function (event) {
             event.preventDefault();
@@ -76,42 +57,27 @@ class FirstPersonControls {
         }
         event.preventDefault();
         event.stopPropagation();
-        if (this.activeLook) {
-            switch (event.button) {
-                case 0:
-                    this.moveForward = true;
-                    break;
-                case 2:
-                    this.moveBackward = true;
-                    break;
-            }
-        }
-        this.mouseDragOn = true;
     };
     onMouseUp = (event) => {
         event.preventDefault();
         event.stopPropagation();
-        if (this.activeLook) {
-            switch (event.button) {
-                case 0:
-                    this.moveForward = false;
-                    break;
-                case 2:
-                    this.moveBackward = false;
-                    break;
-            }
-        }
-        this.mouseDragOn = false;
     };
 
+    shouldUpdate = (): boolean => {
+        let element = document.body;
+        let havePointerLock: boolean = ( document.pointerLockElement === element || document.mozPointerLockElement === element || document.webkitPointerLockElement === element )
+        return havePointerLock && !this.freeze;
+    };
     onMouseMove = (event) => {
-        if (this.domElement === document) {
-            this.mouseX = event.pageX - this.viewHalfX;
-            this.mouseY = event.pageY - this.viewHalfY;
-        } else {
-            this.mouseX = event.pageX - this.domElement.offsetLeft - this.viewHalfX;
-            this.mouseY = event.pageY - this.domElement.offsetTop - this.viewHalfY;
+        if (this.shouldUpdate()) {
+            let movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
+            let movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
+            let PI_2 = Math.PI / 2;
 
+            this.yawObject.rotation.y -= movementX * 0.002;
+            this.pitchObject.rotation.x -= movementY * 0.002;
+
+            this.pitchObject.rotation.x = Math.max(-PI_2, Math.min(PI_2, this.pitchObject.rotation.x));
         }
     };
 
@@ -174,20 +140,9 @@ class FirstPersonControls {
 
     update = (delta) => {
         var actualMoveSpeed = 0;
-        if (!this.freeze) {
-
-            if (this.heightSpeed) {
-
-                var y = THREE.Math.clamp(this.camera.position.y, this.heightMin, this.heightMax);
-                var heightDelta = y - this.heightMin;
-
-                this.autoSpeedFactor = delta * ( heightDelta * this.heightCoef );
-
-            } else {
+        if (this.shouldUpdate()) {
 
                 this.autoSpeedFactor = 0.0;
-
-            }
 
             actualMoveSpeed = delta * this.movementSpeed;
 
@@ -199,61 +154,10 @@ class FirstPersonControls {
 
             if (this.moveUp) this.camera.translateY(actualMoveSpeed);
             if (this.moveDown) this.camera.translateY(-actualMoveSpeed);
-
-            var actualLookSpeed = delta * this.lookSpeed;
-
-            if (!this.activeLook) {
-
-                actualLookSpeed = 0;
-
-            }
-
-            this.lon += this.mouseX * actualLookSpeed;
-            if (this.lookVertical) this.lat -= this.mouseY * actualLookSpeed;
-
-            this.lat = Math.max(-85, Math.min(85, this.lat));
-            this.phi = ( 90 - this.lat ) * Math.PI / 180;
-            this.theta = this.lon * Math.PI / 180;
-
-            var targetPosition = this.target,
-                position = this.camera.position;
-
-            targetPosition.x = position.x + 100 * Math.sin(this.phi) * Math.cos(this.theta);
-            targetPosition.y = position.y + 100 * Math.cos(this.phi);
-            targetPosition.z = position.z + 100 * Math.sin(this.phi) * Math.sin(this.theta);
-
         }
+    };
 
-        var verticalLookRatio = 1;
-
-        if (this.constrainVertical) {
-
-            verticalLookRatio = Math.PI / ( this.verticalMax - this.verticalMin );
-
-        }
-
-        this.lon += this.mouseX * actualLookSpeed;
-        if (this.lookVertical) this.lat -= this.mouseY * actualLookSpeed * verticalLookRatio;
-
-        this.lat = Math.max(-85, Math.min(85, this.lat));
-        this.phi = ( 90 - this.lat ) * Math.PI / 180;
-
-        this.theta = this.lon * Math.PI / 180;
-
-        if (this.constrainVertical) {
-
-            this.phi = THREE.Math.mapLinear(this.phi, 0, Math.PI, this.verticalMin, this.verticalMax);
-
-        }
-
-        var targetPosition = this.target,
-            position = this.camera.position;
-
-        targetPosition.x = position.x + 100 * Math.sin(this.phi) * Math.cos(this.theta);
-        targetPosition.y = position.y + 100 * Math.cos(this.phi);
-        targetPosition.z = position.z + 100 * Math.sin(this.phi) * Math.sin(this.theta);
-
-        this.camera.lookAt(targetPosition);
-
+    getObject(): THREE.Object3D {
+        return this.yawObject;
     };
 }

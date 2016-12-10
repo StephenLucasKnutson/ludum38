@@ -8,8 +8,8 @@ import PCFSoftShadowMap = THREE.PCFSoftShadowMap;
 import {Cube} from "./Cube";
 import {Room} from "./Room";
 
-let WIDTH = 800;
-let HEIGHT = 600;
+let WIDTH = window.innerWidth;
+let HEIGHT = window.innerHeight;
 
 let VIEW_ANGLE = 75;
 let ASPECT = WIDTH / HEIGHT;
@@ -36,32 +36,11 @@ class Main {
         this.selector = "#myCanvas";
         this.canvasElement = $(this.selector);
 
-        var havePointerLock = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
 
-        if (havePointerLock) {
+        this.canvasElement.get(0).addEventListener('click', function (event) {
+            document.body.requestPointerLock();
+        }, false);
 
-            var element = document.body;
-
-            var pointerlockchange = function (event) {
-            };
-
-            var pointerlockerror = function (event) {
-            };
-
-            // Hook pointer lock state change events
-            document.addEventListener('pointerlockchange', pointerlockchange, false);
-            document.addEventListener('mozpointerlockchange', pointerlockchange, false);
-            document.addEventListener('webkitpointerlockchange', pointerlockchange, false);
-
-            document.addEventListener('pointerlockerror', pointerlockerror, false);
-            document.addEventListener('mozpointerlockerror', pointerlockerror, false);
-            document.addEventListener('webkitpointerlockerror', pointerlockerror, false);
-
-            this.canvasElement.get(0).addEventListener('click', function (event) {
-                element.requestPointerLock();
-            }, false);
-
-        }
 
         this.renderer = new THREE.WebGLRenderer({
             canvas: <HTMLCanvasElement>this.canvasElement.get(0),
@@ -88,7 +67,8 @@ class Main {
         this.camera.position.z = 2;
         this.renderer.setSize(WIDTH, HEIGHT);
 
-        this.firstPersonControls = new FirstPersonControls(this.camera, this.canvasElement.get(0));
+        this.firstPersonControls = new FirstPersonControls(this.camera, document);
+        this.scene.add(this.firstPersonControls.getObject());
 
         // Setup our world
         this.world = new CANNON.World();
