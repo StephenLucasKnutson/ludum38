@@ -1,5 +1,6 @@
 /// <reference path="definitions/three.d.ts" />
-let blockSize: number = 5;
+import {MyMaterials} from "./MyMaterials";
+let blockSize: number = 20;
 export class Room {
     bottomMesh: THREE.Mesh;
     topMesh: THREE.Mesh;
@@ -15,20 +16,28 @@ export class Room {
     forwardPhysics: CANNON.Body;
     backwardPhysics: CANNON.Body;
 
-    constructor() {
-        this.bottomMesh = Room.createCubeThree();
-        this.topMesh = Room.createCubeThree();
-        this.leftMesh = Room.createCubeThree();
-        this.rightMesh = Room.createCubeThree();
-        this.forwardMesh = Room.createCubeThree();
-        this.backwardMesh = Room.createCubeThree();
+    scene: THREE.Scene;
+    world: CANNON.World;
+    myMaterials: MyMaterials;
 
-        this.bottomPhysics = Room.createCubePhysics();
-        this.topPhysics = Room.createCubePhysics();
-        this.leftPhysics = Room.createCubePhysics();
-        this.rightPhysics = Room.createCubePhysics();
-        this.forwardPhysics = Room.createCubePhysics();
-        this.backwardPhysics = Room.createCubePhysics();
+    constructor(scene: THREE.Scene, world: CANNON.World, myMaterials: MyMaterials) {
+        this.scene = scene;
+        this.world = world;
+        this.myMaterials = myMaterials;
+
+        this.bottomMesh = this.createCubeThree();
+        this.topMesh = this.createCubeThree();
+        this.leftMesh = this.createCubeThree();
+        this.rightMesh = this.createCubeThree();
+        this.forwardMesh = this.createCubeThree();
+        this.backwardMesh = this.createCubeThree();
+
+        this.bottomPhysics = this.createCubePhysics();
+        this.topPhysics = this.createCubePhysics();
+        this.leftPhysics = this.createCubePhysics();
+        this.rightPhysics = this.createCubePhysics();
+        this.forwardPhysics = this.createCubePhysics();
+        this.backwardPhysics = this.createCubePhysics();
 
         this.bottomPhysics.position.set(0, -blockSize, 0);
         this.topPhysics.position.set(0, blockSize, 0);
@@ -36,18 +45,26 @@ export class Room {
         this.rightPhysics.position.set(-blockSize, 0, 0);
         this.forwardPhysics.position.set(0, 0, blockSize);
         this.backwardPhysics.position.set(0, 0, -blockSize);
+
+        for (let mesh of this.meshes()) {
+            this.scene.add(mesh)
+        }
+        for (let physicBody of this.physics()) {
+            this.world.addBody(physicBody)
+        }
     }
 
-    static createCubeThree(width = blockSize, height = blockSize, depth = blockSize) {
+    createCubeThree(width = blockSize, height = blockSize, depth = blockSize) {
         let geometry = new THREE.BoxGeometry(width, height, depth);
         let material = new THREE.MeshNormalMaterial();
         return new THREE.Mesh(geometry, material);
     }
 
-    static createCubePhysics(width = blockSize, height = blockSize, depth = blockSize): CANNON.Body {
+    createCubePhysics(width = blockSize, height = blockSize, depth = blockSize): CANNON.Body {
         let sphereBody = new CANNON.Body({
             mass: 0,
-            shape: new CANNON.Box(new CANNON.Vec3(width / 2, height / 2, depth / 2))
+            shape: new CANNON.Box(new CANNON.Vec3(width / 2, height / 2, depth / 2)),
+            material: this.myMaterials.slipperyMaterial
         });
         return sphereBody;
     }

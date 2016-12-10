@@ -1,12 +1,13 @@
 /// <reference path="Cube.ts" />
 /// <reference path="Room.ts" />
 /// <reference path="definitions/cannon.d.ts" />
-/// <reference path="PointerLockControls.ts" />
 
 import ShadowMapType = THREE.ShadowMapType;
 import PCFSoftShadowMap = THREE.PCFSoftShadowMap;
 import {Cube} from "./Cube";
 import {Room} from "./Room";
+import {MyMaterials} from "./MyMaterials";
+import {FirstPersonControls} from "./FirstPersonControls";
 
 let WIDTH = window.innerWidth;
 let HEIGHT = window.innerHeight;
@@ -29,6 +30,7 @@ class Main {
 
     cube: Cube;
     room: Room;
+    myMaterials: MyMaterials;
 
     world: CANNON.World;
 
@@ -50,40 +52,36 @@ class Main {
         });
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = PCFSoftShadowMap;
+        this.renderer.setSize(WIDTH, HEIGHT);
+
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(
             VIEW_ANGLE,
             ASPECT,
             NEAR,
             FAR);
-        this.cube = new Cube();
-        this.scene.add(this.cube.threeCube);
 
-        this.room = new Room();
-        for (let mesh of this.room.meshes()) {
-            this.scene.add(mesh)
-        }
-
-        this.camera.position.z = 2;
-        this.renderer.setSize(WIDTH, HEIGHT);
-
-        this.firstPersonControls = new FirstPersonControls(this.camera, document);
-        this.scene.add(this.firstPersonControls.getObject());
-
-        // Setup our world
         this.world = new CANNON.World();
-        this.world.gravity.set(0, -9.82, 0); // m/s²
+        this.world.gravity.set(0, -10, 0); // m/s²
 
-        this.world.addBody(this.cube.physicsBody);
-        for (let physicBody of this.room.physics()) {
-            this.world.addBody(physicBody)
-        }
+        this.myMaterials = new MyMaterials(this.world);
+        this.cube = new Cube(this.scene, this.world, this.myMaterials);
+        this.room = new Room(this.scene, this.world, this.myMaterials);
+
+
+        this.firstPersonControls = new FirstPersonControls(this.camera, document, this.myMaterials);
+        this.scene.add(this.firstPersonControls.getObject());
+        this.world.addBody(this.firstPersonControls.physics);
     }
 
     render = () => {
         requestAnimationFrame(this.render);
 
-        this.world.step(fixedTimeStep / 10);
+        let subdivision = 10;
+        for (let i = 0; i < subdivision; i++) {
+            this.world.step(fixedTimeStep / subdivision);
+        }
+
 
         this.cube.update();
         this.room.update();

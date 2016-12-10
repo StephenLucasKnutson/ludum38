@@ -1,3 +1,4 @@
+import {MyMaterials} from "./MyMaterials";
 /**
  * @author mrdoob / http://mrdoob.com/
  * @author alteredq / http://alteredqualia.com/
@@ -5,14 +6,13 @@
  */
 //Modified by Lucas Knutson
 
-class FirstPersonControls {
+export class FirstPersonControls {
     camera: THREE.Camera;
     target: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
     domElement: any;
     movementSpeed: number = 1.0;
     lookSpeed: number = 0.05;
     autoForward: boolean = false;
-    autoSpeedFactor: number = 0.0;
     moveForward: boolean = false;
     moveBackward: boolean = false;
     moveLeft: boolean = false;
@@ -24,13 +24,24 @@ class FirstPersonControls {
     pitchObject: THREE.Object3D;
     yawObject: THREE.Object3D;
 
+    physics: CANNON.Body;
+    myMaterials: MyMaterials;
 
-    constructor(camera: THREE.Camera, domElement: any) {
+
+    constructor(camera: THREE.Camera, domElement: any, myMaterials: MyMaterials) {
         this.camera = camera;
         this.pitchObject = new THREE.Object3D();
         this.pitchObject.add(this.camera);
         this.yawObject = new THREE.Object3D();
         this.yawObject.add(this.pitchObject);
+
+        this.physics = new CANNON.Body({
+            mass: 20,
+            position: new CANNON.Vec3(0, 0, 0),
+            shape: new CANNON.Sphere(1.3),
+            material: myMaterials.slipperyMaterial,
+            linearDamping: 0.9
+        });
 
         this.domElement = ( domElement !== undefined ) ? domElement : document;
 
@@ -65,7 +76,7 @@ class FirstPersonControls {
 
     shouldUpdate = (): boolean => {
         let element = document.body;
-        let havePointerLock: boolean = ( document.pointerLockElement === element || document.mozPointerLockElement === element || document.webkitPointerLockElement === element )
+        let havePointerLock: boolean = ( document.pointerLockElement === element );
         return havePointerLock && !this.freeze;
     };
     onMouseMove = (event) => {
@@ -139,22 +150,40 @@ class FirstPersonControls {
     };
 
     update = (delta) => {
-        var actualMoveSpeed = 0;
+        let actualMoveSpeed: number = 0;
         if (this.shouldUpdate()) {
+            actualMoveSpeed = delta * this.movementSpeed * 50;
+            let movementImpulse: THREE.Vector3 = new THREE.Vector3();
 
-                this.autoSpeedFactor = 0.0;
+            if (this.moveForward) movementImpulse.z -= actualMoveSpeed;
+            if (this.moveBackward) movementImpulse.z += actualMoveSpeed;
 
-            actualMoveSpeed = delta * this.movementSpeed;
+            if (this.moveLeft) movementImpulse.x -= actualMoveSpeed;
+            if (this.moveRight) movementImpulse.x += actualMoveSpeed;
 
-            if (this.moveForward || ( this.autoForward && !this.moveBackward )) this.camera.translateZ(-( actualMoveSpeed + this.autoSpeedFactor ));
-            if (this.moveBackward) this.camera.translateZ(actualMoveSpeed);
+            if (this.moveUp) movementImpulse.y += actualMoveSpeed;
+            if (this.moveDown) movementImpulse.y -= actualMoveSpeed;
 
-            if (this.moveLeft) this.camera.translateX(-actualMoveSpeed);
-            if (this.moveRight) this.camera.translateX(actualMoveSpeed);
+            let quat: THREE.Quaternion = new THREE.Quaternion();
+            quat.setFromEuler(new THREE.Euler(this.pitchObject.rotation.x, this.yawObject.rotation.y, 0, "XYZ"));
+            movementImpulse.applyQuaternion(quat);
+            this.physics.applyImpulse(new CANNON.Vec3(movementImpulse.x, movementImpulse.y, movementImpulse.z), new CANNON.Vec3());
+            this.yawObject.position.set(this.physics.position.x, this.physics.position.y, this.physics.position.z);
+            //this.physics.position.set(this.yawObject.position.x, this.yawObject.position.y, this.yawObject.position.z);
+            //let relativeToCameraThree: THREE.Vector3 = this.camera.localToWorld(new THREE.Vector3(movementImpulse.x, movementImpulse.y, movementImpulse.z));
+            //this.physics.applyLocalImpulse(new CANNON.Vec3(relativeToCameraThree.x, relativeToCameraThree.y, relativeToCameraThree.z), new CANNON.Vec3());
+            //this.physics.velocity.vadd(new CANNON.Vec3(movementImpulse.x, movementImpulse.y));
+            //this.physics.position.copy(new CANNON.Vec3(this.yawObject.position.x, this.yawObject.position.y, this.yawObject.position.z));
+            //this.physics.applyImpulse(movementImpulse, new CANNON.Vec3());
+            //this.physics.applyImpulse(new CANNON.Vec3(movementImpulse.x, movementImpulse.y, movementImpulse.z), new CANNON.Vec3());
 
-            if (this.moveUp) this.camera.translateY(actualMoveSpeed);
-            if (this.moveDown) this.camera.translateY(-actualMoveSpeed);
         }
+
+        //this.physics.angularVelocity.set(0,0,0);
+        //this.physics.applyImpulse(new CANNON.Vec3(0, 10, 0), new CANNON.Vec3(0, 1, 0));
+        //this.physics.applyImpulse(new CANNON.Vec3(0, -10, 0), new CANNON.Vec3(0, -1, 0));
+        //this.yawObject.position.set(this.physics.position.x, this.physics.position.y, this.physics.position.z);
+        //Util.copyPhysicsTo(this.physics, this.camera)
     };
 
     getObject(): THREE.Object3D {

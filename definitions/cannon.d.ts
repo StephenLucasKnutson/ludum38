@@ -759,7 +759,7 @@ declare module CANNON {
 
         applyLocalForce(force: Vec3, localPoint: Vec3): void;
 
-        applyLocalImplse(impulse: Vec3, localPoint: Vec3): void;
+        applyLocalImpulse(impulse: Vec3, localPoint: Vec3): void;
 
         updateBoundingRadius(): void;
 
