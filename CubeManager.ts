@@ -10,6 +10,9 @@ export class CubeManager {
 
     public constructor(autowired: Autowired) {
         this.autowired = autowired;
+        for (let i = 0; i < 20; i++) {
+            this.createCube();
+        }
     }
 
     private createCube() {
@@ -30,6 +33,15 @@ export class CubeManager {
     }
 
     public removeCube(mesh: THREE.Object3D) {
-        //todo: do
+        let badCubeIndex: number = -1;
+        for (let i = 0; i < this.cubes.length; i++) {
+            if (mesh == this.cubes[i].threeCube) {
+                badCubeIndex = i;
+            }
+        }
+        if (badCubeIndex != -1) {
+            this.cubes[badCubeIndex].destroy();
+            this.cubes.splice(badCubeIndex, 1);
+        }
     }
 }

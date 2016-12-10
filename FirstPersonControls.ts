@@ -8,6 +8,7 @@ import {Autowired} from "./Autowired";
 
 export class FirstPersonControls {
     autowired: Autowired;
+    height: number = 1.3;
     target: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
     domElement: any;
     movementSpeed: number = 1.0;
@@ -17,8 +18,7 @@ export class FirstPersonControls {
     moveBackward: boolean = false;
     moveLeft: boolean = false;
     moveRight: boolean = false;
-    moveUp: boolean = false;
-    moveDown: boolean = false;
+    jump: boolean = false;
     freeze: boolean = false;
 
     pitchObject: THREE.Object3D;
@@ -36,8 +36,8 @@ export class FirstPersonControls {
 
         this.physics = new CANNON.Body({
             mass: 20,
-            position: new CANNON.Vec3(0, 0, 0),
-            shape: new CANNON.Sphere(1.3),
+            position: new CANNON.Vec3(0, 5, 0),
+            shape: new CANNON.Sphere(this.height / 2),
             material: this.autowired.myMaterials.slipperyMaterial,
             linearDamping: 0.9
         });
@@ -73,7 +73,7 @@ export class FirstPersonControls {
 
     private shoot() {
         let raycaster: THREE.Raycaster = new THREE.Raycaster();
-        raycaster.setFromCamera({x: 0.5, y: 0.5}, this.autowired.camera);
+        raycaster.set(this.autowired.camera.getWorldPosition(), this.autowired.camera.getWorldDirection());
         let intersections: THREE.Intersection[] = raycaster.intersectObjects(this.autowired.scene.children);
         if (intersections.length == 0) {
             return;
@@ -85,6 +85,21 @@ export class FirstPersonControls {
             }
         }
         this.autowired.cubeManager.removeCube(nearest.object)
+    }
+
+    private canJump() {
+        let tolerance: number = 0.1;
+        let mustBeCloserThan = this.height / 2 + tolerance;
+
+        let raycaster: THREE.Raycaster = new THREE.Raycaster();
+        raycaster.set(this.autowired.camera.getWorldPosition(), new THREE.Vector3(0, -1, 0));
+        let intersections: THREE.Intersection[] = raycaster.intersectObjects(this.autowired.scene.children);
+        for (let intersection of intersections) {
+            if (intersection.distance < mustBeCloserThan) {
+                return true;
+            }
+        }
+        return false;
     }
 
     onMouseUp = (event) => {
@@ -128,14 +143,11 @@ export class FirstPersonControls {
             case 68: /*D*/
                 this.moveRight = true;
                 break;
-            case 82: /*R*/
-                this.moveUp = true;
-                break;
-            case 70: /*F*/
-                this.moveDown = true;
-                break;
             case 81: /*Q*/
                 this.freeze = !this.freeze;
+                break;
+            case 32: /*space*/
+                this.jump = true;
                 break;
         }
     };
@@ -158,11 +170,8 @@ export class FirstPersonControls {
             case 68: /*D*/
                 this.moveRight = false;
                 break;
-            case 82: /*R*/
-                this.moveUp = false;
-                break;
-            case 70: /*F*/
-                this.moveDown = false;
+            case 32: /*space*/
+                this.jump = false;
                 break;
         }
     };
@@ -179,15 +188,15 @@ export class FirstPersonControls {
             if (this.moveLeft) movementImpulse.x -= actualMoveSpeed;
             if (this.moveRight) movementImpulse.x += actualMoveSpeed;
 
-            if (this.moveUp) movementImpulse.y += actualMoveSpeed;
-            if (this.moveDown) movementImpulse.y -= actualMoveSpeed;
+            if (this.canJump() && this.jump) movementImpulse.y += actualMoveSpeed * 10;
+            console.log(movementImpulse.x + " " + movementImpulse.y + " " + movementImpulse.z);
 
             let quat: THREE.Quaternion = new THREE.Quaternion();
             quat.setFromEuler(new THREE.Euler(this.pitchObject.rotation.x, this.yawObject.rotation.y, 0, "XYZ"));
             movementImpulse.applyQuaternion(quat);
             this.physics.applyImpulse(new CANNON.Vec3(movementImpulse.x, movementImpulse.y, movementImpulse.z), new CANNON.Vec3());
-            this.yawObject.position.set(this.physics.position.x, this.physics.position.y, this.physics.position.z);
         }
+        this.yawObject.position.set(this.physics.position.x, this.physics.position.y, this.physics.position.z);
     };
 
     getObject(): THREE.Object3D {
