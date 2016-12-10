@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "module": "system",
+    "outFile": "build/bundle.js",
+    "sourceMap": true,
+    "inlineSources": true,
+    "target": "es5"
+  }
+}
