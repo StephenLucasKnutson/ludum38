@@ -7,6 +7,7 @@ import {Autowired} from "./Autowired";
 //Modified by Lucas Knutson
 
 export class FirstPersonControls {
+    mass: number = 2;
     autowired: Autowired;
     height: number = 1.3;
     target: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
@@ -35,7 +36,7 @@ export class FirstPersonControls {
         this.yawObject.add(this.pitchObject);
 
         this.physics = new CANNON.Body({
-            mass: 20,
+            mass: this.mass,
             position: new CANNON.Vec3(0, 5, 0),
             shape: new CANNON.Sphere(this.height / 2),
             material: this.autowired.myMaterials.slipperyMaterial,
@@ -188,8 +189,8 @@ export class FirstPersonControls {
             if (this.moveLeft) movementImpulse.x -= actualMoveSpeed;
             if (this.moveRight) movementImpulse.x += actualMoveSpeed;
 
-            if (this.canJump() && this.jump) movementImpulse.y += actualMoveSpeed * 10;
-            console.log(movementImpulse.x + " " + movementImpulse.y + " " + movementImpulse.z);
+            if (this.canJump() && this.jump) movementImpulse.y += actualMoveSpeed * 2;
+            movementImpulse = movementImpulse.multiplyScalar(this.mass * 0.2)
 
             let quat: THREE.Quaternion = new THREE.Quaternion();
             quat.setFromEuler(new THREE.Euler(this.pitchObject.rotation.x, this.yawObject.rotation.y, 0, "XYZ"));

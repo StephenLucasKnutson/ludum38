@@ -10,9 +10,6 @@ export class CubeManager {
 
     public constructor(autowired: Autowired) {
         this.autowired = autowired;
-        for (let i = 0; i < 20; i++) {
-            this.createCube();
-        }
     }
 
     private createCube() {
