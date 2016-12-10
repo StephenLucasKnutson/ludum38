@@ -1,4 +1,4 @@
-import {MyMaterials} from "./MyMaterials";
+import {Autowired} from "./Autowired";
 /**
  * @author mrdoob / http://mrdoob.com/
  * @author alteredq / http://alteredqualia.com/
@@ -7,7 +7,7 @@ import {MyMaterials} from "./MyMaterials";
 //Modified by Lucas Knutson
 
 export class FirstPersonControls {
-    camera: THREE.Camera;
+    autowired: Autowired;
     target: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
     domElement: any;
     movementSpeed: number = 1.0;
@@ -25,13 +25,12 @@ export class FirstPersonControls {
     yawObject: THREE.Object3D;
 
     physics: CANNON.Body;
-    myMaterials: MyMaterials;
 
 
-    constructor(camera: THREE.Camera, domElement: any, myMaterials: MyMaterials) {
-        this.camera = camera;
+    constructor(autowired: Autowired, domElement: any) {
+        this.autowired = autowired;
         this.pitchObject = new THREE.Object3D();
-        this.pitchObject.add(this.camera);
+        this.pitchObject.add(this.autowired.camera);
         this.yawObject = new THREE.Object3D();
         this.yawObject.add(this.pitchObject);
 
@@ -39,7 +38,7 @@ export class FirstPersonControls {
             mass: 20,
             position: new CANNON.Vec3(0, 0, 0),
             shape: new CANNON.Sphere(1.3),
-            material: myMaterials.slipperyMaterial,
+            material: this.autowired.myMaterials.slipperyMaterial,
             linearDamping: 0.9
         });
 
@@ -68,7 +67,26 @@ export class FirstPersonControls {
         }
         event.preventDefault();
         event.stopPropagation();
+
+        this.shoot();
     };
+
+    private shoot() {
+        let raycaster: THREE.Raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera({x: 0.5, y: 0.5}, this.autowired.camera);
+        let intersections: THREE.Intersection[] = raycaster.intersectObjects(this.autowired.scene.children);
+        if (intersections.length == 0) {
+            return;
+        }
+        let nearest: THREE.Intersection = intersections[0];
+        for (let intersection of intersections) {
+            if (intersection.distance < nearest.distance) {
+                nearest = intersection;
+            }
+        }
+        this.autowired.cubeManager.removeCube(nearest.object)
+    }
+
     onMouseUp = (event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -169,21 +187,7 @@ export class FirstPersonControls {
             movementImpulse.applyQuaternion(quat);
             this.physics.applyImpulse(new CANNON.Vec3(movementImpulse.x, movementImpulse.y, movementImpulse.z), new CANNON.Vec3());
             this.yawObject.position.set(this.physics.position.x, this.physics.position.y, this.physics.position.z);
-            //this.physics.position.set(this.yawObject.position.x, this.yawObject.position.y, this.yawObject.position.z);
-            //let relativeToCameraThree: THREE.Vector3 = this.camera.localToWorld(new THREE.Vector3(movementImpulse.x, movementImpulse.y, movementImpulse.z));
-            //this.physics.applyLocalImpulse(new CANNON.Vec3(relativeToCameraThree.x, relativeToCameraThree.y, relativeToCameraThree.z), new CANNON.Vec3());
-            //this.physics.velocity.vadd(new CANNON.Vec3(movementImpulse.x, movementImpulse.y));
-            //this.physics.position.copy(new CANNON.Vec3(this.yawObject.position.x, this.yawObject.position.y, this.yawObject.position.z));
-            //this.physics.applyImpulse(movementImpulse, new CANNON.Vec3());
-            //this.physics.applyImpulse(new CANNON.Vec3(movementImpulse.x, movementImpulse.y, movementImpulse.z), new CANNON.Vec3());
-
         }
-
-        //this.physics.angularVelocity.set(0,0,0);
-        //this.physics.applyImpulse(new CANNON.Vec3(0, 10, 0), new CANNON.Vec3(0, 1, 0));
-        //this.physics.applyImpulse(new CANNON.Vec3(0, -10, 0), new CANNON.Vec3(0, -1, 0));
-        //this.yawObject.position.set(this.physics.position.x, this.physics.position.y, this.physics.position.z);
-        //Util.copyPhysicsTo(this.physics, this.camera)
     };
 
     getObject(): THREE.Object3D {

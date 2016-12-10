@@ -1,8 +1,10 @@
 /// <reference path="definitions/three.d.ts" />
-import {MyMaterials} from "./MyMaterials";
+import {Autowired} from "./Autowired";
 
 export class Room {
     static blockSize: number = 10;
+
+    autowired: Autowired;
 
     bottomMesh: THREE.Mesh;
     topMesh: THREE.Mesh;
@@ -18,14 +20,8 @@ export class Room {
     forwardPhysics: CANNON.Body;
     backwardPhysics: CANNON.Body;
 
-    scene: THREE.Scene;
-    world: CANNON.World;
-    myMaterials: MyMaterials;
-
-    constructor(scene: THREE.Scene, world: CANNON.World, myMaterials: MyMaterials) {
-        this.scene = scene;
-        this.world = world;
-        this.myMaterials = myMaterials;
+    constructor(autowired: Autowired) {
+        this.autowired = autowired;
 
         this.bottomMesh = this.createCubeThree();
         this.topMesh = this.createCubeThree();
@@ -49,10 +45,10 @@ export class Room {
         this.backwardPhysics.position.set(0, 0, -Room.blockSize);
 
         for (let mesh of this.meshes()) {
-            this.scene.add(mesh)
+            this.autowired.scene.add(mesh)
         }
         for (let physicBody of this.physics()) {
-            this.world.addBody(physicBody)
+            this.autowired.world.addBody(physicBody)
         }
     }
 
@@ -66,7 +62,7 @@ export class Room {
         let sphereBody = new CANNON.Body({
             mass: 0,
             shape: new CANNON.Box(new CANNON.Vec3(width / 2, height / 2, depth / 2)),
-            material: this.myMaterials.slipperyMaterial
+            material: this.autowired.myMaterials.slipperyMaterial
         });
         return sphereBody;
     }

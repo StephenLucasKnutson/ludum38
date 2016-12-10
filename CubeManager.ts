@@ -1,23 +1,19 @@
 import {Cube} from "./Cube";
-import {MyMaterials} from "./MyMaterials";
+import {Autowired} from "./Autowired";
 
 export class CubeManager {
     cubes: Cube[] = [];
-    scene: THREE.Scene;
-    world: CANNON.World;
-    myMaterials: MyMaterials;
+    autowired: Autowired;
     a: number = 200000;
     numberOfUpdates: number = 2000;
 
 
-    public constructor(scene: THREE.Scene, world: CANNON.World, myMaterials: MyMaterials) {
-        this.scene = scene;
-        this.world = world;
-        this.myMaterials = myMaterials;
+    public constructor(autowired: Autowired) {
+        this.autowired = autowired;
     }
 
     private createCube() {
-        let cube: Cube = new Cube(this.scene, this.world, this.myMaterials);
+        let cube: Cube = new Cube(this.autowired);
         this.cubes.push(cube)
     }
 
@@ -31,5 +27,9 @@ export class CubeManager {
             cube.update();
         }
         this.numberOfUpdates++;
+    }
+
+    public removeCube(mesh: THREE.Object3D) {
+        //todo: do
     }
 }

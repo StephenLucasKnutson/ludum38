@@ -1,25 +1,20 @@
 /// <reference path="definitions/jquery.d.ts" />
 /// <reference path="definitions/three.d.ts" />
-import {MyMaterials} from "./MyMaterials";
 import {Room} from "./Room";
+import {Autowired} from "./Autowired";
 export class Cube {
+    autowired: Autowired;
     threeCube: THREE.Mesh;
     physicsBody: CANNON.Body;
 
-    scene: THREE.Scene;
-    world: CANNON.World;
-    myMaterials: MyMaterials;
-
-    constructor(scene: THREE.Scene, world: CANNON.World, myMaterials: MyMaterials) {
-        this.scene = scene;
-        this.world = world;
-        this.myMaterials = myMaterials;
+    constructor(autowired: Autowired) {
+        this.autowired = autowired;
 
         this.threeCube = this.createCubeThree();
         this.physicsBody = this.createCubePhysics();
 
-        this.scene.add(this.threeCube);
-        this.world.addBody(this.physicsBody);
+        this.autowired.scene.add(this.threeCube);
+        this.autowired.world.addBody(this.physicsBody);
     }
 
     createCubeThree(width = 1, height = 1, depth = 1) {
@@ -35,7 +30,7 @@ export class Cube {
             mass: 5,
             position: new CANNON.Vec3(x, Room.blockSize / 2 - 1, z),
             shape: new CANNON.Box(new CANNON.Vec3(width / 2, height / 2, depth / 2)),
-            material: this.myMaterials.cubeMaterial,
+            material: this.autowired.myMaterials.cubeMaterial,
             linearDamping: 0.3
         });
         return sphereBody;

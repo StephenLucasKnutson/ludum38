@@ -1,13 +1,14 @@
+import {Autowired} from "./Autowired";
 export class MyMaterials {
-    world: CANNON.World;
+    autowired: Autowired;
     wallMaterial: CANNON.Material;
     playerMaterial: CANNON.Material;
     cubeMaterial: CANNON.Material;
 
     slipperyMaterial: CANNON.Material;
 
-    constructor(world: CANNON.World) {
-        this.world = world;
+    constructor(autowired: Autowired) {
+        this.autowired = autowired;
         this.wallMaterial = new CANNON.Material("wallMaterial");
         this.playerMaterial = new CANNON.Material("playerMaterial");
         this.cubeMaterial = new CANNON.Material("cubeMaterial");

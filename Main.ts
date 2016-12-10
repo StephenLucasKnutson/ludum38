@@ -8,6 +8,7 @@ import {CubeManager} from "./CubeManager";
 import {Room} from "./Room";
 import {MyMaterials} from "./MyMaterials";
 import {FirstPersonControls} from "./FirstPersonControls";
+import {Autowired} from "./Autowired";
 
 let WIDTH = window.innerWidth;
 let HEIGHT = window.innerHeight;
@@ -24,17 +25,11 @@ class Main {
     selector: string;
     canvasElement: JQuery;
     renderer: THREE.WebGLRenderer;
-    scene: THREE.Scene;
-    camera: THREE.PerspectiveCamera;
-    firstPersonControls: FirstPersonControls;
+    autowired: Autowired;
 
-    cubeManager: CubeManager;
-    room: Room;
-    myMaterials: MyMaterials;
-
-    world: CANNON.World;
 
     constructor() {
+        this.autowired = new Autowired();
         this.selector = "#myCanvas";
         this.canvasElement = $(this.selector);
 
@@ -54,25 +49,26 @@ class Main {
         this.renderer.shadowMap.type = PCFSoftShadowMap;
         this.renderer.setSize(WIDTH, HEIGHT);
 
-        this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(
+        this.autowired.scene = new THREE.Scene();
+        this.autowired.camera = new THREE.PerspectiveCamera(
             VIEW_ANGLE,
             ASPECT,
             NEAR,
             FAR);
 
-        this.world = new CANNON.World();
-        this.world.gravity.set(0, -10, 0); // m/s²
 
-        this.myMaterials = new MyMaterials(this.world);
+        this.autowired.world = new CANNON.World();
+        this.autowired.world.gravity.set(0, -10, 0); // m/s²
 
-        this.cubeManager = new CubeManager(this.scene, this.world, this.myMaterials);
-        this.room = new Room(this.scene, this.world, this.myMaterials);
+        this.autowired.myMaterials = new MyMaterials(this.autowired);
+
+        this.autowired.cubeManager = new CubeManager(this.autowired);
+        this.autowired.room = new Room(this.autowired);
 
 
-        this.firstPersonControls = new FirstPersonControls(this.camera, document, this.myMaterials);
-        this.scene.add(this.firstPersonControls.getObject());
-        this.world.addBody(this.firstPersonControls.physics);
+        this.autowired.firstPersonControls = new FirstPersonControls(this.autowired, document);
+        this.autowired.scene.add(this.autowired.firstPersonControls.getObject());
+        this.autowired.world.addBody(this.autowired.firstPersonControls.physics);
     }
 
     render = () => {
@@ -80,15 +76,15 @@ class Main {
 
         let subdivision = 10;
         for (let i = 0; i < subdivision; i++) {
-            this.world.step(fixedTimeStep / subdivision);
+            this.autowired.world.step(fixedTimeStep / subdivision);
         }
 
 
-        this.cubeManager.update();
-        this.room.update();
-        this.firstPersonControls.update(fixedTimeStep);
+        this.autowired.cubeManager.update();
+        this.autowired.room.update();
+        this.autowired.firstPersonControls.update(fixedTimeStep);
 
-        this.renderer.render(this.scene, this.camera);
+        this.renderer.render(this.autowired.scene, this.autowired.camera);
     }
 }
 let main: Main = new Main();
