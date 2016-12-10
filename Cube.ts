@@ -3,62 +3,29 @@
 
 export class Cube {
     threeCube: THREE.Mesh;
-
-    rotVelocities = {
-        x: 0.01,
-        y: 0.01,
-        z: 0.01
-    };
+    physicsBody: CANNON.Body;
 
     constructor() {
-        this.threeCube = Cube.createCube();
+        this.threeCube = Cube.createCubeThree();
+        this.physicsBody = Cube.createCubePhysics();
     }
 
-    static createCube(width = 1, height = 1, depth = 1) {
+    static createCubeThree(width = 1, height = 1, depth = 1) {
         let geometry = new THREE.BoxGeometry(width, height, depth);
-        let material = new THREE.MeshNormalMaterial();
+        let material = new THREE.MeshPhongMaterial();
         return new THREE.Mesh(geometry, material);
     }
 
-    /**
-     * gets threeCube rotation velocity on x axis
-     */
-    get rotX() {
-        return this.rotVelocities.x;
+    static createCubePhysics(width = 1, height = 1, depth = 1): CANNON.Body {
+        let sphereBody = new CANNON.Body({
+            mass: 5,
+            position: new CANNON.Vec3(0, 0, 0),
+            shape: new CANNON.Box(new CANNON.Vec3(width / 2, height / 2, depth / 2))
+        });
+        return sphereBody;
     }
 
-    /**
-     * sets threeCube rotation velocity on x axis
-     */
-    set rotX(velocity: number) {
-        this.rotVelocities.x = velocity;
-    }
-
-    /**
-     * gets threeCube rotation velocity on y axis
-     */
-    get rotY() {
-        return this.rotVelocities.y;
-    }
-
-    /**
-     * sets threeCube rotation velocity on y axis
-     */
-    set rotY(velocity: number) {
-        this.rotVelocities.y = velocity;
-    }
-
-    /**
-     * gets threeCube rotation velocity on z axis
-     */
-    get rotZ() {
-        return this.rotVelocities.z;
-    }
-
-    /**
-     * sets threeCube rotation velocity on z axis
-     */
-    set rotZ(velocity: number) {
-        this.rotVelocities.z = velocity;
+    update() {
+        Util.copyPhysicsTo(this.physicsBody, this.threeCube);
     }
 }

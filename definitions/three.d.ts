@@ -546,10 +546,10 @@ declare namespace THREE {
      */
     export class OrthographicCamera extends Camera {
         /**
-         * @param left Camera frustum left plane.
-         * @param right Camera frustum right plane.
-         * @param top Camera frustum top plane.
-         * @param bottom Camera frustum bottom plane.
+         * @param left Camera frustum leftMesh plane.
+         * @param right Camera frustum rightMesh plane.
+         * @param top Camera frustum topMesh plane.
+         * @param bottom Camera frustum bottomMesh plane.
          * @param near Camera frustum near plane.
          * @param far Camera frustum far plane.
          */
@@ -566,22 +566,22 @@ declare namespace THREE {
         };
 
         /**
-         * Camera frustum left plane.
+         * Camera frustum leftMesh plane.
          */
         left: number;
 
         /**
-         * Camera frustum right plane.
+         * Camera frustum rightMesh plane.
          */
         right: number;
 
         /**
-         * Camera frustum top plane.
+         * Camera frustum topMesh plane.
          */
         top: number;
 
         /**
-         * Camera frustum bottom plane.
+         * Camera frustum bottomMesh plane.
          */
         bottom: number;
 
@@ -628,7 +628,7 @@ declare namespace THREE {
         zoom: number;
 
         /**
-         * Camera frustum vertical field of view, from bottom to top of view, in degrees.
+         * Camera frustum vertical field of view, from bottomMesh to topMesh of view, in degrees.
          */
         fov: number;
 
@@ -1908,10 +1908,10 @@ declare namespace THREE {
         receiveShadow: boolean;
         shadow: LightShadow;
         shadowCameraFov: any; // deprecated, use shadow.camera.fov
-        shadowCameraLeft: any; // deprecated, use shadow.camera.left
-        shadowCameraRight: any; // deprecated, use shadow.camera.right
-        shadowCameraTop: any; // deprecated, use shadow.camera.top
-        shadowCameraBottom: any; // deprecated, use shadow.camera.bottom
+        shadowCameraLeft: any; // deprecated, use shadow.camera.leftMesh
+        shadowCameraRight: any; // deprecated, use shadow.camera.rightMesh
+        shadowCameraTop: any; // deprecated, use shadow.camera.topMesh
+        shadowCameraBottom: any; // deprecated, use shadow.camera.bottomMesh
         shadowCameraNear: any; // deprecated, use shadow.camera.near
         shadowCameraFar: any; // deprecated, use shadow.camera.far
         shadowBias: any; // deprecated, use shadow.bias
@@ -1959,7 +1959,7 @@ declare namespace THREE {
      * Affects objects using MeshLambertMaterial or MeshPhongMaterial.
      *
      * @example
-     * // White directional light at half intensity shining from the top.
+     * // White directional light at half intensity shining from the topMesh.
      * var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
      * directionalLight.position.set( 0, 1, 0 );
      * scene.add( directionalLight );
@@ -6832,8 +6832,8 @@ declare namespace THREE {
 
     export class CylinderGeometry extends Geometry {
         /**
-         * @param radiusTop — Radius of the cylinder at the top.
-         * @param radiusBottom — Radius of the cylinder at the bottom.
+         * @param radiusTop — Radius of the cylinder at the topMesh.
+         * @param radiusBottom — Radius of the cylinder at the bottomMesh.
          * @param height — Height of the cylinder.
          * @param radiusSegments — Number of segmented faces around the circumference of the cylinder.
          * @param heightSegments — Number of rows of faces along the height of the cylinder.

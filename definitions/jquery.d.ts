@@ -1443,15 +1443,15 @@ interface JQuery {
      */
     offset(): JQueryCoordinates;
     /**
-     * An object containing the properties top and left, which are integers indicating the new top and left coordinates for the elements.
+     * An object containing the properties topMesh and leftMesh, which are integers indicating the new topMesh and leftMesh coordinates for the elements.
      *
-     * @param coordinates An object containing the properties top and left, which are integers indicating the new top and left coordinates for the elements.
+     * @param coordinates An object containing the properties topMesh and leftMesh, which are integers indicating the new topMesh and leftMesh coordinates for the elements.
      */
     offset(coordinates: JQueryCoordinates): JQuery;
     /**
-     * An object containing the properties top and left, which are integers indicating the new top and left coordinates for the elements.
+     * An object containing the properties topMesh and leftMesh, which are integers indicating the new topMesh and leftMesh coordinates for the elements.
      *
-     * @param func A function to return the coordinates to set. Receives the index of the element in the collection as the first argument and the current coordinates as the second argument. The function should return an object with the new top and left properties.
+     * @param func A function to return the coordinates to set. Receives the index of the element in the collection as the first argument and the current coordinates as the second argument. The function should return an object with the new topMesh and leftMesh properties.
      */
     offset(func: (index: number, coords: JQueryCoordinates) => JQueryCoordinates): JQuery;
 
