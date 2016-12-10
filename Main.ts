@@ -4,90 +4,45 @@
 
 import ShadowMapType = THREE.ShadowMapType;
 import PCFSoftShadowMap = THREE.PCFSoftShadowMap;
-import {CubeManager} from "./CubeManager";
-import {Room} from "./Room";
-import {MyMaterials} from "./MyMaterials";
-import {FirstPersonControls} from "./FirstPersonControls";
 import {Autowired} from "./Autowired";
-import {CrossHair} from "./CrossHair";
 import {Scoreboard} from "./Scoreboard";
 
-let WIDTH = window.innerWidth;
-let HEIGHT = window.innerHeight;
-
-let VIEW_ANGLE = 75;
-let ASPECT = WIDTH / HEIGHT;
-let NEAR = 0.1;
-let FAR = 1000;
-
-let fixedTimeStep = 1.0 / 60.0; // seconds
-let maxSubSteps = 3;
-
 class Main {
-    selector: string;
-    canvasElement: JQuery;
-    renderer: THREE.WebGLRenderer;
     autowired: Autowired;
 
+    scoreboard: Scoreboard;
+
+    fixedTimeStep: number = 1.0 / 60.0; // seconds
+    timeStepSubdivisions: number = 10;
 
     constructor() {
-        this.autowired = new Autowired();
-        this.selector = "#myCanvas";
-        this.canvasElement = $(this.selector);
-
-
-        this.canvasElement.get(0).addEventListener('click', function (event) {
-            document.body.requestPointerLock();
-        }, false);
-
-
-        this.renderer = new THREE.WebGLRenderer({
-            canvas: <HTMLCanvasElement>this.canvasElement.get(0),
-            alpha: true,
-            antialias: true,
-            precision: "highp"
-        });
-        this.renderer.shadowMap.enabled = true;
-        this.renderer.shadowMap.type = PCFSoftShadowMap;
-        this.renderer.setSize(WIDTH, HEIGHT);
-
-        this.autowired.scene = new THREE.Scene();
-        this.autowired.camera = new THREE.PerspectiveCamera(
-            VIEW_ANGLE,
-            ASPECT,
-            NEAR,
-            FAR);
-
-
-        this.autowired.world = new CANNON.World();
-        this.autowired.world.gravity.set(0, -10, 0); // m/s²
-
-        this.autowired.myMaterials = new MyMaterials(this.autowired);
-
-        this.autowired.cubeManager = new CubeManager(this.autowired);
-        this.autowired.room = new Room(this.autowired);
-
-
-        this.autowired.firstPersonControls = new FirstPersonControls(this.autowired, document);
-        this.autowired.scene.add(this.autowired.firstPersonControls.getObject());
-        this.autowired.world.addBody(this.autowired.firstPersonControls.physics);
-
-        this.autowired.crossHair = new CrossHair(this.autowired);
-        this.autowired.scoreboard = new Scoreboard(this.autowired, document.body);
+        document.addEventListener('keydown',
+            (event) => {
+                if (event.keyCode == 82) {   //R
+                    this.reset()
+                }
+            },
+            false);
+        this.reset();
     }
+
+    reset = () => {
+        this.scoreboard = (this.scoreboard == null) ? new Scoreboard() : this.scoreboard;
+        this.scoreboard.reset();
+        this.autowired = new Autowired(this.scoreboard);
+    };
 
     render = () => {
         requestAnimationFrame(this.render);
 
         if (!this.autowired.isGameOver) {
-            let subdivision = 10;
-            for (let i = 0; i < subdivision; i++) {
-                this.autowired.world.step(fixedTimeStep / subdivision);
+            for (let i = 0; i < this.timeStepSubdivisions; i++) {
+                this.autowired.world.step(this.fixedTimeStep / this.timeStepSubdivisions);
             }
 
             this.autowired.cubeManager.update();
             this.autowired.room.update();
-            this.autowired.firstPersonControls.update(fixedTimeStep);
+            this.autowired.firstPersonControls.update(this.fixedTimeStep);
 
             if (this.autowired.firstPersonControls.getDistanceToWall() < 0.045) {
                 this.autowired.isGameOver = true;
@@ -96,7 +51,7 @@ class Main {
 
         this.autowired.scoreboard.update();
 
-        this.renderer.render(this.autowired.scene, this.autowired.camera);
+        this.autowired.renderer.render(this.autowired.scene, this.autowired.camera);
     }
 }
 let main: Main = new Main();

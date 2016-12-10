@@ -6,10 +6,11 @@ export class Scoreboard {
     highscore: number = 0;
     scoreDiv: HTMLDivElement;
     distanceToWallDiv: HTMLDivElement;
+    highscoreDiv: HTMLDivElement;
     helpTextDiv: HTMLDivElement;
 
-    constructor(autowired: Autowired, element: any) {
-        this.autowired = autowired;
+    constructor() {
+        let element = document.body;
 
         this.scoreDiv = document.createElement('div');
         this.scoreDiv.style.position = 'absolute';
@@ -28,6 +29,15 @@ export class Scoreboard {
         this.distanceToWallDiv.style.left = '50px';
         this.distanceToWallDiv.style.fontSize = "25px";
         element.appendChild(this.distanceToWallDiv);
+
+        this.highscoreDiv = document.createElement('div');
+        this.highscoreDiv.style.position = 'absolute';
+        this.highscoreDiv.style.color = "black";
+        this.highscoreDiv.innerHTML = "";
+        this.highscoreDiv.style.top = '175px';
+        this.highscoreDiv.style.left = '50px';
+        this.highscoreDiv.style.fontSize = "25px";
+        element.appendChild(this.highscoreDiv);
 
         this.helpTextDiv = document.createElement('div');
         this.helpTextDiv.style.position = 'absolute';
@@ -56,12 +66,12 @@ export class Scoreboard {
     }
 
     public update() {
-        this.scoreDiv.innerText = this.score.toFixed();
+        this.scoreDiv.innerText = this.score.toFixed(0);
         let distanceToWall: number = Math.max(this.autowired.firstPersonControls.getDistanceToWall(), 0.0001);
         distanceToWall = (this.autowired.isGameOver) ? 0 : distanceToWall;
         this.distanceToWallDiv.innerText = "Distance to wall: " + distanceToWall.toFixed(2);
-        if (this.autowired.isGameOver) {
-            this.helpTextDiv.style.display = "initial";
-        }
+        this.highscoreDiv.innerText = "Highscore: " + this.highscore.toFixed(0);
+
+        this.helpTextDiv.style.display = (this.autowired.isGameOver) ? "initial" : "none";
     }
 }
