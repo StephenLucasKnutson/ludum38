@@ -79,15 +79,21 @@ class Main {
     render = () => {
         requestAnimationFrame(this.render);
 
-        let subdivision = 10;
-        for (let i = 0; i < subdivision; i++) {
-            this.autowired.world.step(fixedTimeStep / subdivision);
+        if (!this.autowired.isGameOver) {
+            let subdivision = 10;
+            for (let i = 0; i < subdivision; i++) {
+                this.autowired.world.step(fixedTimeStep / subdivision);
+            }
+
+            this.autowired.cubeManager.update();
+            this.autowired.room.update();
+            this.autowired.firstPersonControls.update(fixedTimeStep);
+
+            if (this.autowired.firstPersonControls.getDistanceToWall() < 0.045) {
+                this.autowired.isGameOver = true;
+            }
         }
 
-
-        this.autowired.cubeManager.update();
-        this.autowired.room.update();
-        this.autowired.firstPersonControls.update(fixedTimeStep);
         this.autowired.scoreboard.update();
 
         this.renderer.render(this.autowired.scene, this.autowired.camera);

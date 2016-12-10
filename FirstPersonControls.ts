@@ -21,7 +21,6 @@ export class FirstPersonControls {
     moveLeft: boolean = false;
     moveRight: boolean = false;
     jump: boolean = false;
-    freeze: boolean = false;
 
     pitchObject: THREE.Object3D;
     yawObject: THREE.Object3D;
@@ -69,8 +68,9 @@ export class FirstPersonControls {
         }
         event.preventDefault();
         event.stopPropagation();
-
-        this.shoot();
+        if (!this.autowired.isGameOver) {
+            this.shoot();
+        }
     };
 
     private shoot() {
@@ -112,7 +112,7 @@ export class FirstPersonControls {
     shouldUpdate = (): boolean => {
         let element = document.body;
         let havePointerLock: boolean = ( document.pointerLockElement === element );
-        return havePointerLock && !this.freeze;
+        return havePointerLock && !this.autowired.isGameOver;
     };
     onMouseMove = (event) => {
         if (this.shouldUpdate()) {
@@ -144,9 +144,6 @@ export class FirstPersonControls {
             case 39: /*right*/
             case 68: /*D*/
                 this.moveRight = true;
-                break;
-            case 81: /*Q*/
-                this.freeze = !this.freeze;
                 break;
             case 32: /*space*/
                 this.jump = true;

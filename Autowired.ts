@@ -5,6 +5,8 @@ import {Room} from "./Room";
 import {CrossHair} from "./CrossHair";
 import {Scoreboard} from "./Scoreboard";
 export class Autowired {
+    isGameOver: boolean;
+
     camera: THREE.Camera;
     scene: THREE.Scene;
     world: CANNON.World;
@@ -16,5 +18,7 @@ export class Autowired {
     scoreboard: Scoreboard;
 
     constructor() {
+        this.isGameOver = false;
     }
+
 }
