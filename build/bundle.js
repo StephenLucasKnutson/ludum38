@@ -254,7 +254,8 @@ System.register("FirstPersonControls", ["Room"], function (exports_3, context_3)
                         laserOffsetQuat.setFromEuler(new THREE.Euler(Math.PI / 2, 0, 0));
                         for (var _b = 0, _c = _this.laserBeams; _b < _c.length; _b++) {
                             var laserbeam = _c[_b];
-                            laserbeam.position.set(_this.yawObject.position.x, _this.yawObject.position.y - 0.2, _this.yawObject.position.z);
+                            var position = _this.pitchObject.localToWorld(new THREE.Vector3(0, -0.2, 0));
+                            laserbeam.position.set(position.x, position.y, position.z);
                             laserbeam.setRotationFromQuaternion(cameraQuat.multiply(laserOffsetQuat));
                         }
                     };

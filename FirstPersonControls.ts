@@ -250,7 +250,8 @@ export class FirstPersonControls {
         let laserOffsetQuat = new THREE.Quaternion();
         laserOffsetQuat.setFromEuler(new THREE.Euler(Math.PI / 2, 0, 0));
         for (let laserbeam of this.laserBeams) {
-            laserbeam.position.set(this.yawObject.position.x, this.yawObject.position.y - 0.2, this.yawObject.position.z);
+            let position = this.pitchObject.localToWorld(new THREE.Vector3(0, -0.2, 0));
+            laserbeam.position.set(position.x, position.y, position.z);
             laserbeam.setRotationFromQuaternion(cameraQuat.multiply(laserOffsetQuat));
 
         }
