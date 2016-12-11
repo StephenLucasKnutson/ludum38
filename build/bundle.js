@@ -74,7 +74,6 @@ System.register("Room", [], function (exports_2, context_2) {
                         this.autowired.world.addBody(physicBody);
                     }
                 }
-
                 Room.prototype.createCubeThree = function (width, height, depth) {
                     if (width === void 0) {
                         width = Room.blockSize;
@@ -169,7 +168,6 @@ System.register("Cube", ["Room"], function (exports_3, context_3) {
                     this.autowired.scene.add(this.threeCube);
                     this.autowired.world.addBody(this.physicsBody);
                 }
-
                 Cube.prototype.createCubeThree = function (width, height, depth) {
                     var geometry = new THREE.BoxGeometry(width, height, depth);
                     var material = new THREE.MeshPhongMaterial({
@@ -344,9 +342,7 @@ System.register("FirstPersonControls", ["Room"], function (exports_5, context_5)
                         event.stopPropagation();
                     };
                     this.shouldUpdate = function () {
-                        var element = document.documentElement;
-                        var havePointerLock = (document.pointerLockElement === element);
-                        return havePointerLock && !_this.autowired.isGameOver;
+                        return !_this.autowired.isGameOver;
                     };
                     this.onMouseMove = function (event) {
                         if (_this.shouldUpdate()) {
@@ -788,7 +784,6 @@ var CubeOrder = (function () {
         this.name = name;
         this.probabilityOfChange = probabilityOfChange;
     }
-
     CubeOrder.randomDirection = new CubeOrder("randomDirection", 0.005);
     CubeOrder.hitPlayer = new CubeOrder("hitPlayer", 0.001);
     CubeOrder.posX = new CubeOrder("posX", 0.003);

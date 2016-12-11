@@ -135,9 +135,8 @@ export class FirstPersonControls {
     };
 
     shouldUpdate = (): boolean => {
-        let element = document.documentElement;
-        let havePointerLock: boolean = ( document.pointerLockElement === element );
-        return havePointerLock && !this.autowired.isGameOver;
+
+        return !this.autowired.isGameOver;
     };
     onMouseMove = (event) => {
         if (this.shouldUpdate()) {
