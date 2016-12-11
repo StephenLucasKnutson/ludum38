@@ -26,7 +26,7 @@ export class FirstPersonControls {
     pitchObject: THREE.Object3D;
     yawObject: THREE.Object3D;
 
-    laserBeam: THREE.Mesh;
+    laserBeams: THREE.Mesh[] = [];
 
     physics: CANNON.Body;
 
@@ -47,15 +47,22 @@ export class FirstPersonControls {
             angularDamping: 0.9
         });
 
-        let geometry = new THREE.CylinderGeometry(0.01, 0.01, 1000);
-        let material = new THREE.MeshPhongMaterial({
-            color: 0xFF0000,
-            specular: 0xFFFFFF,
-            shininess: 200
-        });
-        this.laserBeam = new THREE.Mesh(geometry, material);
-        this.laserBeam.visible = false;
-        this.autowired.scene.add(this.laserBeam);
+        let levelsOfLazer = 40;
+        for (let i = 1; i <= levelsOfLazer; i++) {
+            //inner to outer
+            let radius = 0.0005 * i;
+            let geometry = new THREE.CylinderGeometry(radius, radius, 1000);
+            let material = new THREE.MeshLambertMaterial({
+                color: 0xFF0000,
+                transparent: true,
+                opacity: 0.1,
+            });
+            let laserBeam = new THREE.Mesh(geometry, material);
+            laserBeam.visible = false;
+            this.autowired.glowScene.add(laserBeam);
+            this.laserBeams.push(laserBeam);
+        }
+
 
 
         this.domElement = ( domElement !== undefined ) ? domElement : document;
@@ -89,7 +96,7 @@ export class FirstPersonControls {
     };
 
     private shoot() {
-        if (this.framesBeforeHideLazer < -5) {
+        if (this.framesBeforeHideLazer < -10) {
             let raycaster: THREE.Raycaster = new THREE.Raycaster();
             raycaster.set(this.autowired.camera.getWorldPosition(), this.autowired.camera.getWorldDirection());
             let intersections: THREE.Intersection[] = raycaster.intersectObjects(this.autowired.scene.children);
@@ -97,7 +104,7 @@ export class FirstPersonControls {
                 this.autowired.cubeManager.removeCube(intersection.object)
             }
             this.playShootSound();
-            this.framesBeforeHideLazer = 10;
+            this.framesBeforeHideLazer = 6;
         }
     }
 
@@ -216,7 +223,10 @@ export class FirstPersonControls {
     update = (delta) => {
         let actualMoveSpeed: number = 0;
         if (this.shouldUpdate()) {
-            this.laserBeam.visible = (this.framesBeforeHideLazer-- > 0);
+            for (let laserbeam of this.laserBeams) {
+                laserbeam.visible = (this.framesBeforeHideLazer > 0);
+            }
+            this.framesBeforeHideLazer--;
             actualMoveSpeed = delta * this.movementSpeed * 50;
             let movementImpulse: THREE.Vector3 = new THREE.Vector3();
 
@@ -236,11 +246,14 @@ export class FirstPersonControls {
         }
         this.yawObject.position.set(this.physics.position.x, this.physics.position.y, this.physics.position.z);
 
-        this.laserBeam.position.set(this.yawObject.position.x, this.yawObject.position.y - 0.2, this.yawObject.position.z);
         let cameraQuat = this.autowired.camera.getWorldQuaternion();
         let laserOffsetQuat = new THREE.Quaternion();
-        laserOffsetQuat.setFromEuler(new THREE.Euler(3.14159 / 2, 0, 0));
-        this.laserBeam.setRotationFromQuaternion(cameraQuat.multiply(laserOffsetQuat));
+        laserOffsetQuat.setFromEuler(new THREE.Euler(Math.PI / 2, 0, 0));
+        for (let laserbeam of this.laserBeams) {
+            laserbeam.position.set(this.yawObject.position.x, this.yawObject.position.y - 0.2, this.yawObject.position.z);
+            laserbeam.setRotationFromQuaternion(cameraQuat.multiply(laserOffsetQuat));
+
+        }
     };
 
     getDistanceToWall(): number {

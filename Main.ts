@@ -52,7 +52,10 @@ class Main {
 
         this.autowired.scoreboard.update();
 
+        this.autowired.renderer.clear();
         this.autowired.renderer.render(this.autowired.scene, this.autowired.camera);
+        this.autowired.renderer.clearDepth();
+        this.autowired.renderer.render(this.autowired.glowScene, this.autowired.camera);
     };
 
     playGameOverSound() {

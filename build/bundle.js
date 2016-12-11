@@ -126,6 +126,7 @@ System.register("FirstPersonControls", ["Room"], function (exports_3, context_3)
                     this.moveRight = false;
                     this.jump = false;
                     this.framesBeforeHideLazer = -100;
+                    this.laserBeams = [];
                     this.onMouseDown = function (event) {
                         if (_this.domElement !== document) {
                             _this.domElement.focus();
@@ -224,7 +225,11 @@ System.register("FirstPersonControls", ["Room"], function (exports_3, context_3)
                     this.update = function (delta) {
                         var actualMoveSpeed = 0;
                         if (_this.shouldUpdate()) {
-                            _this.laserBeam.visible = (_this.framesBeforeHideLazer-- > 0);
+                            for (var _i = 0, _a = _this.laserBeams; _i < _a.length; _i++) {
+                                var laserbeam = _a[_i];
+                                laserbeam.visible = (_this.framesBeforeHideLazer > 0);
+                            }
+                            _this.framesBeforeHideLazer--;
                             actualMoveSpeed = delta * _this.movementSpeed * 50;
                             var movementImpulse = new THREE.Vector3();
                             if (_this.moveForward)
@@ -244,11 +249,14 @@ System.register("FirstPersonControls", ["Room"], function (exports_3, context_3)
                             _this.physics.applyImpulse(new CANNON.Vec3(movementImpulse.x, movementImpulse.y, movementImpulse.z), new CANNON.Vec3());
                         }
                         _this.yawObject.position.set(_this.physics.position.x, _this.physics.position.y, _this.physics.position.z);
-                        _this.laserBeam.position.set(_this.yawObject.position.x, _this.yawObject.position.y - 0.2, _this.yawObject.position.z);
                         var cameraQuat = _this.autowired.camera.getWorldQuaternion();
                         var laserOffsetQuat = new THREE.Quaternion();
-                        laserOffsetQuat.setFromEuler(new THREE.Euler(3.14159 / 2, 0, 0));
-                        _this.laserBeam.setRotationFromQuaternion(cameraQuat.multiply(laserOffsetQuat));
+                        laserOffsetQuat.setFromEuler(new THREE.Euler(Math.PI / 2, 0, 0));
+                        for (var _b = 0, _c = _this.laserBeams; _b < _c.length; _b++) {
+                            var laserbeam = _c[_b];
+                            laserbeam.position.set(_this.yawObject.position.x, _this.yawObject.position.y - 0.2, _this.yawObject.position.z);
+                            laserbeam.setRotationFromQuaternion(cameraQuat.multiply(laserOffsetQuat));
+                        }
                     };
                     this.autowired = autowired;
                     this.pitchObject = new THREE.Object3D();
@@ -263,15 +271,21 @@ System.register("FirstPersonControls", ["Room"], function (exports_3, context_3)
                         linearDamping: 0.9,
                         angularDamping: 0.9
                     });
-                    var geometry = new THREE.CylinderGeometry(0.01, 0.01, 1000);
-                    var material = new THREE.MeshPhongMaterial({
-                        color: 0xFF0000,
-                        specular: 0xFFFFFF,
-                        shininess: 200
-                    });
-                    this.laserBeam = new THREE.Mesh(geometry, material);
-                    this.laserBeam.visible = false;
-                    this.autowired.scene.add(this.laserBeam);
+                    var levelsOfLazer = 40;
+                    for (var i = 1; i <= levelsOfLazer; i++) {
+                        //inner to outer
+                        var radius = 0.0005 * i;
+                        var geometry = new THREE.CylinderGeometry(radius, radius, 1000);
+                        var material = new THREE.MeshLambertMaterial({
+                            color: 0xFF0000,
+                            transparent: true,
+                            opacity: 0.1,
+                        });
+                        var laserBeam = new THREE.Mesh(geometry, material);
+                        laserBeam.visible = false;
+                        this.autowired.glowScene.add(laserBeam);
+                        this.laserBeams.push(laserBeam);
+                    }
                     this.domElement = (domElement !== undefined) ? domElement : document;
                     this.domElement.addEventListener('contextmenu', function (event) {
                         event.preventDefault();
@@ -289,7 +303,7 @@ System.register("FirstPersonControls", ["Room"], function (exports_3, context_3)
                     ;
                 }
                 FirstPersonControls.prototype.shoot = function () {
-                    if (this.framesBeforeHideLazer < -5) {
+                    if (this.framesBeforeHideLazer < -10) {
                         var raycaster = new THREE.Raycaster();
                         raycaster.set(this.autowired.camera.getWorldPosition(), this.autowired.camera.getWorldDirection());
                         var intersections = raycaster.intersectObjects(this.autowired.scene.children);
@@ -298,7 +312,7 @@ System.register("FirstPersonControls", ["Room"], function (exports_3, context_3)
                             this.autowired.cubeManager.removeCube(intersection.object);
                         }
                         this.playShootSound();
-                        this.framesBeforeHideLazer = 10;
+                        this.framesBeforeHideLazer = 6;
                     }
                 };
                 FirstPersonControls.prototype.playShootSound = function () {
@@ -497,19 +511,21 @@ System.register("Autowired", ["MyMaterials", "CubeManager", "FirstPersonControls
                         antialias: true,
                         precision: "highp"
                     });
+                    this.renderer.autoClear = false;
                     this.renderer.shadowMap.enabled = true;
                     this.renderer.shadowMap.type = PCFSoftShadowMap;
                     this.renderer.setSize(WIDTH, HEIGHT);
+                    this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
                     this.scene = new THREE.Scene();
-                    //let dirLight = new THREE.DirectionalLight(0xffffff, 1);
-                    //dirLight.position.set(30, 30, 30);
-                    // dirLight.castShadow = true;
-                    //this.scene.add(dirLight);
                     var light = new THREE.PointLight(0xFFFFFF, 0.5, 30);
                     light.position.set(0, 0, 0);
                     this.scene.add(light);
                     this.scene.add(new THREE.AmbientLight(0x404040));
-                    this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
+                    this.glowScene = new THREE.Scene();
+                    this.glowScene.add(new THREE.AmbientLight(0xFFFFFF));
+                    var dirLight = new THREE.PointLight(0xffffff, 1);
+                    this.camera.add(dirLight);
+                    this.glowScene.add(dirLight);
                     this.world = new CANNON.World();
                     this.world.gravity.set(0, -10, 0); // m/s²
                     this.myMaterials = new MyMaterials_1.MyMaterials(this);
@@ -740,7 +756,10 @@ System.register("Main", ["Autowired", "Scoreboard"], function (exports_9, contex
                             }
                         }
                         _this.autowired.scoreboard.update();
+                        _this.autowired.renderer.clear();
                         _this.autowired.renderer.render(_this.autowired.scene, _this.autowired.camera);
+                        _this.autowired.renderer.clearDepth();
+                        _this.autowired.renderer.render(_this.autowired.glowScene, _this.autowired.camera);
                     };
                     document.addEventListener('keydown', function (event) {
                         if (event.keyCode == 82) {

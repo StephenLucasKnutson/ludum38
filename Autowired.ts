@@ -10,6 +10,7 @@ export class Autowired {
 
     camera: THREE.Camera;
     scene: THREE.Scene;
+    glowScene: THREE.Scene;
     world: CANNON.World;
     myMaterials: MyMaterials;
     cubeManager: CubeManager;
@@ -46,23 +47,10 @@ export class Autowired {
             antialias: true,
             precision: "highp"
         });
+        this.renderer.autoClear = false;
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = PCFSoftShadowMap;
         this.renderer.setSize(WIDTH, HEIGHT);
-
-        this.scene = new THREE.Scene();
-
-        //let dirLight = new THREE.DirectionalLight(0xffffff, 1);
-        //dirLight.position.set(30, 30, 30);
-        // dirLight.castShadow = true;
-        //this.scene.add(dirLight);
-
-        let light = new THREE.PointLight(0xFFFFFF, 0.5, 30);
-        light.position.set(0, 0, 0);
-        this.scene.add(light);
-
-        this.scene.add(new THREE.AmbientLight(0x404040));
-
 
         this.camera = new THREE.PerspectiveCamera(
             VIEW_ANGLE,
@@ -70,6 +58,20 @@ export class Autowired {
             NEAR,
             FAR);
 
+        this.scene = new THREE.Scene();
+
+        let light = new THREE.PointLight(0xFFFFFF, 0.5, 30);
+        light.position.set(0, 0, 0);
+        this.scene.add(light);
+
+        this.scene.add(new THREE.AmbientLight(0x404040));
+
+        this.glowScene = new THREE.Scene();
+        this.glowScene.add(new THREE.AmbientLight(0xFFFFFF));
+
+        let dirLight = new THREE.PointLight(0xffffff, 1);
+        this.camera.add(dirLight);
+        this.glowScene.add(dirLight);
 
         this.world = new CANNON.World();
         this.world.gravity.set(0, -10, 0); // m/s²
