@@ -47,7 +47,6 @@
                         //this.world.addContactMaterial(new CANNON.ContactMaterial(this.wallMaterial, this.cubeMaterial, { friction: 0.0, restitution: 0.0 }));
                         //this.world.addContactMaterial(new CANNON.ContactMaterial(this.playerMaterial, this.cubeMaterial, { friction: 0.0, restitution: 0.0 }));
                     }
-
                     return MyMaterials;
                 }());
                 exports_1("MyMaterials", MyMaterials);
@@ -91,7 +90,6 @@
                             this.autowired.world.addBody(physicBody);
                         }
                     }
-
                     Room.prototype.createCubeThree = function (width, height, depth) {
                         if (width === void 0) {
                             width = Room.blockSize;
@@ -186,7 +184,6 @@
                         this.autowired.scene.add(this.threeCube);
                         this.autowired.world.addBody(this.physicsBody);
                     }
-
                     Cube.prototype.createCubeThree = function (width, height, depth) {
                         var geometry = new THREE.BoxGeometry(width, height, depth);
                         var material = new THREE.MeshPhongMaterial({
@@ -265,7 +262,6 @@
                         this.autowired = autowired;
                         this.currentOrder = CubeOrder.hitPlayer;
                     }
-
                     CubeManager.prototype.createCube = function () {
                         var cube = new Cube_1.Cube(this.autowired);
                         this.cubes.push(cube);
@@ -362,9 +358,7 @@
                             event.stopPropagation();
                         };
                         this.shouldUpdate = function () {
-                            var element = document.documentElement;
-                            var havePointerLock = (document.pointerLockElement === element);
-                            return havePointerLock && !_this.autowired.isGameOver;
+                            return !_this.autowired.isGameOver;
                         };
                         this.onMouseMove = function (event) {
                             if (_this.shouldUpdate()) {
@@ -523,7 +517,6 @@
                         }
                         ;
                     }
-
                     FirstPersonControls.prototype.shoot = function () {
                         if (this.framesBeforeHideLazer < -10) {
                             var raycaster = new THREE.Raycaster();
@@ -613,7 +606,6 @@
                         mesh.position.z = -0.5;
                         this.autowired.camera.add(mesh);
                     }
-
                     return CrossHair;
                 }());
                 exports_6("CrossHair", CrossHair);
@@ -683,7 +675,6 @@
                         this.distanceToWallProgressBar.style.fontStyle = "bold";
                         element.appendChild(this.distanceToWallProgressBar);
                     }
-
                     Scoreboard.prototype.addScore = function () {
                         this.score++;
                         this.highscore = Math.max(this.score, this.highscore);
@@ -798,7 +789,6 @@
                         this.world.addBody(this.firstPersonControls.physics);
                         this.crossHair = new CrossHair_1.CrossHair(this);
                     }
-
                     return Autowired;
                 }());
                 exports_8("Autowired", Autowired);
@@ -810,7 +800,6 @@
             this.name = name;
             this.probabilityOfChange = probabilityOfChange;
         }
-
         CubeOrder.randomDirection = new CubeOrder("randomDirection", 0.005);
         CubeOrder.hitPlayer = new CubeOrder("hitPlayer", 0.001);
         CubeOrder.posX = new CubeOrder("posX", 0.003);
@@ -873,7 +862,6 @@
                         }, false);
                         this.reset();
                     }
-
                     Main.prototype.playGameOverSound = function () {
                         beeplay()
                             .play(['C#7', 'E#7', 'G#7'], 2);
@@ -888,7 +876,6 @@
     var Util = (function () {
         function Util() {
         }
-
         Util.copyPhysicsTo = function (physics, mesh) {
             var position = physics.position;
             mesh.position.set(position.x, position.y, position.z);

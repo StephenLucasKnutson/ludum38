@@ -6,7 +6,7 @@ export class CubeManager {
     autowired: Autowired;
     currentOrder: CubeOrder;
     a: number = 2000000;
-    numberOfUpdates: number = 2000;
+    numberOfUpdates: number = 4000;
 
     public constructor(autowired: Autowired) {
         this.autowired = autowired;
@@ -26,7 +26,6 @@ export class CubeManager {
         }
         if (Math.random() < this.currentOrder.probabilityOfChange * delta) {
             this.currentOrder = this.randomCubeOrder();
-            console.log("switching thoughts" + this.currentOrder.name);
         }
         for (let cube of this.cubes) {
             cube.update(this.currentOrder, delta);

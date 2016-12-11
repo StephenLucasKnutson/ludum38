@@ -242,7 +242,7 @@ System.register("CubeManager", ["Cube"], function (exports_4, context_4) {
                 function CubeManager(autowired) {
                     this.cubes = [];
                     this.a = 2000000;
-                    this.numberOfUpdates = 2000;
+                    this.numberOfUpdates = 4000;
                     this.autowired = autowired;
                     this.currentOrder = CubeOrder.hitPlayer;
                 }
@@ -258,7 +258,6 @@ System.register("CubeManager", ["Cube"], function (exports_4, context_4) {
                     }
                     if (Math.random() < this.currentOrder.probabilityOfChange * delta) {
                         this.currentOrder = this.randomCubeOrder();
-                        console.log("switching thoughts" + this.currentOrder.name);
                     }
                     for (var _i = 0, _a = this.cubes; _i < _a.length; _i++) {
                         var cube = _a[_i];
@@ -785,11 +784,11 @@ var CubeOrder = (function () {
         this.probabilityOfChange = probabilityOfChange;
     }
     CubeOrder.randomDirection = new CubeOrder("randomDirection", 0.005);
-    CubeOrder.hitPlayer = new CubeOrder("hitPlayer", 0.001);
-    CubeOrder.posX = new CubeOrder("posX", 0.003);
-    CubeOrder.negX = new CubeOrder("negX", 0.003);
-    CubeOrder.posZ = new CubeOrder("posZ", 0.003);
-    CubeOrder.negZ = new CubeOrder("negZ", 0.003);
+    CubeOrder.hitPlayer = new CubeOrder("hitPlayer", 0.0005);
+    CubeOrder.posX = new CubeOrder("posX", 0.005);
+    CubeOrder.negX = new CubeOrder("negX", 0.005);
+    CubeOrder.posZ = new CubeOrder("posZ", 0.005);
+    CubeOrder.negZ = new CubeOrder("negZ", 0.005);
     return CubeOrder;
 }());
 /// <reference path="Cube.ts" />
