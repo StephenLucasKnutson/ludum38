@@ -31,7 +31,6 @@ System.register("MyMaterials", [], function (exports_1, context_1) {
                     //this.world.addContactMaterial(new CANNON.ContactMaterial(this.wallMaterial, this.cubeMaterial, { friction: 0.0, restitution: 0.0 }));
                     //this.world.addContactMaterial(new CANNON.ContactMaterial(this.playerMaterial, this.cubeMaterial, { friction: 0.0, restitution: 0.0 }));
                 }
-
                 return MyMaterials;
             }());
             exports_1("MyMaterials", MyMaterials);
@@ -56,7 +55,6 @@ System.register("CubeManager", ["Cube"], function (exports_2, context_2) {
                     this.numberOfUpdates = 2000;
                     this.autowired = autowired;
                 }
-
                 CubeManager.prototype.createCube = function () {
                     var cube = new Cube_1.Cube(this.autowired);
                     this.cubes.push(cube);
@@ -290,7 +288,6 @@ System.register("FirstPersonControls", ["Room"], function (exports_3, context_3)
                     }
                     ;
                 }
-
                 FirstPersonControls.prototype.shoot = function () {
                     if (this.framesBeforeHideLazer < -5) {
                         var raycaster = new THREE.Raycaster();
@@ -375,7 +372,6 @@ System.register("CrossHair", [], function (exports_4, context_4) {
                     mesh.position.z = -0.5;
                     this.autowired.camera.add(mesh);
                 }
-
                 return CrossHair;
             }());
             exports_4("CrossHair", CrossHair);
@@ -435,7 +431,6 @@ System.register("Scoreboard", [], function (exports_5, context_5) {
                     this.helpTextDiv.style.verticalAlign = "middle";
                     element.appendChild(this.helpTextDiv);
                 }
-
                 Scoreboard.prototype.addScore = function () {
                     this.score++;
                     this.highscore = Math.max(this.score, this.highscore);
@@ -525,7 +520,6 @@ System.register("Autowired", ["MyMaterials", "CubeManager", "FirstPersonControls
                     this.world.addBody(this.firstPersonControls.physics);
                     this.crossHair = new CrossHair_1.CrossHair(this);
                 }
-
                 return Autowired;
             }());
             exports_6("Autowired", Autowired);
@@ -569,7 +563,6 @@ System.register("Room", [], function (exports_7, context_7) {
                         this.autowired.world.addBody(physicBody);
                     }
                 }
-
                 Room.prototype.createCubeThree = function (width, height, depth) {
                     if (width === void 0) {
                         width = Room.blockSize;
@@ -664,7 +657,6 @@ System.register("Cube", ["Room"], function (exports_8, context_8) {
                     this.autowired.scene.add(this.threeCube);
                     this.autowired.world.addBody(this.physicsBody);
                 }
-
                 Cube.prototype.createCubeThree = function (width, height, depth) {
                     var geometry = new THREE.BoxGeometry(width, height, depth);
                     var material = new THREE.MeshPhongMaterial({
@@ -757,7 +749,6 @@ System.register("Main", ["Autowired", "Scoreboard"], function (exports_9, contex
                     }, false);
                     this.reset();
                 }
-
                 Main.prototype.playGameOverSound = function () {
                     beeplay()
                         .play(['C#7', 'E#7', 'G#7'], 2);
@@ -772,7 +763,6 @@ System.register("Main", ["Autowired", "Scoreboard"], function (exports_9, contex
 var Util = (function () {
     function Util() {
     }
-
     Util.copyPhysicsTo = function (physics, mesh) {
         var position = physics.position;
         mesh.position.set(position.x, position.y, position.z);

@@ -8,9 +8,9 @@ import {Room} from "./Room";
 //Modified by Lucas Knutson
 
 export class FirstPersonControls {
-    mass: number = 2;
+    mass: number = 1.5;
     autowired: Autowired;
-    radius: number = 0.6;
+    radius: number = 0.3;
     target: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
     domElement: any;
     movementSpeed: number = 1.0;
@@ -21,9 +21,12 @@ export class FirstPersonControls {
     moveLeft: boolean = false;
     moveRight: boolean = false;
     jump: boolean = false;
+    framesBeforeHideLazer: number = -100;
 
     pitchObject: THREE.Object3D;
     yawObject: THREE.Object3D;
+
+    laserBeam: THREE.Mesh;
 
     physics: CANNON.Body;
 
@@ -39,9 +42,21 @@ export class FirstPersonControls {
             mass: this.mass,
             position: new CANNON.Vec3(0, 5, 0),
             shape: new CANNON.Sphere(this.radius),
-            material: this.autowired.myMaterials.slipperyMaterial,
-            linearDamping: 0.9
+            material: this.autowired.myMaterials.playerMaterial,
+            linearDamping: 0.9,
+            angularDamping: 0.9
         });
+
+        let geometry = new THREE.CylinderGeometry(0.01, 0.01, 1000);
+        let material = new THREE.MeshPhongMaterial({
+            color: 0xFF0000,
+            specular: 0xFFFFFF,
+            shininess: 200
+        });
+        this.laserBeam = new THREE.Mesh(geometry, material);
+        this.laserBeam.visible = false;
+        this.autowired.scene.add(this.laserBeam);
+
 
         this.domElement = ( domElement !== undefined ) ? domElement : document;
 
@@ -74,13 +89,23 @@ export class FirstPersonControls {
     };
 
     private shoot() {
-        let raycaster: THREE.Raycaster = new THREE.Raycaster();
-        raycaster.set(this.autowired.camera.getWorldPosition(), this.autowired.camera.getWorldDirection());
-        let intersections: THREE.Intersection[] = raycaster.intersectObjects(this.autowired.scene.children);
-        for (let intersection of intersections) {
-            this.autowired.cubeManager.removeCube(intersection.object)
+        if (this.framesBeforeHideLazer < -5) {
+            let raycaster: THREE.Raycaster = new THREE.Raycaster();
+            raycaster.set(this.autowired.camera.getWorldPosition(), this.autowired.camera.getWorldDirection());
+            let intersections: THREE.Intersection[] = raycaster.intersectObjects(this.autowired.scene.children);
+            for (let intersection of intersections) {
+                this.autowired.cubeManager.removeCube(intersection.object)
+            }
+            this.playShootSound();
+            this.framesBeforeHideLazer = 10;
         }
     }
+
+
+    private playShootSound() {
+        beeplay().play('C#4', 1 / 2);
+    }
+
 
     private canJump() {
         let tolerance: number = 0.1;
@@ -125,21 +150,31 @@ export class FirstPersonControls {
             case 38: /*up*/
             case 87: /*W*/
                 this.moveForward = true;
+                event.preventDefault();
+                event.stopPropagation();
                 break;
             case 37: /*left*/
             case 65: /*A*/
                 this.moveLeft = true;
+                event.preventDefault();
+                event.stopPropagation();
                 break;
             case 40: /*down*/
             case 83: /*S*/
                 this.moveBackward = true;
+                event.preventDefault();
+                event.stopPropagation();
                 break;
             case 39: /*right*/
             case 68: /*D*/
                 this.moveRight = true;
+                event.preventDefault();
+                event.stopPropagation();
                 break;
             case 32: /*space*/
                 this.jump = true;
+                event.preventDefault();
+                event.stopPropagation();
                 break;
         }
     };
@@ -149,21 +184,31 @@ export class FirstPersonControls {
             case 38: /*up*/
             case 87: /*W*/
                 this.moveForward = false;
+                event.preventDefault();
+                event.stopPropagation();
                 break;
             case 37: /*left*/
             case 65: /*A*/
                 this.moveLeft = false;
+                event.preventDefault();
+                event.stopPropagation();
                 break;
             case 40: /*down*/
             case 83: /*S*/
                 this.moveBackward = false;
+                event.preventDefault();
+                event.stopPropagation();
                 break;
             case 39: /*right*/
             case 68: /*D*/
                 this.moveRight = false;
+                event.preventDefault();
+                event.stopPropagation();
                 break;
             case 32: /*space*/
                 this.jump = false;
+                event.preventDefault();
+                event.stopPropagation();
                 break;
         }
     };
@@ -171,6 +216,7 @@ export class FirstPersonControls {
     update = (delta) => {
         let actualMoveSpeed: number = 0;
         if (this.shouldUpdate()) {
+            this.laserBeam.visible = (this.framesBeforeHideLazer-- > 0);
             actualMoveSpeed = delta * this.movementSpeed * 50;
             let movementImpulse: THREE.Vector3 = new THREE.Vector3();
 
@@ -181,7 +227,7 @@ export class FirstPersonControls {
             if (this.moveRight) movementImpulse.x += actualMoveSpeed;
 
             if (this.canJump() && this.jump) movementImpulse.y += actualMoveSpeed * 2;
-            movementImpulse = movementImpulse.multiplyScalar(this.mass * 0.2)
+            movementImpulse = movementImpulse.multiplyScalar(this.mass * 0.2);
 
             let quat: THREE.Quaternion = new THREE.Quaternion();
             quat.setFromEuler(new THREE.Euler(this.pitchObject.rotation.x, this.yawObject.rotation.y, 0, "XYZ"));
@@ -189,6 +235,12 @@ export class FirstPersonControls {
             this.physics.applyImpulse(new CANNON.Vec3(movementImpulse.x, movementImpulse.y, movementImpulse.z), new CANNON.Vec3());
         }
         this.yawObject.position.set(this.physics.position.x, this.physics.position.y, this.physics.position.z);
+
+        this.laserBeam.position.set(this.yawObject.position.x, this.yawObject.position.y - 0.2, this.yawObject.position.z);
+        let cameraQuat = this.autowired.camera.getWorldQuaternion();
+        let laserOffsetQuat = new THREE.Quaternion();
+        laserOffsetQuat.setFromEuler(new THREE.Euler(3.14159 / 2, 0, 0));
+        this.laserBeam.setRotationFromQuaternion(cameraQuat.multiply(laserOffsetQuat));
     };
 
     getDistanceToWall(): number {
