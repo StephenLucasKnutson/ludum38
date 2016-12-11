@@ -269,6 +269,12 @@ export class FirstPersonControls {
         return returnValue;
     }
 
+    getMaxDistToWall(): number {
+        let myRadius: number = this.radius;
+        let roomExtent = Room.blockSize / 2;
+        return roomExtent - myRadius;
+    }
+
     getObject(): THREE.Object3D {
         return this.yawObject;
     };

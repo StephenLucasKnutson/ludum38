@@ -38,9 +38,9 @@ class Main {
         if (!this.autowired.isGameOver) {
             for (let i = 0; i < this.timeStepSubdivisions; i++) {
                 this.autowired.world.step(this.fixedTimeStep / this.timeStepSubdivisions);
+                this.autowired.cubeManager.update(1 / this.timeStepSubdivisions);
             }
 
-            this.autowired.cubeManager.update();
             this.autowired.room.update();
             this.autowired.firstPersonControls.update(this.fixedTimeStep);
 

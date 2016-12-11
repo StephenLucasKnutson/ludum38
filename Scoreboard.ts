@@ -8,6 +8,7 @@ export class Scoreboard {
     distanceToWallDiv: HTMLDivElement;
     highscoreDiv: HTMLDivElement;
     helpTextDiv: HTMLDivElement;
+    distanceToWallProgressBar: HTMLDivElement;
 
     constructor() {
         let element = document.body;
@@ -54,6 +55,17 @@ export class Scoreboard {
         this.helpTextDiv.style.textAlign = "center";
         this.helpTextDiv.style.verticalAlign = "middle";
         element.appendChild(this.helpTextDiv);
+
+        this.distanceToWallProgressBar = document.createElement('div');
+        this.distanceToWallProgressBar.style.position = 'absolute';
+        this.distanceToWallProgressBar.innerText = "WALL PROXIMITY";
+        this.distanceToWallProgressBar.style.top = "80%";
+        this.distanceToWallProgressBar.style.left = "40%";
+        this.distanceToWallProgressBar.style.width = "30%";
+        this.distanceToWallProgressBar.style.fontSize = "30px";
+        this.distanceToWallProgressBar.style.textAlign = "center";
+        this.distanceToWallProgressBar.style.fontStyle = "bold";
+        element.appendChild(this.distanceToWallProgressBar);
     }
 
     public addScore() {
@@ -71,6 +83,19 @@ export class Scoreboard {
         distanceToWall = (this.autowired.isGameOver) ? 0 : distanceToWall;
         this.distanceToWallDiv.innerText = "DISTANCE TO WALL: " + distanceToWall.toFixed(2);
         this.highscoreDiv.innerText = "HIGHSCORE: " + this.highscore.toFixed(0);
+
+        let progressBarValue = Math.round((1 - distanceToWall / this.autowired.firstPersonControls.getMaxDistToWall()) * 100);
+
+        let progressBarColor: string;
+        if (progressBarValue < 50) {
+            progressBarColor = "green";
+        } else if (progressBarValue < 80) {
+            progressBarColor = "yellow";
+        } else {
+            progressBarColor = "red";
+        }
+        this.distanceToWallProgressBar.style.color = progressBarColor;
+
 
         this.helpTextDiv.style.display = (this.autowired.isGameOver) ? "initial" : "none";
     }

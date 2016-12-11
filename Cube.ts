@@ -33,7 +33,7 @@ export class Cube {
     createCubePhysics(width: number, height: number, depth: number): CANNON.Body {
         let x: number = (Math.random() - 0.5) * Room.blockSize;
         let z: number = (Math.random() - 0.5) * Room.blockSize;
-        let density: number = 10.0;
+        let density: number = 15.0;
         let mass: number = width * height * depth * density;
         let sphereBody = new CANNON.Body({
             mass: mass,
@@ -46,7 +46,7 @@ export class Cube {
         return sphereBody;
     }
 
-    update(cubeOrder: CubeOrder) {
+    update(cubeOrder: CubeOrder, delta: number) {
         let direction: CANNON.Vec3;
         if (cubeOrder == CubeOrder.randomDirection) {
             direction = new CANNON.Vec3(Math.random(), Math.random(), Math.random()).unit();
@@ -61,7 +61,7 @@ export class Cube {
         } else if (cubeOrder == CubeOrder.negZ) {
             direction = new CANNON.Vec3(0, 0, -1).unit();
         }
-        this.physicsBody.applyImpulse(direction.scale(0.01), new CANNON.Vec3());
+        this.physicsBody.applyImpulse(direction.scale(0.025 * delta), new CANNON.Vec3());
         Util.copyPhysicsTo(this.physicsBody, this.threeCube);
     }
 

@@ -51,7 +51,7 @@ System.register("CubeManager", ["Cube"], function (exports_2, context_2) {
             CubeManager = (function () {
                 function CubeManager(autowired) {
                     this.cubes = [];
-                    this.a = 200000;
+                    this.a = 2000000;
                     this.numberOfUpdates = 2000;
                     this.autowired = autowired;
                     this.currentOrder = CubeOrder.hitPlayer;
@@ -60,19 +60,19 @@ System.register("CubeManager", ["Cube"], function (exports_2, context_2) {
                     var cube = new Cube_1.Cube(this.autowired);
                     this.cubes.push(cube);
                 };
-                CubeManager.prototype.update = function () {
+                CubeManager.prototype.update = function (delta) {
                     //probability approaches 1 as this.numberOfUpdates approaches a
                     var probability = this.numberOfUpdates / (this.numberOfUpdates + this.a);
-                    if (Math.random() < probability) {
+                    if (Math.random() < probability * delta) {
                         this.createCube();
                     }
-                    if (Math.random() < this.currentOrder.probabilityOfChange) {
+                    if (Math.random() < this.currentOrder.probabilityOfChange * delta) {
                         this.currentOrder = this.randomCubeOrder();
                         console.log("switching thoughts" + this.currentOrder.name);
                     }
                     for (var _i = 0, _a = this.cubes; _i < _a.length; _i++) {
                         var cube = _a[_i];
-                        cube.update(this.currentOrder);
+                        cube.update(this.currentOrder, delta);
                     }
                     this.numberOfUpdates++;
                 };
@@ -354,6 +354,11 @@ System.register("FirstPersonControls", ["Room"], function (exports_3, context_3)
                     returnValue = Math.min(returnValue, roomExtent - (z + myRadius));
                     return returnValue;
                 };
+                FirstPersonControls.prototype.getMaxDistToWall = function () {
+                    var myRadius = this.radius;
+                    var roomExtent = Room_1.Room.blockSize / 2;
+                    return roomExtent - myRadius;
+                };
                 FirstPersonControls.prototype.getObject = function () {
                     return this.yawObject;
                 };
@@ -455,6 +460,16 @@ System.register("Scoreboard", [], function (exports_5, context_5) {
                     this.helpTextDiv.style.textAlign = "center";
                     this.helpTextDiv.style.verticalAlign = "middle";
                     element.appendChild(this.helpTextDiv);
+                    this.distanceToWallProgressBar = document.createElement('div');
+                    this.distanceToWallProgressBar.style.position = 'absolute';
+                    this.distanceToWallProgressBar.innerText = "WALL PROXIMITY";
+                    this.distanceToWallProgressBar.style.top = "80%";
+                    this.distanceToWallProgressBar.style.left = "40%";
+                    this.distanceToWallProgressBar.style.width = "30%";
+                    this.distanceToWallProgressBar.style.fontSize = "30px";
+                    this.distanceToWallProgressBar.style.textAlign = "center";
+                    this.distanceToWallProgressBar.style.fontStyle = "bold";
+                    element.appendChild(this.distanceToWallProgressBar);
                 }
                 Scoreboard.prototype.addScore = function () {
                     this.score++;
@@ -469,6 +484,18 @@ System.register("Scoreboard", [], function (exports_5, context_5) {
                     distanceToWall = (this.autowired.isGameOver) ? 0 : distanceToWall;
                     this.distanceToWallDiv.innerText = "DISTANCE TO WALL: " + distanceToWall.toFixed(2);
                     this.highscoreDiv.innerText = "HIGHSCORE: " + this.highscore.toFixed(0);
+                    var progressBarValue = Math.round((1 - distanceToWall / this.autowired.firstPersonControls.getMaxDistToWall()) * 100);
+                    var progressBarColor;
+                    if (progressBarValue < 50) {
+                        progressBarColor = "green";
+                    }
+                    else if (progressBarValue < 80) {
+                        progressBarColor = "yellow";
+                    }
+                    else {
+                        progressBarColor = "red";
+                    }
+                    this.distanceToWallProgressBar.style.color = progressBarColor;
                     this.helpTextDiv.style.display = (this.autowired.isGameOver) ? "initial" : "none";
                 };
                 return Scoreboard;
@@ -698,7 +725,7 @@ System.register("Cube", ["Room"], function (exports_8, context_8) {
                 Cube.prototype.createCubePhysics = function (width, height, depth) {
                     var x = (Math.random() - 0.5) * Room_3.Room.blockSize;
                     var z = (Math.random() - 0.5) * Room_3.Room.blockSize;
-                    var density = 10.0;
+                    var density = 15.0;
                     var mass = width * height * depth * density;
                     var sphereBody = new CANNON.Body({
                         mass: mass,
@@ -710,7 +737,7 @@ System.register("Cube", ["Room"], function (exports_8, context_8) {
                     });
                     return sphereBody;
                 };
-                Cube.prototype.update = function (cubeOrder) {
+                Cube.prototype.update = function (cubeOrder, delta) {
                     var direction;
                     if (cubeOrder == CubeOrder.randomDirection) {
                         direction = new CANNON.Vec3(Math.random(), Math.random(), Math.random()).unit();
@@ -730,7 +757,7 @@ System.register("Cube", ["Room"], function (exports_8, context_8) {
                     else if (cubeOrder == CubeOrder.negZ) {
                         direction = new CANNON.Vec3(0, 0, -1).unit();
                     }
-                    this.physicsBody.applyImpulse(direction.scale(0.01), new CANNON.Vec3());
+                    this.physicsBody.applyImpulse(direction.scale(0.025 * delta), new CANNON.Vec3());
                     Util.copyPhysicsTo(this.physicsBody, this.threeCube);
                 };
                 Cube.prototype.destroy = function () {
@@ -775,8 +802,8 @@ System.register("Main", ["Autowired", "Scoreboard"], function (exports_9, contex
                         if (!_this.autowired.isGameOver) {
                             for (var i = 0; i < _this.timeStepSubdivisions; i++) {
                                 _this.autowired.world.step(_this.fixedTimeStep / _this.timeStepSubdivisions);
+                                _this.autowired.cubeManager.update(1 / _this.timeStepSubdivisions);
                             }
-                            _this.autowired.cubeManager.update();
                             _this.autowired.room.update();
                             _this.autowired.firstPersonControls.update(_this.fixedTimeStep);
                             if (!_this.autowired.isGameOver && _this.autowired.firstPersonControls.getDistanceToWall() < 0.045) {
@@ -824,13 +851,12 @@ var CubeOrder = (function () {
         this.name = name;
         this.probabilityOfChange = probabilityOfChange;
     }
-
     CubeOrder.randomDirection = new CubeOrder("randomDirection", 0.005);
-    CubeOrder.hitPlayer = new CubeOrder("hitPlayer", 0.003);
-    CubeOrder.posX = new CubeOrder("posX", 0.005);
-    CubeOrder.negX = new CubeOrder("negX", 0.005);
-    CubeOrder.posZ = new CubeOrder("posZ", 0.005);
-    CubeOrder.negZ = new CubeOrder("negZ", 0.005);
+    CubeOrder.hitPlayer = new CubeOrder("hitPlayer", 0.001);
+    CubeOrder.posX = new CubeOrder("posX", 0.003);
+    CubeOrder.negX = new CubeOrder("negX", 0.003);
+    CubeOrder.posZ = new CubeOrder("posZ", 0.003);
+    CubeOrder.negZ = new CubeOrder("negZ", 0.003);
     return CubeOrder;
 }());
 //# sourceMappingURL=bundle.js.map
