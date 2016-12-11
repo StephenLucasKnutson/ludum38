@@ -40,6 +40,11 @@ export class CubeManager {
             this.autowired.scoreboard.addScore();
             this.cubes[badCubeIndex].destroy();
             this.cubes.splice(badCubeIndex, 1);
+            this.playDestroySound();
         }
+    }
+
+    private playDestroySound() {
+        beeplay().play(['C#4', 'C#5', 'C#6', 'C#7'], 1 / 2);
     }
 }

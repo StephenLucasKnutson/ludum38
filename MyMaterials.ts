@@ -14,21 +14,18 @@ export class MyMaterials {
         this.cubeMaterial = new CANNON.Material("cubeMaterial");
         this.slipperyMaterial = new CANNON.Material("slipperyMaterial");
 
-        /*this.world.addContactMaterial(
-         new CANNON.ContactMaterial(
-         this.slipperyMaterial,
-         this.slipperyMaterial,
-         {
-         friction: 0.4,
-         restitution: 0.3,
-         contactEquationStiffness: 1e8,
-         contactEquationRelaxation: 3,
-         frictionEquationStiffness: 1e8,
-         frictionEquationRelaxation: 3
-         }
-         )
-         );
+        this.autowired.world.addContactMaterial(
+            new CANNON.ContactMaterial(
+                this.slipperyMaterial,
+                this.playerMaterial,
+                {
+                    friction: 0.7,
+                    restitution: 0.0
+                }
+            )
+        );
 
+        /*
          this.world.addContactMaterial(
          new CANNON.ContactMaterial(
          this.cubeMaterial,

@@ -44,15 +44,22 @@ class Main {
             this.autowired.room.update();
             this.autowired.firstPersonControls.update(this.fixedTimeStep);
 
-            if (this.autowired.firstPersonControls.getDistanceToWall() < 0.045) {
+            if (!this.autowired.isGameOver && this.autowired.firstPersonControls.getDistanceToWall() < 0.045) {
                 this.autowired.isGameOver = true;
+                this.playGameOverSound();
             }
         }
 
         this.autowired.scoreboard.update();
 
         this.autowired.renderer.render(this.autowired.scene, this.autowired.camera);
+    };
+
+    playGameOverSound() {
+        beeplay()
+            .play(['C#7', 'E#7', 'G#7'], 2);
     }
+
 }
 let main: Main = new Main();
 main.render();

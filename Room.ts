@@ -67,7 +67,7 @@ export class Room {
         let geometry = new THREE.BoxGeometry(width, height, depth);
         let material = new THREE.MeshBasicMaterial(
             {
-                color: "black"
+                color: "gray"
             }
         );
         let mesh: THREE.Mesh = new THREE.Mesh(geometry, material);
