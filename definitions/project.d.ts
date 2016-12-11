@@ -5,3 +5,8 @@ interface THREEx {
 }
 
 declare var THREEx;
+
+interface HTMLElement {
+    mozRequestFullScreen(): any;
+    mozRequestPointerLock(): any;
+}

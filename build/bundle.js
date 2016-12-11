@@ -530,30 +530,41 @@ System.register("Autowired", ["MyMaterials", "CubeManager", "FirstPersonControls
             PCFSoftShadowMap = THREE.PCFSoftShadowMap;
             Autowired = (function () {
                 function Autowired(scoreboard) {
+                    var _this = this;
                     this.scoreboard = scoreboard;
                     this.scoreboard.autowired = this;
                     this.isGameOver = false;
                     this.canvasElement = $("#myCanvas");
-                    var WIDTH = window.innerWidth;
-                    var HEIGHT = window.innerHeight;
                     var VIEW_ANGLE = 75;
-                    var ASPECT = WIDTH / HEIGHT;
                     var NEAR = 0.1;
                     var FAR = 100;
                     this.canvasElement.get(0).addEventListener('click', function (event) {
-                        document.body.requestPointerLock();
+                        var el = document.documentElement;
+                        var rfs = document.body.requestFullscreen || document.body.webkitRequestFullScreen || document.body.mozRequestFullScreen;
+                        rfs.call(el);
+                        var rpl = document.body.requestPointerLock || document.body.mozRequestPointerLock;
+                        rpl.call(el);
                     }, false);
+                    window.addEventListener('resize', function (event) {
+                        _this.camera.aspect = window.innerWidth / window.innerHeight;
+                        _this.camera.updateMatrix();
+                        _this.renderer.setSize(window.innerWidth, window.innerHeight);
+                    });
+                    document.addEventListener("fullscreenchange", function (event) {
+                        _this.camera.aspect = window.innerWidth / window.innerHeight;
+                        _this.camera.updateMatrix();
+                        _this.renderer.setSize(window.innerWidth, window.innerHeight);
+                    });
                     this.renderer = new THREE.WebGLRenderer({
                         canvas: this.canvasElement.get(0),
-                        alpha: true,
                         antialias: true,
                         precision: "highp"
                     });
                     this.renderer.autoClear = false;
                     this.renderer.shadowMap.enabled = true;
                     this.renderer.shadowMap.type = PCFSoftShadowMap;
-                    this.renderer.setSize(WIDTH, HEIGHT);
-                    this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
+                    this.renderer.setSize(window.innerWidth, window.innerHeight);
+                    this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, window.innerWidth / window.innerHeight, NEAR, FAR);
                     this.scene = new THREE.Scene();
                     var light = new THREE.PointLight(0xFFFFFF, 0.5, 30);
                     light.position.set(0, 0, 0);

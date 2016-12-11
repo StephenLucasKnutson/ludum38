@@ -10,6 +10,7 @@ export class Autowired {
 
     camera: THREE.Camera;
     scene: THREE.Scene;
+    renderer: THREE.WebGLRenderer;
     glowScene: THREE.Scene;
     world: CANNON.World;
     myMaterials: MyMaterials;
@@ -20,41 +21,52 @@ export class Autowired {
     scoreboard: Scoreboard;
 
     canvasElement: JQuery;
-    renderer: THREE.WebGLRenderer;
 
     constructor(scoreboard: Scoreboard) {
         this.scoreboard = scoreboard;
         this.scoreboard.autowired = this;
         this.isGameOver = false;
         this.canvasElement = $("#myCanvas");
-        let WIDTH = window.innerWidth;
-        let HEIGHT = window.innerHeight;
 
         let VIEW_ANGLE = 75;
-        let ASPECT = WIDTH / HEIGHT;
         let NEAR = 0.1;
         let FAR = 100;
 
 
-        this.canvasElement.get(0).addEventListener('click', function (event) {
-            document.body.requestPointerLock();
+        this.canvasElement.get(0).addEventListener('click', (event) => {
+            var el = document.documentElement;
+            let rfs = document.body.requestFullscreen || document.body.webkitRequestFullScreen || document.body.mozRequestFullScreen;
+            rfs.call(el);
+
+            let rpl = document.body.requestPointerLock || document.body.mozRequestPointerLock;
+            rpl.call(el);
         }, false);
+
+        window.addEventListener('resize', (event) => {
+            (this.camera as THREE.PerspectiveCamera).aspect = window.innerWidth / window.innerHeight;
+            this.camera.updateMatrix();
+            this.renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        document.addEventListener("fullscreenchange", (event) => {
+            (this.camera as THREE.PerspectiveCamera).aspect = window.innerWidth / window.innerHeight;
+            this.camera.updateMatrix();
+            this.renderer.setSize(window.innerWidth, window.innerHeight);
+        });
 
 
         this.renderer = new THREE.WebGLRenderer({
             canvas: <HTMLCanvasElement>this.canvasElement.get(0),
-            alpha: true,
             antialias: true,
             precision: "highp"
         });
         this.renderer.autoClear = false;
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = PCFSoftShadowMap;
-        this.renderer.setSize(WIDTH, HEIGHT);
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
 
         this.camera = new THREE.PerspectiveCamera(
             VIEW_ANGLE,
-            ASPECT,
+            window.innerWidth / window.innerHeight,
             NEAR,
             FAR);
 
