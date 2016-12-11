@@ -488,11 +488,11 @@ System.register("FirstPersonControls", ["Room"], function (exports_5, context_5)
                     this.domElement.addEventListener('contextmenu', function (event) {
                         event.preventDefault();
                     }, false);
-                    document.addEventListener('mousemove', bind(this, this.onMouseMove), false);
-                    document.addEventListener('mousedown', bind(this, this.onMouseDown), false);
-                    document.addEventListener('mouseup', bind(this, this.onMouseUp), false);
-                    document.addEventListener('keydown', bind(this, this.onKeyDown), false);
-                    document.addEventListener('keyup', bind(this, this.onKeyUp), false);
+                    document.addEventListener('mousemove', bind(this, this.onMouseMove));
+                    document.addEventListener('mousedown', bind(this, this.onMouseDown));
+                    document.addEventListener('mouseup', bind(this, this.onMouseUp));
+                    document.addEventListener('keydown', bind(this, this.onKeyDown));
+                    document.addEventListener('keyup', bind(this, this.onKeyUp));
                     function bind(scope, fn) {
                         return function () {
                             fn.apply(scope, arguments);
