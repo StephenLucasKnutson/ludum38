@@ -46,9 +46,22 @@ export class Cube {
         return sphereBody;
     }
 
-    update() {
-        let pointingTowardsPlayer: CANNON.Vec3 = this.autowired.firstPersonControls.physics.position.clone().vsub(this.physicsBody.position).unit();
-        this.physicsBody.applyImpulse(pointingTowardsPlayer.scale(0.01), new CANNON.Vec3());
+    update(cubeOrder: CubeOrder) {
+        let direction: CANNON.Vec3;
+        if (cubeOrder == CubeOrder.randomDirection) {
+            direction = new CANNON.Vec3(Math.random(), Math.random(), Math.random()).unit();
+        } else if (cubeOrder == CubeOrder.hitPlayer) {
+            direction = this.autowired.firstPersonControls.physics.position.clone().vsub(this.physicsBody.position).unit();
+        } else if (cubeOrder == CubeOrder.posX) {
+            direction = new CANNON.Vec3(1, 0, 0).unit();
+        } else if (cubeOrder == CubeOrder.negX) {
+            direction = new CANNON.Vec3(-1, 0, 0).unit();
+        } else if (cubeOrder == CubeOrder.posZ) {
+            direction = new CANNON.Vec3(0, 0, 1).unit();
+        } else if (cubeOrder == CubeOrder.negZ) {
+            direction = new CANNON.Vec3(0, 0, -1).unit();
+        }
+        this.physicsBody.applyImpulse(direction.scale(0.01), new CANNON.Vec3());
         Util.copyPhysicsTo(this.physicsBody, this.threeCube);
     }
 

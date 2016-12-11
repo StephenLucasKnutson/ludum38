@@ -54,6 +54,7 @@ System.register("CubeManager", ["Cube"], function (exports_2, context_2) {
                     this.a = 200000;
                     this.numberOfUpdates = 2000;
                     this.autowired = autowired;
+                    this.currentOrder = CubeOrder.hitPlayer;
                 }
                 CubeManager.prototype.createCube = function () {
                     var cube = new Cube_1.Cube(this.autowired);
@@ -65,11 +66,20 @@ System.register("CubeManager", ["Cube"], function (exports_2, context_2) {
                     if (Math.random() < probability) {
                         this.createCube();
                     }
+                    if (Math.random() < this.currentOrder.probabilityOfChange) {
+                        this.currentOrder = this.randomCubeOrder();
+                        console.log("switching thoughts" + this.currentOrder.name);
+                    }
                     for (var _i = 0, _a = this.cubes; _i < _a.length; _i++) {
                         var cube = _a[_i];
-                        cube.update();
+                        cube.update(this.currentOrder);
                     }
                     this.numberOfUpdates++;
+                };
+                CubeManager.prototype.randomCubeOrder = function () {
+                    var chosenNumber = Math.floor(Math.random() * 6);
+                    var orderArray = [CubeOrder.randomDirection, CubeOrder.hitPlayer, CubeOrder.posX, CubeOrder.negX, CubeOrder.posZ, CubeOrder.negX];
+                    return orderArray[chosenNumber];
                 };
                 CubeManager.prototype.removeCube = function (mesh) {
                     var badCubeIndex = -1;
@@ -700,9 +710,27 @@ System.register("Cube", ["Room"], function (exports_8, context_8) {
                     });
                     return sphereBody;
                 };
-                Cube.prototype.update = function () {
-                    var pointingTowardsPlayer = this.autowired.firstPersonControls.physics.position.clone().vsub(this.physicsBody.position).unit();
-                    this.physicsBody.applyImpulse(pointingTowardsPlayer.scale(0.01), new CANNON.Vec3());
+                Cube.prototype.update = function (cubeOrder) {
+                    var direction;
+                    if (cubeOrder == CubeOrder.randomDirection) {
+                        direction = new CANNON.Vec3(Math.random(), Math.random(), Math.random()).unit();
+                    }
+                    else if (cubeOrder == CubeOrder.hitPlayer) {
+                        direction = this.autowired.firstPersonControls.physics.position.clone().vsub(this.physicsBody.position).unit();
+                    }
+                    else if (cubeOrder == CubeOrder.posX) {
+                        direction = new CANNON.Vec3(1, 0, 0).unit();
+                    }
+                    else if (cubeOrder == CubeOrder.negX) {
+                        direction = new CANNON.Vec3(-1, 0, 0).unit();
+                    }
+                    else if (cubeOrder == CubeOrder.posZ) {
+                        direction = new CANNON.Vec3(0, 0, 1).unit();
+                    }
+                    else if (cubeOrder == CubeOrder.negZ) {
+                        direction = new CANNON.Vec3(0, 0, -1).unit();
+                    }
+                    this.physicsBody.applyImpulse(direction.scale(0.01), new CANNON.Vec3());
                     Util.copyPhysicsTo(this.physicsBody, this.threeCube);
                 };
                 Cube.prototype.destroy = function () {
@@ -790,5 +818,19 @@ var Util = (function () {
         mesh.quaternion.set(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
     };
     return Util;
+}());
+var CubeOrder = (function () {
+    function CubeOrder(name, probabilityOfChange) {
+        this.name = name;
+        this.probabilityOfChange = probabilityOfChange;
+    }
+
+    CubeOrder.randomDirection = new CubeOrder("randomDirection", 0.005);
+    CubeOrder.hitPlayer = new CubeOrder("hitPlayer", 0.003);
+    CubeOrder.posX = new CubeOrder("posX", 0.005);
+    CubeOrder.negX = new CubeOrder("negX", 0.005);
+    CubeOrder.posZ = new CubeOrder("posZ", 0.005);
+    CubeOrder.negZ = new CubeOrder("negZ", 0.005);
+    return CubeOrder;
 }());
 //# sourceMappingURL=bundle.js.map
