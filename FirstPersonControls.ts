@@ -135,7 +135,7 @@ export class FirstPersonControls {
     };
 
     shouldUpdate = (): boolean => {
-        let element = document.body;
+        let element = document.documentElement;
         let havePointerLock: boolean = ( document.pointerLockElement === element );
         return havePointerLock && !this.autowired.isGameOver;
     };

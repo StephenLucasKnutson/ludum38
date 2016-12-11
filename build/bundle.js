@@ -37,9 +37,201 @@ System.register("MyMaterials", [], function (exports_1, context_1) {
         }
     }
 });
-System.register("CubeManager", ["Cube"], function (exports_2, context_2) {
+System.register("Room", [], function (exports_2, context_2) {
     "use strict";
     var __moduleName = context_2 && context_2.id;
+    var Room;
+    return {
+        setters: [],
+        execute: function () {
+            Room = (function () {
+                function Room(autowired) {
+                    this.autowired = autowired;
+                    this.bottomMesh = this.createCubeThreeFloor();
+                    this.topMesh = this.createCubeThree();
+                    this.leftMesh = this.createCubeThree();
+                    this.rightMesh = this.createCubeThree();
+                    this.forwardMesh = this.createCubeThree();
+                    this.backwardMesh = this.createCubeThree();
+                    this.bottomPhysics = this.createCubePhysics();
+                    this.topPhysics = this.createCubePhysics();
+                    this.leftPhysics = this.createCubePhysics();
+                    this.rightPhysics = this.createCubePhysics();
+                    this.forwardPhysics = this.createCubePhysics();
+                    this.backwardPhysics = this.createCubePhysics();
+                    this.bottomPhysics.position.set(0, -Room.blockSize, 0);
+                    this.topPhysics.position.set(0, Room.blockSize, 0);
+                    this.leftPhysics.position.set(Room.blockSize, 0, 0);
+                    this.rightPhysics.position.set(-Room.blockSize, 0, 0);
+                    this.forwardPhysics.position.set(0, 0, Room.blockSize);
+                    this.backwardPhysics.position.set(0, 0, -Room.blockSize);
+                    for (var _i = 0, _a = this.meshes(); _i < _a.length; _i++) {
+                        var mesh = _a[_i];
+                        this.autowired.scene.add(mesh);
+                    }
+                    for (var _b = 0, _c = this.physics(); _b < _c.length; _b++) {
+                        var physicBody = _c[_b];
+                        this.autowired.world.addBody(physicBody);
+                    }
+                }
+
+                Room.prototype.createCubeThree = function (width, height, depth) {
+                    if (width === void 0) {
+                        width = Room.blockSize;
+                    }
+                    if (height === void 0) {
+                        height = Room.blockSize;
+                    }
+                    if (depth === void 0) {
+                        depth = Room.blockSize;
+                    }
+                    var geometry = new THREE.BoxGeometry(width, height, depth);
+                    var material = new THREE.MeshStandardMaterial({
+                        color: "blue"
+                    });
+                    var mesh = new THREE.Mesh(geometry, material);
+                    return mesh;
+                };
+                Room.prototype.createCubeThreeFloor = function (width, height, depth) {
+                    if (width === void 0) {
+                        width = Room.blockSize;
+                    }
+                    if (height === void 0) {
+                        height = Room.blockSize;
+                    }
+                    if (depth === void 0) {
+                        depth = Room.blockSize;
+                    }
+                    var geometry = new THREE.BoxGeometry(width, height, depth);
+                    var material = new THREE.MeshBasicMaterial({
+                        color: "gray"
+                    });
+                    var mesh = new THREE.Mesh(geometry, material);
+                    return mesh;
+                };
+                Room.prototype.createCubePhysics = function (width, height, depth) {
+                    if (width === void 0) {
+                        width = Room.blockSize;
+                    }
+                    if (height === void 0) {
+                        height = Room.blockSize;
+                    }
+                    if (depth === void 0) {
+                        depth = Room.blockSize;
+                    }
+                    var sphereBody = new CANNON.Body({
+                        mass: 0,
+                        shape: new CANNON.Box(new CANNON.Vec3(width / 2, height / 2, depth / 2)),
+                        material: this.autowired.myMaterials.slipperyMaterial
+                    });
+                    return sphereBody;
+                };
+                Room.prototype.update = function () {
+                    Util.copyPhysicsTo(this.bottomPhysics, this.bottomMesh);
+                    Util.copyPhysicsTo(this.topPhysics, this.topMesh);
+                    Util.copyPhysicsTo(this.leftPhysics, this.leftMesh);
+                    Util.copyPhysicsTo(this.rightPhysics, this.rightMesh);
+                    Util.copyPhysicsTo(this.forwardPhysics, this.forwardMesh);
+                    Util.copyPhysicsTo(this.backwardPhysics, this.backwardMesh);
+                };
+                Room.prototype.meshes = function () {
+                    return [this.bottomMesh, this.topMesh, this.leftMesh, this.rightMesh, this.forwardMesh, this.backwardMesh];
+                };
+                Room.prototype.physics = function () {
+                    return [this.bottomPhysics, this.topPhysics, this.leftPhysics, this.rightPhysics, this.forwardPhysics, this.backwardPhysics];
+                };
+                Room.blockSize = 10;
+                return Room;
+            }());
+            exports_2("Room", Room);
+        }
+    }
+});
+System.register("Cube", ["Room"], function (exports_3, context_3) {
+    "use strict";
+    var __moduleName = context_3 && context_3.id;
+    var Room_1;
+    var Cube;
+    return {
+        setters: [
+            function (Room_1_1) {
+                Room_1 = Room_1_1;
+            }],
+        execute: function () {
+            Cube = (function () {
+                function Cube(autowired) {
+                    this.autowired = autowired;
+                    var width = (Math.random() * 0.3 + 0.2);
+                    var height = (Math.random() * 0.3 + 0.2);
+                    var depth = (Math.random() * 0.3 + 0.2);
+                    this.threeCube = this.createCubeThree(width, height, depth);
+                    this.physicsBody = this.createCubePhysics(width, height, depth);
+                    this.autowired.scene.add(this.threeCube);
+                    this.autowired.world.addBody(this.physicsBody);
+                }
+
+                Cube.prototype.createCubeThree = function (width, height, depth) {
+                    var geometry = new THREE.BoxGeometry(width, height, depth);
+                    var material = new THREE.MeshPhongMaterial({
+                        color: 0x839CA5,
+                        specular: 0xFFFFFF,
+                        shininess: 200
+                    });
+                    var mesh = new THREE.Mesh(geometry, material);
+                    mesh.receiveShadow = true;
+                    return mesh;
+                };
+                Cube.prototype.createCubePhysics = function (width, height, depth) {
+                    var x = (Math.random() - 0.5) * Room_1.Room.blockSize;
+                    var z = (Math.random() - 0.5) * Room_1.Room.blockSize;
+                    var density = 15.0;
+                    var mass = width * height * depth * density;
+                    var sphereBody = new CANNON.Body({
+                        mass: mass,
+                        position: new CANNON.Vec3(x, Room_1.Room.blockSize / 2 - 1 - height, z),
+                        shape: new CANNON.Box(new CANNON.Vec3(width / 2, height / 2, depth / 2)),
+                        material: this.autowired.myMaterials.cubeMaterial,
+                        linearDamping: 0.3,
+                        angularDamping: 0.6
+                    });
+                    return sphereBody;
+                };
+                Cube.prototype.update = function (cubeOrder, delta) {
+                    var direction;
+                    if (cubeOrder == CubeOrder.randomDirection) {
+                        direction = new CANNON.Vec3(Math.random(), Math.random(), Math.random()).unit();
+                    }
+                    else if (cubeOrder == CubeOrder.hitPlayer) {
+                        direction = this.autowired.firstPersonControls.physics.position.clone().vsub(this.physicsBody.position).unit();
+                    }
+                    else if (cubeOrder == CubeOrder.posX) {
+                        direction = new CANNON.Vec3(1, 0, 0).unit();
+                    }
+                    else if (cubeOrder == CubeOrder.negX) {
+                        direction = new CANNON.Vec3(-1, 0, 0).unit();
+                    }
+                    else if (cubeOrder == CubeOrder.posZ) {
+                        direction = new CANNON.Vec3(0, 0, 1).unit();
+                    }
+                    else if (cubeOrder == CubeOrder.negZ) {
+                        direction = new CANNON.Vec3(0, 0, -1).unit();
+                    }
+                    this.physicsBody.applyImpulse(direction.scale(0.025 * delta), new CANNON.Vec3());
+                    Util.copyPhysicsTo(this.physicsBody, this.threeCube);
+                };
+                Cube.prototype.destroy = function () {
+                    this.autowired.scene.remove(this.threeCube);
+                    this.autowired.world.remove(this.physicsBody);
+                };
+                return Cube;
+            }());
+            exports_3("Cube", Cube);
+        }
+    }
+});
+System.register("CubeManager", ["Cube"], function (exports_4, context_4) {
+    "use strict";
+    var __moduleName = context_4 && context_4.id;
     var Cube_1;
     var CubeManager;
     return {
@@ -100,19 +292,19 @@ System.register("CubeManager", ["Cube"], function (exports_2, context_2) {
                 };
                 return CubeManager;
             }());
-            exports_2("CubeManager", CubeManager);
+            exports_4("CubeManager", CubeManager);
         }
     }
 });
-System.register("FirstPersonControls", ["Room"], function (exports_3, context_3) {
+System.register("FirstPersonControls", ["Room"], function (exports_5, context_5) {
     "use strict";
-    var __moduleName = context_3 && context_3.id;
-    var Room_1;
+    var __moduleName = context_5 && context_5.id;
+    var Room_2;
     var FirstPersonControls;
     return {
         setters: [
-            function (Room_1_1) {
-                Room_1 = Room_1_1;
+            function (Room_2_1) {
+                Room_2 = Room_2_1;
             }],
         execute: function () {
             /**
@@ -152,7 +344,7 @@ System.register("FirstPersonControls", ["Room"], function (exports_3, context_3)
                         event.stopPropagation();
                     };
                     this.shouldUpdate = function () {
-                        var element = document.body;
+                        var element = document.documentElement;
                         var havePointerLock = (document.pointerLockElement === element);
                         return havePointerLock && !_this.autowired.isGameOver;
                     };
@@ -345,7 +537,7 @@ System.register("FirstPersonControls", ["Room"], function (exports_3, context_3)
                 };
                 FirstPersonControls.prototype.getDistanceToWall = function () {
                     var returnValue = 1000;
-                    var roomExtent = Room_1.Room.blockSize / 2;
+                    var roomExtent = Room_2.Room.blockSize / 2;
                     var myRadius = this.radius;
                     var position = this.yawObject.position;
                     var x = Math.abs(position.x);
@@ -356,7 +548,7 @@ System.register("FirstPersonControls", ["Room"], function (exports_3, context_3)
                 };
                 FirstPersonControls.prototype.getMaxDistToWall = function () {
                     var myRadius = this.radius;
-                    var roomExtent = Room_1.Room.blockSize / 2;
+                    var roomExtent = Room_2.Room.blockSize / 2;
                     return roomExtent - myRadius;
                 };
                 FirstPersonControls.prototype.getObject = function () {
@@ -365,13 +557,13 @@ System.register("FirstPersonControls", ["Room"], function (exports_3, context_3)
                 ;
                 return FirstPersonControls;
             }());
-            exports_3("FirstPersonControls", FirstPersonControls);
+            exports_5("FirstPersonControls", FirstPersonControls);
         }
     }
 });
-System.register("CrossHair", [], function (exports_4, context_4) {
+System.register("CrossHair", [], function (exports_6, context_6) {
     "use strict";
-    var __moduleName = context_4 && context_4.id;
+    var __moduleName = context_6 && context_6.id;
     var CrossHair;
     return {
         setters: [],
@@ -404,13 +596,13 @@ System.register("CrossHair", [], function (exports_4, context_4) {
                 }
                 return CrossHair;
             }());
-            exports_4("CrossHair", CrossHair);
+            exports_6("CrossHair", CrossHair);
         }
     }
 });
-System.register("Scoreboard", [], function (exports_5, context_5) {
+System.register("Scoreboard", [], function (exports_7, context_7) {
     "use strict";
-    var __moduleName = context_5 && context_5.id;
+    var __moduleName = context_7 && context_7.id;
     var Scoreboard;
     return {
         setters: [],
@@ -464,7 +656,7 @@ System.register("Scoreboard", [], function (exports_5, context_5) {
                     this.distanceToWallProgressBar.style.position = 'absolute';
                     this.distanceToWallProgressBar.innerText = "WALL PROXIMITY";
                     this.distanceToWallProgressBar.style.top = "80%";
-                    this.distanceToWallProgressBar.style.left = "40%";
+                    this.distanceToWallProgressBar.style.left = "35%";
                     this.distanceToWallProgressBar.style.width = "30%";
                     this.distanceToWallProgressBar.style.fontSize = "30px";
                     this.distanceToWallProgressBar.style.textAlign = "center";
@@ -500,14 +692,14 @@ System.register("Scoreboard", [], function (exports_5, context_5) {
                 };
                 return Scoreboard;
             }());
-            exports_5("Scoreboard", Scoreboard);
+            exports_7("Scoreboard", Scoreboard);
         }
     }
 });
-System.register("Autowired", ["MyMaterials", "CubeManager", "FirstPersonControls", "Room", "CrossHair"], function (exports_6, context_6) {
+System.register("Autowired", ["MyMaterials", "CubeManager", "FirstPersonControls", "Room", "CrossHair"], function (exports_8, context_8) {
     "use strict";
-    var __moduleName = context_6 && context_6.id;
-    var MyMaterials_1, CubeManager_1, FirstPersonControls_1, Room_2, CrossHair_1;
+    var __moduleName = context_8 && context_8.id;
+    var MyMaterials_1, CubeManager_1, FirstPersonControls_1, Room_3, CrossHair_1;
     var PCFSoftShadowMap, Autowired;
     return {
         setters: [
@@ -520,8 +712,8 @@ System.register("Autowired", ["MyMaterials", "CubeManager", "FirstPersonControls
             function (FirstPersonControls_1_1) {
                 FirstPersonControls_1 = FirstPersonControls_1_1;
             },
-            function (Room_2_1) {
-                Room_2 = Room_2_1;
+            function (Room_3_1) {
+                Room_3 = Room_3_1;
             },
             function (CrossHair_1_1) {
                 CrossHair_1 = CrossHair_1_1;
@@ -579,7 +771,7 @@ System.register("Autowired", ["MyMaterials", "CubeManager", "FirstPersonControls
                     this.world.gravity.set(0, -10, 0); // m/s²
                     this.myMaterials = new MyMaterials_1.MyMaterials(this);
                     this.cubeManager = new CubeManager_1.CubeManager(this);
-                    this.room = new Room_2.Room(this);
+                    this.room = new Room_3.Room(this);
                     this.firstPersonControls = new FirstPersonControls_1.FirstPersonControls(this, document);
                     this.scene.add(this.firstPersonControls.getObject());
                     this.world.addBody(this.firstPersonControls.physics);
@@ -587,200 +779,24 @@ System.register("Autowired", ["MyMaterials", "CubeManager", "FirstPersonControls
                 }
                 return Autowired;
             }());
-            exports_6("Autowired", Autowired);
+            exports_8("Autowired", Autowired);
         }
     }
 });
-System.register("Room", [], function (exports_7, context_7) {
-    "use strict";
-    var __moduleName = context_7 && context_7.id;
-    var Room;
-    return {
-        setters: [],
-        execute: function () {
-            Room = (function () {
-                function Room(autowired) {
-                    this.autowired = autowired;
-                    this.bottomMesh = this.createCubeThreeFloor();
-                    this.topMesh = this.createCubeThree();
-                    this.leftMesh = this.createCubeThree();
-                    this.rightMesh = this.createCubeThree();
-                    this.forwardMesh = this.createCubeThree();
-                    this.backwardMesh = this.createCubeThree();
-                    this.bottomPhysics = this.createCubePhysics();
-                    this.topPhysics = this.createCubePhysics();
-                    this.leftPhysics = this.createCubePhysics();
-                    this.rightPhysics = this.createCubePhysics();
-                    this.forwardPhysics = this.createCubePhysics();
-                    this.backwardPhysics = this.createCubePhysics();
-                    this.bottomPhysics.position.set(0, -Room.blockSize, 0);
-                    this.topPhysics.position.set(0, Room.blockSize, 0);
-                    this.leftPhysics.position.set(Room.blockSize, 0, 0);
-                    this.rightPhysics.position.set(-Room.blockSize, 0, 0);
-                    this.forwardPhysics.position.set(0, 0, Room.blockSize);
-                    this.backwardPhysics.position.set(0, 0, -Room.blockSize);
-                    for (var _i = 0, _a = this.meshes(); _i < _a.length; _i++) {
-                        var mesh = _a[_i];
-                        this.autowired.scene.add(mesh);
-                    }
-                    for (var _b = 0, _c = this.physics(); _b < _c.length; _b++) {
-                        var physicBody = _c[_b];
-                        this.autowired.world.addBody(physicBody);
-                    }
-                }
-                Room.prototype.createCubeThree = function (width, height, depth) {
-                    if (width === void 0) {
-                        width = Room.blockSize;
-                    }
-                    if (height === void 0) {
-                        height = Room.blockSize;
-                    }
-                    if (depth === void 0) {
-                        depth = Room.blockSize;
-                    }
-                    var geometry = new THREE.BoxGeometry(width, height, depth);
-                    var material = new THREE.MeshStandardMaterial({
-                        color: "blue"
-                    });
-                    var mesh = new THREE.Mesh(geometry, material);
-                    return mesh;
-                };
-                Room.prototype.createCubeThreeFloor = function (width, height, depth) {
-                    if (width === void 0) {
-                        width = Room.blockSize;
-                    }
-                    if (height === void 0) {
-                        height = Room.blockSize;
-                    }
-                    if (depth === void 0) {
-                        depth = Room.blockSize;
-                    }
-                    var geometry = new THREE.BoxGeometry(width, height, depth);
-                    var material = new THREE.MeshBasicMaterial({
-                        color: "gray"
-                    });
-                    var mesh = new THREE.Mesh(geometry, material);
-                    return mesh;
-                };
-                Room.prototype.createCubePhysics = function (width, height, depth) {
-                    if (width === void 0) {
-                        width = Room.blockSize;
-                    }
-                    if (height === void 0) {
-                        height = Room.blockSize;
-                    }
-                    if (depth === void 0) {
-                        depth = Room.blockSize;
-                    }
-                    var sphereBody = new CANNON.Body({
-                        mass: 0,
-                        shape: new CANNON.Box(new CANNON.Vec3(width / 2, height / 2, depth / 2)),
-                        material: this.autowired.myMaterials.slipperyMaterial
-                    });
-                    return sphereBody;
-                };
-                Room.prototype.update = function () {
-                    Util.copyPhysicsTo(this.bottomPhysics, this.bottomMesh);
-                    Util.copyPhysicsTo(this.topPhysics, this.topMesh);
-                    Util.copyPhysicsTo(this.leftPhysics, this.leftMesh);
-                    Util.copyPhysicsTo(this.rightPhysics, this.rightMesh);
-                    Util.copyPhysicsTo(this.forwardPhysics, this.forwardMesh);
-                    Util.copyPhysicsTo(this.backwardPhysics, this.backwardMesh);
-                };
-                Room.prototype.meshes = function () {
-                    return [this.bottomMesh, this.topMesh, this.leftMesh, this.rightMesh, this.forwardMesh, this.backwardMesh];
-                };
-                Room.prototype.physics = function () {
-                    return [this.bottomPhysics, this.topPhysics, this.leftPhysics, this.rightPhysics, this.forwardPhysics, this.backwardPhysics];
-                };
-                Room.blockSize = 10;
-                return Room;
-            }());
-            exports_7("Room", Room);
-        }
+var CubeOrder = (function () {
+    function CubeOrder(name, probabilityOfChange) {
+        this.name = name;
+        this.probabilityOfChange = probabilityOfChange;
     }
-});
-System.register("Cube", ["Room"], function (exports_8, context_8) {
-    "use strict";
-    var __moduleName = context_8 && context_8.id;
-    var Room_3;
-    var Cube;
-    return {
-        setters: [
-            function (Room_3_1) {
-                Room_3 = Room_3_1;
-            }],
-        execute: function () {
-            Cube = (function () {
-                function Cube(autowired) {
-                    this.autowired = autowired;
-                    var width = (Math.random() * 0.3 + 0.2);
-                    var height = (Math.random() * 0.3 + 0.2);
-                    var depth = (Math.random() * 0.3 + 0.2);
-                    this.threeCube = this.createCubeThree(width, height, depth);
-                    this.physicsBody = this.createCubePhysics(width, height, depth);
-                    this.autowired.scene.add(this.threeCube);
-                    this.autowired.world.addBody(this.physicsBody);
-                }
-                Cube.prototype.createCubeThree = function (width, height, depth) {
-                    var geometry = new THREE.BoxGeometry(width, height, depth);
-                    var material = new THREE.MeshPhongMaterial({
-                        color: 0x839CA5,
-                        specular: 0xFFFFFF,
-                        shininess: 200
-                    });
-                    var mesh = new THREE.Mesh(geometry, material);
-                    mesh.receiveShadow = true;
-                    return mesh;
-                };
-                Cube.prototype.createCubePhysics = function (width, height, depth) {
-                    var x = (Math.random() - 0.5) * Room_3.Room.blockSize;
-                    var z = (Math.random() - 0.5) * Room_3.Room.blockSize;
-                    var density = 15.0;
-                    var mass = width * height * depth * density;
-                    var sphereBody = new CANNON.Body({
-                        mass: mass,
-                        position: new CANNON.Vec3(x, Room_3.Room.blockSize / 2 - 1 - height, z),
-                        shape: new CANNON.Box(new CANNON.Vec3(width / 2, height / 2, depth / 2)),
-                        material: this.autowired.myMaterials.cubeMaterial,
-                        linearDamping: 0.3,
-                        angularDamping: 0.6
-                    });
-                    return sphereBody;
-                };
-                Cube.prototype.update = function (cubeOrder, delta) {
-                    var direction;
-                    if (cubeOrder == CubeOrder.randomDirection) {
-                        direction = new CANNON.Vec3(Math.random(), Math.random(), Math.random()).unit();
-                    }
-                    else if (cubeOrder == CubeOrder.hitPlayer) {
-                        direction = this.autowired.firstPersonControls.physics.position.clone().vsub(this.physicsBody.position).unit();
-                    }
-                    else if (cubeOrder == CubeOrder.posX) {
-                        direction = new CANNON.Vec3(1, 0, 0).unit();
-                    }
-                    else if (cubeOrder == CubeOrder.negX) {
-                        direction = new CANNON.Vec3(-1, 0, 0).unit();
-                    }
-                    else if (cubeOrder == CubeOrder.posZ) {
-                        direction = new CANNON.Vec3(0, 0, 1).unit();
-                    }
-                    else if (cubeOrder == CubeOrder.negZ) {
-                        direction = new CANNON.Vec3(0, 0, -1).unit();
-                    }
-                    this.physicsBody.applyImpulse(direction.scale(0.025 * delta), new CANNON.Vec3());
-                    Util.copyPhysicsTo(this.physicsBody, this.threeCube);
-                };
-                Cube.prototype.destroy = function () {
-                    this.autowired.scene.remove(this.threeCube);
-                    this.autowired.world.remove(this.physicsBody);
-                };
-                return Cube;
-            }());
-            exports_8("Cube", Cube);
-        }
-    }
-});
+
+    CubeOrder.randomDirection = new CubeOrder("randomDirection", 0.005);
+    CubeOrder.hitPlayer = new CubeOrder("hitPlayer", 0.001);
+    CubeOrder.posX = new CubeOrder("posX", 0.003);
+    CubeOrder.negX = new CubeOrder("negX", 0.003);
+    CubeOrder.posZ = new CubeOrder("posZ", 0.003);
+    CubeOrder.negZ = new CubeOrder("negZ", 0.003);
+    return CubeOrder;
+}());
 /// <reference path="Cube.ts" />
 /// <reference path="Room.ts" />
 /// <reference path="definitions/cannon.d.ts" />
@@ -856,18 +872,5 @@ var Util = (function () {
         mesh.quaternion.set(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
     };
     return Util;
-}());
-var CubeOrder = (function () {
-    function CubeOrder(name, probabilityOfChange) {
-        this.name = name;
-        this.probabilityOfChange = probabilityOfChange;
-    }
-    CubeOrder.randomDirection = new CubeOrder("randomDirection", 0.005);
-    CubeOrder.hitPlayer = new CubeOrder("hitPlayer", 0.001);
-    CubeOrder.posX = new CubeOrder("posX", 0.003);
-    CubeOrder.negX = new CubeOrder("negX", 0.003);
-    CubeOrder.posZ = new CubeOrder("posZ", 0.003);
-    CubeOrder.negZ = new CubeOrder("negZ", 0.003);
-    return CubeOrder;
 }());
 //# sourceMappingURL=bundle.js.map

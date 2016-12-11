@@ -60,7 +60,7 @@ export class Scoreboard {
         this.distanceToWallProgressBar.style.position = 'absolute';
         this.distanceToWallProgressBar.innerText = "WALL PROXIMITY";
         this.distanceToWallProgressBar.style.top = "80%";
-        this.distanceToWallProgressBar.style.left = "40%";
+        this.distanceToWallProgressBar.style.left = "35%";
         this.distanceToWallProgressBar.style.width = "30%";
         this.distanceToWallProgressBar.style.fontSize = "30px";
         this.distanceToWallProgressBar.style.textAlign = "center";
