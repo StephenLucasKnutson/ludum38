@@ -14,7 +14,7 @@ export class Scoreboard {
 
         this.scoreDiv = document.createElement('div');
         this.scoreDiv.style.position = 'absolute';
-        this.scoreDiv.style.color = "#3E00FF";
+        this.scoreDiv.style.color = "#ffa500";
         this.scoreDiv.innerHTML = "";
         this.scoreDiv.style.top = '50px';
         this.scoreDiv.style.left = '50px';
@@ -23,7 +23,7 @@ export class Scoreboard {
 
         this.distanceToWallDiv = document.createElement('div');
         this.distanceToWallDiv.style.position = 'absolute';
-        this.distanceToWallDiv.style.color = "black";
+        this.distanceToWallDiv.style.color = "#ffa500";
         this.distanceToWallDiv.innerHTML = "";
         this.distanceToWallDiv.style.top = '150px';
         this.distanceToWallDiv.style.left = '50px';
@@ -32,7 +32,7 @@ export class Scoreboard {
 
         this.highscoreDiv = document.createElement('div');
         this.highscoreDiv.style.position = 'absolute';
-        this.highscoreDiv.style.color = "black";
+        this.highscoreDiv.style.color = "#ffa500";
         this.highscoreDiv.innerHTML = "";
         this.highscoreDiv.style.top = '175px';
         this.highscoreDiv.style.left = '50px';
@@ -41,8 +41,8 @@ export class Scoreboard {
 
         this.helpTextDiv = document.createElement('div');
         this.helpTextDiv.style.position = 'absolute';
-        this.helpTextDiv.style.color = "black";
-        this.helpTextDiv.innerHTML = "Press R to try again";
+        this.helpTextDiv.style.color = "#ffa500";
+        this.helpTextDiv.innerHTML = 'Press R To Try Again';
         this.helpTextDiv.style.display = "none";
         this.helpTextDiv.style.fontSize = "50px";
         this.helpTextDiv.style.top = "50%";
@@ -69,8 +69,8 @@ export class Scoreboard {
         this.scoreDiv.innerText = this.score.toFixed(0);
         let distanceToWall: number = Math.max(this.autowired.firstPersonControls.getDistanceToWall(), 0.0001);
         distanceToWall = (this.autowired.isGameOver) ? 0 : distanceToWall;
-        this.distanceToWallDiv.innerText = "Distance to wall: " + distanceToWall.toFixed(2);
-        this.highscoreDiv.innerText = "Highscore: " + this.highscore.toFixed(0);
+        this.distanceToWallDiv.innerText = "DISTANCE TO WALL: " + distanceToWall.toFixed(2);
+        this.highscoreDiv.innerText = "HIGHSCORE: " + this.highscore.toFixed(0);
 
         this.helpTextDiv.style.display = (this.autowired.isGameOver) ? "initial" : "none";
     }

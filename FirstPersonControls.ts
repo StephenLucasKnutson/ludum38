@@ -77,16 +77,9 @@ export class FirstPersonControls {
         let raycaster: THREE.Raycaster = new THREE.Raycaster();
         raycaster.set(this.autowired.camera.getWorldPosition(), this.autowired.camera.getWorldDirection());
         let intersections: THREE.Intersection[] = raycaster.intersectObjects(this.autowired.scene.children);
-        if (intersections.length == 0) {
-            return;
-        }
-        let nearest: THREE.Intersection = intersections[0];
         for (let intersection of intersections) {
-            if (intersection.distance < nearest.distance) {
-                nearest = intersection;
-            }
+            this.autowired.cubeManager.removeCube(intersection.object)
         }
-        this.autowired.cubeManager.removeCube(nearest.object)
     }
 
     private canJump() {

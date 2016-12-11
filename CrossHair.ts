@@ -34,7 +34,7 @@ export class CrossHair {
         mesh.position.x = crosshairPositionX * ((autowired.camera as THREE.PerspectiveCamera).aspect);
         mesh.position.y = crosshairPositionY;
 
-        mesh.position.z = -0.3;
+        mesh.position.z = -0.5;
 
         this.autowired.camera.add(mesh);
     }

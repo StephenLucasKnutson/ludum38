@@ -23,7 +23,7 @@ export class Room {
     constructor(autowired: Autowired) {
         this.autowired = autowired;
 
-        this.bottomMesh = this.createCubeThree();
+        this.bottomMesh = this.createCubeThreeFloor();
         this.topMesh = this.createCubeThree();
         this.leftMesh = this.createCubeThree();
         this.rightMesh = this.createCubeThree();
@@ -54,8 +54,24 @@ export class Room {
 
     createCubeThree(width = Room.blockSize, height = Room.blockSize, depth = Room.blockSize) {
         let geometry = new THREE.BoxGeometry(width, height, depth);
-        let material = new THREE.MeshNormalMaterial();
-        return new THREE.Mesh(geometry, material);
+        let material = new THREE.MeshStandardMaterial(
+            {
+                color: "blue"
+            }
+        );
+        let mesh: THREE.Mesh = new THREE.Mesh(geometry, material);
+        return mesh;
+    }
+
+    createCubeThreeFloor(width = Room.blockSize, height = Room.blockSize, depth = Room.blockSize) {
+        let geometry = new THREE.BoxGeometry(width, height, depth);
+        let material = new THREE.MeshBasicMaterial(
+            {
+                color: "black"
+            }
+        );
+        let mesh: THREE.Mesh = new THREE.Mesh(geometry, material);
+        return mesh;
     }
 
     createCubePhysics(width = Room.blockSize, height = Room.blockSize, depth = Room.blockSize): CANNON.Body {

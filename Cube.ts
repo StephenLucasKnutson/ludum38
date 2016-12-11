@@ -20,8 +20,14 @@ export class Cube {
 
     createCubeThree(width: number, height: number, depth: number): THREE.Mesh {
         let geometry = new THREE.BoxGeometry(width, height, depth);
-        let material = new THREE.MeshPhongMaterial();
-        return new THREE.Mesh(geometry, material);
+        let material = new THREE.MeshPhongMaterial({
+            color: 0x839CA5,
+            specular: 0x070707,
+            shininess: 200
+        });
+        let mesh: THREE.Mesh = new THREE.Mesh(geometry, material);
+        mesh.receiveShadow = true;
+        return mesh;
     }
 
     createCubePhysics(width: number, height: number, depth: number): CANNON.Body {

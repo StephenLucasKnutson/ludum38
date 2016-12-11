@@ -51,6 +51,19 @@ export class Autowired {
         this.renderer.setSize(WIDTH, HEIGHT);
 
         this.scene = new THREE.Scene();
+
+        //let dirLight = new THREE.DirectionalLight(0xffffff, 1);
+        //dirLight.position.set(30, 30, 30);
+        // dirLight.castShadow = true;
+        //this.scene.add(dirLight);
+
+        let light = new THREE.PointLight(0xFFFFFF, 0.5, 30);
+        light.position.set(0, 0, 0);
+        this.scene.add(light);
+
+        //this.scene.add(new THREE.AmbientLight(0x606060));
+
+
         this.camera = new THREE.PerspectiveCamera(
             VIEW_ANGLE,
             ASPECT,
