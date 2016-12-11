@@ -22,7 +22,7 @@ export class Cube {
         let geometry = new THREE.BoxGeometry(width, height, depth);
         let material = new THREE.MeshPhongMaterial({
             color: 0x839CA5,
-            specular: 0x070707,
+            specular: 0xFFFFFF,
             shininess: 200
         });
         let mesh: THREE.Mesh = new THREE.Mesh(geometry, material);
@@ -40,7 +40,8 @@ export class Cube {
             position: new CANNON.Vec3(x, Room.blockSize / 2 - 1 - height, z),
             shape: new CANNON.Box(new CANNON.Vec3(width / 2, height / 2, depth / 2)),
             material: this.autowired.myMaterials.cubeMaterial,
-            linearDamping: 0.3
+            linearDamping: 0.3,
+            angularDamping: 0.6
         });
         return sphereBody;
     }
