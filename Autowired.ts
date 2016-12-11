@@ -31,7 +31,7 @@ export class Autowired {
 
         let VIEW_ANGLE = 75;
         let ASPECT = WIDTH / HEIGHT;
-        let NEAR = 0.3;
+        let NEAR = 0.1;
         let FAR = 100;
 
 
@@ -61,7 +61,7 @@ export class Autowired {
         light.position.set(0, 0, 0);
         this.scene.add(light);
 
-        //this.scene.add(new THREE.AmbientLight(0x606060));
+        this.scene.add(new THREE.AmbientLight(0x404040));
 
 
         this.camera = new THREE.PerspectiveCamera(
