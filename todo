@@ -1,6 +1,9 @@
-zoom in and out
-pan
+zoom in and out with keys
+zoom in and out with mouse
+pan with keys
+pan with mouse
 textures for tiles
-fix random failures
+fix random failures to click
 enemy AI
 multiselect
+viktory conditions

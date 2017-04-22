@@ -13,11 +13,11 @@ class Main {
     }
 
     render = () => {
-        requestAnimationFrame(this.render);
-
+        this.autowired.userControls.update();
         this.autowired.simulator.update();
 
         this.autowired.renderer.render(this.autowired.scene, this.autowired.camera);
+        requestAnimationFrame(this.render);
     };
 }
 let main: Main = new Main();

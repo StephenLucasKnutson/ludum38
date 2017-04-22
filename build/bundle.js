@@ -616,11 +616,69 @@ System.register("UI", [], function(exports_7, context_7) {
         }
     }
 });
-System.register("Autowired", ["World", "Simulator", "UI"], function(exports_8, context_8) {
+System.register("UserControls", [], function(exports_8, context_8) {
     "use strict";
     var __moduleName = context_8 && context_8.id;
-    var World_2, Simulator_1, UI_1;
-    var ShadowMapType, PCFSoftShadowMap, Autowired;
+    var ShadowMapType, PCFSoftShadowMap, Side, Vector2, Vector3, UserControls;
+    return {
+        setters:[],
+        execute: function() {
+            Vector3 = THREE.Vector3;
+            UserControls = (function () {
+                function UserControls(autowired) {
+                    var _this = this;
+                    this.isKeyPressed = {};
+                    this.autowired = autowired;
+                    document.onkeydown = function (e) {
+                        _this.onKeyPress(e, true);
+                    };
+                    document.onkeyup = function (e) {
+                        _this.onKeyPress(e, false);
+                    };
+                }
+                ;
+                UserControls.prototype.update = function () {
+                    var keyToDirection = {
+                        37: new Vector3(-1, 0, 0),
+                        65: new Vector3(-1, 0, 0),
+                        39: new Vector3(1, 0, 0),
+                        68: new Vector3(1, 0, 0),
+                        38: new Vector3(0, 1, 0),
+                        87: new Vector3(0, 1, 0),
+                        40: new Vector3(0, -1, 0),
+                        83: new Vector3(0, -1, 0),
+                    };
+                    for (var key in keyToDirection) {
+                        if (this.isKeyPressed[key]) {
+                            var direction = keyToDirection[key];
+                            this.autowired.camera.translateOnAxis(direction, 10);
+                        }
+                    }
+                    var keyToScreenScalar = {
+                        16: 0.97,
+                        32: 1.03,
+                    };
+                    for (var key in keyToScreenScalar) {
+                        if (this.isKeyPressed[key]) {
+                        }
+                    }
+                };
+                ;
+                UserControls.prototype.onKeyPress = function (event, isKeyDown) {
+                    this.isKeyPressed[event.keyCode] = isKeyDown;
+                };
+                ;
+                return UserControls;
+            }());
+            exports_8("UserControls", UserControls);
+        }
+    }
+});
+System.register("Autowired", ["World", "Simulator", "UI", "UserControls"], function(exports_9, context_9) {
+    "use strict";
+    var __moduleName = context_9 && context_9.id;
+    var World_2, Simulator_1, UI_1, UserControls_1;
+    var ShadowMapType, PCFSoftShadowMap, Side, Vector2, Vector3, Autowired;
     return {
         setters:[
             function (World_2_1) {
@@ -631,6 +689,9 @@ System.register("Autowired", ["World", "Simulator", "UI"], function(exports_8, c
             },
             function (UI_1_1) {
                 UI_1 = UI_1_1;
+            },
+            function (UserControls_1_1) {
+                UserControls_1 = UserControls_1_1;
             }],
         execute: function() {
             Autowired = (function () {
@@ -643,17 +704,15 @@ System.register("Autowired", ["World", "Simulator", "UI"], function(exports_8, c
                     this.renderer = new THREE.WebGLRenderer({
                         canvas: this.canvasElement.get(0),
                         antialias: true,
-                        precision: "highp"
+                        precision: "highp",
                     });
-                    this.resetCameraAndRenderer();
                     this.scene = new THREE.Scene();
-                    var light = new THREE.PointLight(0xFFFFFF, 0.5, 10000);
-                    light.position.set(0, 0, 0);
-                    this.scene.add(light);
+                    this.resetCameraAndRenderer();
                     this.scene.add(new THREE.AmbientLight(0x404040));
                     this.world = new World_2.World(this);
                     this.simulator = new Simulator_1.Simulator(this);
                     this.ui = new UI_1.UI(this);
+                    this.userControls = new UserControls_1.UserControls(this);
                     window.addEventListener('resize', function (event) {
                         _this.resetCameraAndRenderer();
                     });
@@ -668,16 +727,27 @@ System.register("Autowired", ["World", "Simulator", "UI"], function(exports_8, c
                     this.camera.position.set(0, 0, 1);
                     this.camera.lookAt(new THREE.Vector3(0, 0, 0));
                     this.camera.position.set(355, 300, 5);
+                    this.camera.updateProjectionMatrix();
+                    var geometry = new THREE.PlaneGeometry(size * 0.8, size / aspectRatio * 200);
+                    var material = new THREE.MeshStandardMaterial({
+                        color: "blue",
+                        side: THREE.BackSide
+                    });
+                    var sidePanelPlane = new THREE.Mesh(geometry, material);
+                    sidePanelPlane.rotateX(Math.PI);
+                    this.camera.add(sidePanelPlane);
+                    sidePanelPlane.position.set(-650, 0, -2);
+                    this.scene.add(this.camera);
                 };
                 return Autowired;
             }());
-            exports_8("Autowired", Autowired);
+            exports_9("Autowired", Autowired);
         }
     }
 });
-System.register("Main", ["Autowired"], function(exports_9, context_9) {
+System.register("Main", ["Autowired"], function(exports_10, context_10) {
     "use strict";
-    var __moduleName = context_9 && context_9.id;
+    var __moduleName = context_10 && context_10.id;
     var Autowired_1;
     var Main, main;
     return {
@@ -690,9 +760,10 @@ System.register("Main", ["Autowired"], function(exports_9, context_9) {
                 function Main() {
                     var _this = this;
                     this.render = function () {
-                        requestAnimationFrame(_this.render);
+                        _this.autowired.userControls.update();
                         _this.autowired.simulator.update();
                         _this.autowired.renderer.render(_this.autowired.scene, _this.autowired.camera);
+                        requestAnimationFrame(_this.render);
                     };
                     this.autowired = new Autowired_1.Autowired();
                     setInterval(function () {

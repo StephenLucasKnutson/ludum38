@@ -1,7 +1,6 @@
 import {TileType} from "./TileType";
 import {WorldBlock} from "./WorldBlock";
 import {Autowired} from "./Autowired";
-import {Player} from "./Player";
 import Vector2 = THREE.Vector2;
 import ThrottleSettings = _.ThrottleSettings;
 
