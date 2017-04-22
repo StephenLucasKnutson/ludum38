@@ -4,9 +4,13 @@ import nextPowerOfTwo = THREE.Math.nextPowerOfTwo;
 export class Player {
     color: number;
     material: THREE.Material;
+    gold: number = 0;
+
+    attack: number = 0.01;
+    defense: number = 1.0;
 
     constructor() {
-        if(Player.nextPlayerColorIndex == Player.allPlayerColors.length) {
+        if (Player.nextPlayerColorIndex == Player.allPlayerColors.length) {
             throw new Error('Ran out of colors');
         }
         this.color = Player.allPlayerColors[Player.nextPlayerColorIndex++];
@@ -14,5 +18,5 @@ export class Player {
     }
 
     static nextPlayerColorIndex: number = 0;
-    static allPlayerColors = [ 0xFF0000, 0x0000FF, 0x000000, 0xFFA500, 0x00FF00, 0xD2691E]
+    static allPlayerColors = [0xFF0000, 0x0000FF, 0xFFA500, 0x00FF00, 0xD2691E]
 }

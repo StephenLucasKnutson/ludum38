@@ -7,6 +7,7 @@ import {Player} from "./Player";
 export class World {
     autowired: Autowired;
     map: {[key: number]: {[key: number]: WorldBlock;};} = {};
+    static backgroundMaterial: THREE.MeshBasicMaterial = new THREE.MeshBasicMaterial({color: 0x000000, side: THREE.BackSide});
 
     constructor(autowired: Autowired) {
         this.autowired = autowired;
@@ -23,18 +24,18 @@ export class World {
         let geometry = new THREE.PlaneGeometry(8, 8);
         let backgroundGeometry = new THREE.PlaneGeometry(10, 10);
 
+
         for (let i = 0; i < this.autowired.WIDTH; i++) {
             for (let j = 0; j < this.autowired.HEIGHT; j++) {
                 let tileType = this.map[i][j].tileType;
-                let material = new THREE.MeshBasicMaterial({color: tileType.color, side: THREE.BackSide});
-                let plane = new THREE.Mesh(geometry, material);
+
+                let plane = new THREE.Mesh(geometry, tileType.material);
                 plane.rotateX(Math.PI);
                 plane.position.set(i * 10, j * 10, 0);
                 this.autowired.scene.add(plane);
                 this.map[i][j].tileMesh = plane;
 
-                let backgroundMaterial = new THREE.MeshBasicMaterial({color: 0x000000, side: THREE.BackSide});
-                let backgroundPlane = new THREE.Mesh(backgroundGeometry, backgroundMaterial);
+                let backgroundPlane = new THREE.Mesh(backgroundGeometry, World.backgroundMaterial);
                 backgroundPlane.rotateX(Math.PI);
                 backgroundPlane.position.set(i * 10, j * 10, -1);
                 this.autowired.scene.add(backgroundPlane);

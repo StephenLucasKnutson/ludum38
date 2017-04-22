@@ -6,18 +6,23 @@ System.register("TileType", [], function(exports_1, context_1) {
         setters:[],
         execute: function() {
             TileType = (function () {
-                function TileType(name, color) {
+                function TileType(name, color, goldPerTurn, tendencyToEnter, tendencyToLeave, chanceToSpawn) {
                     this.name = name;
                     this.color = color;
+                    this.goldPerTurn = goldPerTurn;
+                    this.tendencyToEnter = tendencyToEnter;
+                    this.tendencyToLeave = tendencyToLeave;
+                    this.chanceToSpawn = chanceToSpawn;
+                    this.material = new THREE.MeshBasicMaterial({ color: this.color, side: THREE.BackSide });
                 }
-                TileType.plains = new TileType("plains", 0xC0FF6D);
-                TileType.woods = new TileType("woods", 0x228B22);
-                TileType.mountains = new TileType("mountains", 0x968D99);
-                TileType.sea = new TileType("sea", 0x006994);
-                TileType.desert = new TileType("desert", 0xEDC9AF);
-                TileType.gold = new TileType("gold", 0xFFDF00);
-                TileType.diamond = new TileType("diamond", 0x9AC5DB);
-                TileType.allTileTypes = [TileType.plains, TileType.woods, TileType.mountains, TileType.sea, TileType.desert];
+                TileType.plains = new TileType("plains", 0xC0FF6D, 1, 0.5, 0.2, 0);
+                TileType.woods = new TileType("woods", 0x228B22, 2, 0.25, 0.21, 0);
+                TileType.mountains = new TileType("mountains", 0x968D99, 3, 0.1, 0.1, 0);
+                TileType.sea = new TileType("sea", 0x006994, 1, 0.01, 0.01, 0);
+                TileType.desert = new TileType("desert", 0xEDC9AF, 0, 0.01, 0.01, 0);
+                TileType.gold = new TileType("gold", 0xFFDF00, 10, 0.01, 0.0, 0);
+                TileType.diamond = new TileType("diamond", 0x9AC5DB, 20, 0.01, 0.0, 0);
+                TileType.townHall1 = new TileType("townHall1", 0x000000, 10, 0.01, 0.0, 0.01);
                 return TileType;
             }());
             exports_1("TileType", TileType);
@@ -33,6 +38,9 @@ System.register("Player", [], function(exports_2, context_2) {
         execute: function() {
             Player = (function () {
                 function Player() {
+                    this.gold = 0;
+                    this.attack = 0.01;
+                    this.defense = 1.0;
                     if (Player.nextPlayerColorIndex == Player.allPlayerColors.length) {
                         throw new Error('Ran out of colors');
                     }
@@ -40,26 +48,39 @@ System.register("Player", [], function(exports_2, context_2) {
                     this.material = new THREE.MeshBasicMaterial({ color: this.color, side: THREE.BackSide });
                 }
                 Player.nextPlayerColorIndex = 0;
-                Player.allPlayerColors = [0xFF0000, 0x0000FF, 0x000000, 0xFFA500, 0x00FF00, 0xD2691E];
+                Player.allPlayerColors = [0xFF0000, 0x0000FF, 0xFFA500, 0x00FF00, 0xD2691E];
                 return Player;
             }());
             exports_2("Player", Player);
         }
     }
 });
-System.register("WorldBlock", [], function(exports_3, context_3) {
+System.register("WorldBlock", ["World"], function(exports_3, context_3) {
     "use strict";
     var __moduleName = context_3 && context_3.id;
+    var World_1;
     var Vector2, WorldBlock;
     return {
-        setters:[],
+        setters:[
+            function (World_1_1) {
+                World_1 = World_1_1;
+            }],
         execute: function() {
             WorldBlock = (function () {
                 function WorldBlock() {
                 }
                 WorldBlock.prototype.setOwningPlayer = function (newOwningPlayer) {
                     this.owningPlayer = newOwningPlayer;
-                    this.backgroundMesh.material = newOwningPlayer.material;
+                    if (newOwningPlayer) {
+                        this.backgroundMesh.material = newOwningPlayer.material;
+                    }
+                    else {
+                        this.backgroundMesh.material = World_1.World.backgroundMaterial;
+                    }
+                };
+                WorldBlock.prototype.setTileType = function (newTileType) {
+                    this.tileType = newTileType;
+                    this.tileMesh.material = newTileType.material;
                 };
                 return WorldBlock;
             }());
@@ -164,14 +185,12 @@ System.register("World", ["TileType", "WorldBlock"], function(exports_4, context
                     for (var i = 0; i < this.autowired.WIDTH; i++) {
                         for (var j = 0; j < this.autowired.HEIGHT; j++) {
                             var tileType = this.map[i][j].tileType;
-                            var material = new THREE.MeshBasicMaterial({ color: tileType.color, side: THREE.BackSide });
-                            var plane = new THREE.Mesh(geometry, material);
+                            var plane = new THREE.Mesh(geometry, tileType.material);
                             plane.rotateX(Math.PI);
                             plane.position.set(i * 10, j * 10, 0);
                             this.autowired.scene.add(plane);
                             this.map[i][j].tileMesh = plane;
-                            var backgroundMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.BackSide });
-                            var backgroundPlane = new THREE.Mesh(backgroundGeometry, backgroundMaterial);
+                            var backgroundPlane = new THREE.Mesh(backgroundGeometry, World.backgroundMaterial);
                             backgroundPlane.rotateX(Math.PI);
                             backgroundPlane.position.set(i * 10, j * 10, -1);
                             this.autowired.scene.add(backgroundPlane);
@@ -201,21 +220,25 @@ System.register("World", ["TileType", "WorldBlock"], function(exports_4, context
                     return new THREE.Vector2(Math.random() * 2 - 1, Math.random() * 2 - 1).multiplyScalar(scalar);
                 };
                 ;
+                World.backgroundMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.BackSide });
                 return World;
             }());
             exports_4("World", World);
         }
     }
 });
-System.register("Simulator", ["Player"], function(exports_5, context_5) {
+System.register("Simulator", ["Player", "TileType"], function(exports_5, context_5) {
     "use strict";
     var __moduleName = context_5 && context_5.id;
-    var Player_1;
+    var Player_1, TileType_2;
     var Vector2, nextPowerOfTwo, Simulator;
     return {
         setters:[
             function (Player_1_1) {
                 Player_1 = Player_1_1;
+            },
+            function (TileType_2_1) {
+                TileType_2 = TileType_2_1;
             }],
         execute: function() {
             Vector2 = THREE.Vector2;
@@ -228,7 +251,9 @@ System.register("Simulator", ["Player"], function(exports_5, context_5) {
                         var newPlayer = new Player_1.Player();
                         this.players.push(newPlayer);
                         var startingPosition = this.autowired.world.randomSpot();
-                        this.autowired.world.map[startingPosition.x][startingPosition.y].setOwningPlayer(newPlayer);
+                        var startingWorldBlock = this.autowired.world.map[startingPosition.x][startingPosition.y];
+                        startingWorldBlock.setOwningPlayer(newPlayer);
+                        startingWorldBlock.setTileType(TileType_2.TileType.townHall1);
                     }
                     this.playerCharacter = this.players[0];
                 }
@@ -241,6 +266,33 @@ System.register("Simulator", ["Player"], function(exports_5, context_5) {
                             returnValue.push(neighborPoint);
                         }
                     }
+                    return _.shuffle(returnValue);
+                };
+                Simulator.prototype.openNeighborBlocks = function (point) {
+                    var neighborPoints = this.withNeighborOffsets(point);
+                    var returnValue = [];
+                    for (var _i = 0, neighborPoints_1 = neighborPoints; _i < neighborPoints_1.length; _i++) {
+                        var neighbor = neighborPoints_1[_i];
+                        var neighborBlock = this.autowired.world.map[neighbor.x][neighbor.y];
+                        var neighborTileIsEmpty = !neighborBlock.owningPlayer;
+                        if (neighborTileIsEmpty) {
+                            returnValue.push(neighborBlock);
+                        }
+                    }
+                    return returnValue;
+                };
+                Simulator.prototype.enemyNeighborBlocks = function (point) {
+                    var neighborPoints = this.withNeighborOffsets(point);
+                    var block = this.autowired.world.map[point.x][point.y];
+                    var returnValue = [];
+                    for (var _i = 0, neighborPoints_2 = neighborPoints; _i < neighborPoints_2.length; _i++) {
+                        var neighbor = neighborPoints_2[_i];
+                        var neighborBlock = this.autowired.world.map[neighbor.x][neighbor.y];
+                        var isEnemyTile = neighborBlock.owningPlayer != null && neighborBlock.owningPlayer != block.owningPlayer;
+                        if (isEnemyTile) {
+                            returnValue.push(neighborBlock);
+                        }
+                    }
                     return returnValue;
                 };
                 Simulator.prototype.update = function () {
@@ -248,15 +300,37 @@ System.register("Simulator", ["Player"], function(exports_5, context_5) {
                         for (var j = 0; j < this.autowired.HEIGHT; j++) {
                             var point = new THREE.Vector2(i, j);
                             var worldBlock = this.autowired.world.map[i][j];
+                            var tileType = worldBlock.tileType;
                             if (worldBlock.owningPlayer) {
-                                for (var _i = 0, _a = this.withNeighborOffsets(point); _i < _a.length; _i++) {
-                                    var neighbor = _a[_i];
-                                    var neighborBlock = this.autowired.world.map[neighbor.x][neighbor.y];
-                                    if (Math.random() < 0.1) {
+                                for (var _i = 0, _a = this.openNeighborBlocks(point); _i < _a.length; _i++) {
+                                    var neighborBlock = _a[_i];
+                                    var shouldSpawn = tileType.chanceToSpawn > Math.random();
+                                    if (shouldSpawn) {
                                         neighborBlock.setOwningPlayer(worldBlock.owningPlayer);
                                     }
                                 }
+                                var enemyNeighbors = this.enemyNeighborBlocks(point);
+                                for (var _b = 0, enemyNeighbors_1 = enemyNeighbors; _b < enemyNeighbors_1.length; _b++) {
+                                    var neighborBlock = enemyNeighbors_1[_b];
+                                    var shouldKill = worldBlock.owningPlayer.attack / neighborBlock.owningPlayer.defense > Math.random();
+                                    if (shouldKill) {
+                                        neighborBlock.setOwningPlayer(null);
+                                    }
+                                }
+                                var openNeighbors = this.openNeighborBlocks(point);
+                                if (openNeighbors.length > 0) {
+                                    var possibleNewPosition = openNeighbors[0];
+                                    var probabilityToMove = tileType.tendencyToLeave / possibleNewPosition.tileType.tendencyToEnter;
+                                    if (probabilityToMove > Math.random()) {
+                                        possibleNewPosition.setOwningPlayer(worldBlock.owningPlayer);
+                                        worldBlock.setOwningPlayer(null);
+                                    }
+                                }
                             }
+                        }
+                    }
+                    for (var i = 0; i < this.autowired.WIDTH; i++) {
+                        for (var j = 0; j < this.autowired.HEIGHT; j++) {
                         }
                     }
                 };
@@ -269,12 +343,12 @@ System.register("Simulator", ["Player"], function(exports_5, context_5) {
 System.register("Autowired", ["World", "Simulator"], function(exports_6, context_6) {
     "use strict";
     var __moduleName = context_6 && context_6.id;
-    var World_1, Simulator_1;
+    var World_2, Simulator_1;
     var ShadowMapType, PCFSoftShadowMap, Autowired;
     return {
         setters:[
-            function (World_1_1) {
-                World_1 = World_1_1;
+            function (World_2_1) {
+                World_2 = World_2_1;
             },
             function (Simulator_1_1) {
                 Simulator_1 = Simulator_1_1;
@@ -308,7 +382,7 @@ System.register("Autowired", ["World", "Simulator"], function(exports_6, context
                     light.position.set(0, 0, 0);
                     this.scene.add(light);
                     this.scene.add(new THREE.AmbientLight(0x404040));
-                    this.world = new World_1.World(this);
+                    this.world = new World_2.World(this);
                     this.simulator = new Simulator_1.Simulator(this);
                 }
                 return Autowired;
@@ -317,184 +391,12 @@ System.register("Autowired", ["World", "Simulator"], function(exports_6, context
         }
     }
 });
-System.register("Cube", ["./Room"], function(exports_7, context_7) {
-    "use strict";
-    var __moduleName = context_7 && context_7.id;
-    var Room_1;
-    var Cube;
-    return {
-        setters:[
-            function (Room_1_1) {
-                Room_1 = Room_1_1;
-            }],
-        execute: function() {
-            Cube = (function () {
-                function Cube(autowired) {
-                    this.autowired = autowired;
-                    var width = (Math.random() * 0.3 + 0.2);
-                    var height = (Math.random() * 0.3 + 0.2);
-                    var depth = (Math.random() * 0.3 + 0.2);
-                    this.threeCube = this.createCubeThree(width, height, depth);
-                    this.physicsBody = this.createCubePhysics(width, height, depth);
-                    this.autowired.scene.add(this.threeCube);
-                    this.autowired.world.addBody(this.physicsBody);
-                }
-                Cube.prototype.createCubeThree = function (width, height, depth) {
-                    var geometry = new THREE.BoxGeometry(width, height, depth);
-                    var material = new THREE.MeshPhongMaterial({
-                        color: 0x839CA5,
-                        specular: 0xFFFFFF,
-                        shininess: 200
-                    });
-                    var mesh = new THREE.Mesh(geometry, material);
-                    mesh.receiveShadow = true;
-                    return mesh;
-                };
-                Cube.prototype.createCubePhysics = function (width, height, depth) {
-                    var x = (Math.random() - 0.5) * Room_1.Room.blockSize;
-                    var z = (Math.random() - 0.5) * Room_1.Room.blockSize;
-                    var density = 15.0;
-                    var mass = width * height * depth * density;
-                    var sphereBody = new CANNON.Body({
-                        mass: mass,
-                        position: new CANNON.Vec3(x, Room_1.Room.blockSize / 2 - 1 - height, z),
-                        shape: new CANNON.Box(new CANNON.Vec3(width / 2, height / 2, depth / 2)),
-                        material: this.autowired.myMaterials.cubeMaterial,
-                        linearDamping: 0.3,
-                        angularDamping: 0.6
-                    });
-                    return sphereBody;
-                };
-                Cube.prototype.update = function (cubeOrder, delta) {
-                    var direction;
-                    if (cubeOrder == CubeOrder.randomDirection) {
-                        direction = new CANNON.Vec3(Math.random(), Math.random(), Math.random()).unit();
-                    }
-                    else if (cubeOrder == CubeOrder.hitPlayer) {
-                        direction = this.autowired.firstPersonControls.physics.position.clone().vsub(this.physicsBody.position).unit();
-                    }
-                    else if (cubeOrder == CubeOrder.posX) {
-                        direction = new CANNON.Vec3(1, 0, 0).unit();
-                    }
-                    else if (cubeOrder == CubeOrder.negX) {
-                        direction = new CANNON.Vec3(-1, 0, 0).unit();
-                    }
-                    else if (cubeOrder == CubeOrder.posZ) {
-                        direction = new CANNON.Vec3(0, 0, 1).unit();
-                    }
-                    else if (cubeOrder == CubeOrder.negZ) {
-                        direction = new CANNON.Vec3(0, 0, -1).unit();
-                    }
-                    this.physicsBody.applyImpulse(direction.scale(0.025 * delta), new CANNON.Vec3());
-                    Util.copyPhysicsTo(this.physicsBody, this.threeCube);
-                };
-                Cube.prototype.destroy = function () {
-                    this.autowired.scene.remove(this.threeCube);
-                    this.autowired.world.remove(this.physicsBody);
-                };
-                return Cube;
-            }());
-            exports_7("Cube", Cube);
-        }
-    }
-});
-System.register("Room", [], function(exports_8, context_8) {
-    "use strict";
-    var __moduleName = context_8 && context_8.id;
-    var Room;
-    return {
-        setters:[],
-        execute: function() {
-            Room = (function () {
-                function Room(autowired) {
-                    this.autowired = autowired;
-                    this.bottomMesh = this.createCubeThreeFloor();
-                    this.topMesh = this.createCubeThree();
-                    this.leftMesh = this.createCubeThree();
-                    this.rightMesh = this.createCubeThree();
-                    this.forwardMesh = this.createCubeThree();
-                    this.backwardMesh = this.createCubeThree();
-                    this.bottomPhysics = this.createCubePhysics();
-                    this.topPhysics = this.createCubePhysics();
-                    this.leftPhysics = this.createCubePhysics();
-                    this.rightPhysics = this.createCubePhysics();
-                    this.forwardPhysics = this.createCubePhysics();
-                    this.backwardPhysics = this.createCubePhysics();
-                    this.bottomPhysics.position.set(0, -Room.blockSize, 0);
-                    this.topPhysics.position.set(0, Room.blockSize, 0);
-                    this.leftPhysics.position.set(Room.blockSize, 0, 0);
-                    this.rightPhysics.position.set(-Room.blockSize, 0, 0);
-                    this.forwardPhysics.position.set(0, 0, Room.blockSize);
-                    this.backwardPhysics.position.set(0, 0, -Room.blockSize);
-                    for (var _i = 0, _a = this.meshes(); _i < _a.length; _i++) {
-                        var mesh = _a[_i];
-                        this.autowired.scene.add(mesh);
-                    }
-                    for (var _b = 0, _c = this.physics(); _b < _c.length; _b++) {
-                        var physicBody = _c[_b];
-                        this.autowired.world.addBody(physicBody);
-                    }
-                }
-                Room.prototype.createCubeThree = function (width, height, depth) {
-                    if (width === void 0) { width = Room.blockSize; }
-                    if (height === void 0) { height = Room.blockSize; }
-                    if (depth === void 0) { depth = Room.blockSize; }
-                    var geometry = new THREE.BoxGeometry(width, height, depth);
-                    var material = new THREE.MeshStandardMaterial({
-                        color: "blue"
-                    });
-                    var mesh = new THREE.Mesh(geometry, material);
-                    return mesh;
-                };
-                Room.prototype.createCubeThreeFloor = function (width, height, depth) {
-                    if (width === void 0) { width = Room.blockSize; }
-                    if (height === void 0) { height = Room.blockSize; }
-                    if (depth === void 0) { depth = Room.blockSize; }
-                    var geometry = new THREE.BoxGeometry(width, height, depth);
-                    var material = new THREE.MeshBasicMaterial({
-                        color: "gray"
-                    });
-                    var mesh = new THREE.Mesh(geometry, material);
-                    return mesh;
-                };
-                Room.prototype.createCubePhysics = function (width, height, depth) {
-                    if (width === void 0) { width = Room.blockSize; }
-                    if (height === void 0) { height = Room.blockSize; }
-                    if (depth === void 0) { depth = Room.blockSize; }
-                    var sphereBody = new CANNON.Body({
-                        mass: 0,
-                        shape: new CANNON.Box(new CANNON.Vec3(width / 2, height / 2, depth / 2)),
-                        material: this.autowired.myMaterials.slipperyMaterial
-                    });
-                    return sphereBody;
-                };
-                Room.prototype.update = function () {
-                    Util.copyPhysicsTo(this.bottomPhysics, this.bottomMesh);
-                    Util.copyPhysicsTo(this.topPhysics, this.topMesh);
-                    Util.copyPhysicsTo(this.leftPhysics, this.leftMesh);
-                    Util.copyPhysicsTo(this.rightPhysics, this.rightMesh);
-                    Util.copyPhysicsTo(this.forwardPhysics, this.forwardMesh);
-                    Util.copyPhysicsTo(this.backwardPhysics, this.backwardMesh);
-                };
-                Room.prototype.meshes = function () {
-                    return [this.bottomMesh, this.topMesh, this.leftMesh, this.rightMesh, this.forwardMesh, this.backwardMesh];
-                };
-                Room.prototype.physics = function () {
-                    return [this.bottomPhysics, this.topPhysics, this.leftPhysics, this.rightPhysics, this.forwardPhysics, this.backwardPhysics];
-                };
-                Room.blockSize = 10;
-                return Room;
-            }());
-            exports_8("Room", Room);
-        }
-    }
-});
 /// <reference path="Cube.ts" />
 /// <reference path="Room.ts" />
 /// <reference path="definitions/underscore.d.ts" />
-System.register("Main", ["Autowired"], function(exports_9, context_9) {
+System.register("Main", ["Autowired"], function(exports_7, context_7) {
     "use strict";
-    var __moduleName = context_9 && context_9.id;
+    var __moduleName = context_7 && context_7.id;
     var Autowired_1;
     var Main, main;
     return {
