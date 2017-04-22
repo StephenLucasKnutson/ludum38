@@ -4,65 +4,64 @@
 
 import ShadowMapType = THREE.ShadowMapType;
 import PCFSoftShadowMap = THREE.PCFSoftShadowMap;
-import {Autowired} from "./Autowired";
-import {Scoreboard} from "./Scoreboard";
+//import {Autowired} from "./Autowired";
+//import {Scoreboard} from "./Scoreboard";
 
 class Main {
-    autowired: Autowired;
+    camera: THREE.Camera;
+    scene: THREE.Scene;
+    renderer: THREE.WebGLRenderer;
+    glowScene: THREE.Scene;
 
-    scoreboard: Scoreboard;
+    canvasElement: JQuery;
 
-    fixedTimeStep: number = 1.0 / 60.0; // seconds
-    timeStepSubdivisions: number = 10;
 
     constructor() {
-        document.addEventListener('keydown',
-            (event) => {
-                if (event.keyCode == 82) {   //R
-                    this.reset()
-                }
-            },
-            false);
-        this.reset();
+        let VIEW_ANGLE = 75;
+        let NEAR = 0.1;
+        let FAR = 100;
+
+        this.canvasElement = $("#myCanvas");
+
+        this.renderer = new THREE.WebGLRenderer({
+            canvas: <HTMLCanvasElement>this.canvasElement.get(0),
+            antialias: true,
+            precision: "highp"
+        });
+        this.renderer.autoClear = false;
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = PCFSoftShadowMap;
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+
+        this.camera = new THREE.PerspectiveCamera(
+            VIEW_ANGLE,
+            window.innerWidth / window.innerHeight,
+            NEAR,
+            FAR);
+
+        this.scene = new THREE.Scene();
+
+        let light = new THREE.PointLight(0xFFFFFF, 0.5, 30);
+        light.position.set(0, 0, 0);
+        this.scene.add(light);
+
+        this.scene.add(new THREE.AmbientLight(0x404040));
+
+        this.glowScene = new THREE.Scene();
+        this.glowScene.add(new THREE.AmbientLight(0xFFFFFF));
+
+        let dirLight = new THREE.PointLight(0xffffff, 1);
+        this.camera.add(dirLight);
+        this.glowScene.add(dirLight);
     }
 
-    reset = () => {
-        this.scoreboard = (this.scoreboard == null) ? new Scoreboard() : this.scoreboard;
-        this.scoreboard.reset();
-        this.autowired = new Autowired(this.scoreboard);
-    };
+
 
     render = () => {
         requestAnimationFrame(this.render);
 
-        if (!this.autowired.isGameOver) {
-            for (let i = 0; i < this.timeStepSubdivisions; i++) {
-                this.autowired.world.step(this.fixedTimeStep / this.timeStepSubdivisions);
-                this.autowired.cubeManager.update(1 / this.timeStepSubdivisions);
-            }
 
-            this.autowired.room.update();
-            this.autowired.firstPersonControls.update(this.fixedTimeStep);
-
-            if (!this.autowired.isGameOver && this.autowired.firstPersonControls.getDistanceToWall() < 0.045) {
-                this.autowired.isGameOver = true;
-                this.playGameOverSound();
-            }
-        }
-
-        this.autowired.scoreboard.update();
-
-        this.autowired.renderer.clear();
-        this.autowired.renderer.render(this.autowired.scene, this.autowired.camera);
-        this.autowired.renderer.clearDepth();
-        this.autowired.renderer.render(this.autowired.glowScene, this.autowired.camera);
     };
-
-    playGameOverSound() {
-        beeplay()
-            .play(['C#7', 'E#7', 'G#7'], 2);
-    }
-
 }
 let main: Main = new Main();
 main.render();
