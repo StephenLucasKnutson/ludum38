@@ -13,5 +13,8 @@ export class TileType {
     static sea: TileType = new TileType("sea", 0x006994);
     static desert: TileType = new TileType("desert", 0xEDC9AF);
 
+    static gold: TileType = new TileType("gold", 0xFFDF00);
+    static diamond: TileType = new TileType("diamond", 0x9AC5DB);
+
     static allTileTypes = [TileType.plains, TileType.woods, TileType.mountains, TileType.sea, TileType.desert]
 }

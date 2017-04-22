@@ -14,6 +14,8 @@ export class Autowired {
     canvasElement: JQuery;
 
     world : World;
+    WIDTH: number = 100;
+    HEIGHT: number = 100;
 
 
     constructor() {
@@ -45,7 +47,7 @@ export class Autowired {
 
         this.scene = new THREE.Scene();
 
-        let light = new THREE.PointLight(0xFFFFFF, 0.5, 30);
+        let light = new THREE.PointLight(0xFFFFFF, 0.5, 10000);
         light.position.set(0, 0, 0);
         this.scene.add(light);
 

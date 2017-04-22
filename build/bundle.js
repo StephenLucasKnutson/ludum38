@@ -15,6 +15,8 @@ System.register("TileType", [], function(exports_1, context_1) {
                 TileType.mountains = new TileType("mountains", 0x968D99);
                 TileType.sea = new TileType("sea", 0x006994);
                 TileType.desert = new TileType("desert", 0xEDC9AF);
+                TileType.gold = new TileType("gold", 0xFFDF00);
+                TileType.diamond = new TileType("diamond", 0x9AC5DB);
                 TileType.allTileTypes = [TileType.plains, TileType.woods, TileType.mountains, TileType.sea, TileType.desert];
                 return TileType;
             }());
@@ -26,27 +28,86 @@ System.register("World", ["TileType"], function(exports_2, context_2) {
     "use strict";
     var __moduleName = context_2 && context_2.id;
     var TileType_1;
-    var World;
+    var Vector2, World;
     return {
         setters:[
             function (TileType_1_1) {
                 TileType_1 = TileType_1_1;
             }],
         execute: function() {
+            Vector2 = THREE.Vector2;
             World = (function () {
                 function World(autowired) {
-                    this.WIDTH = 100;
-                    this.HEIGHT = 100;
+                    var _this = this;
                     this.map = {};
-                    this.autowired = autowired;
-                    for (var i = 0; i < this.WIDTH; i++) {
-                        this.map[i] = {};
-                        for (var j = 0; j < this.HEIGHT; j++) {
-                            this.map[i][j] = TileType_1.TileType.allTileTypes[Math.floor(Math.random() * TileType_1.TileType.allTileTypes.length)];
+                    this.setMap = function (xUnrounded, yUnrounded, t, canApplyTo) {
+                        var x = Math.round(xUnrounded);
+                        var y = Math.round(yUnrounded);
+                        var withinBounds = x >= 0 && x < _this.autowired.WIDTH && y >= 0 && y < _this.autowired.HEIGHT;
+                        if (withinBounds) {
+                            var existingType = _this.map[x][y];
+                            var canBeApplied = _.contains(canApplyTo, existingType);
+                            if (canBeApplied) {
+                                _this.map[x][y] = t;
+                            }
                         }
-                    }
-                    for (var i = 0; i < this.WIDTH; i++) {
-                        for (var j = 0; j < this.HEIGHT; j++) {
+                    };
+                    this.generatePlane = function () {
+                        for (var i = 0; i < _this.autowired.WIDTH; i++) {
+                            _this.map[i] = {};
+                            for (var j = 0; j < _this.autowired.HEIGHT; j++) {
+                                _this.map[i][j] = TileType_1.TileType.plains;
+                            }
+                        }
+                    };
+                    this.generate = function (numberOfIterations, radiusMax, radiusMin, directionScalar, shuffleIterations, edgeTendancy, movementScalar, t, canApplyTo) {
+                        var position = _this.randomSpotAlongEdge();
+                        var radius;
+                        var direction = _this.randomDirection(directionScalar);
+                        for (var zzz = 0; zzz < numberOfIterations; zzz++) {
+                            if (zzz % shuffleIterations == 0) {
+                                direction = _this.randomDirection(directionScalar);
+                                var diff = radiusMax - radiusMin;
+                                radius = Math.random() * diff + radiusMin;
+                                if (Math.random() < (1 - edgeTendancy)) {
+                                    position = _this.randomSpot();
+                                }
+                                else {
+                                    position = _this.randomSpotAlongEdge();
+                                }
+                            }
+                            position.x += (Math.random() * 5 - 2.5 + direction.x) * movementScalar;
+                            position.y += (Math.random() * 5 - 2.5 + direction.y) * movementScalar;
+                            if (position.y < 0 || position.y >= _this.autowired.HEIGHT || position.x < 0 || position.x >= _this.autowired.WIDTH) {
+                                if (Math.random() < (1 - edgeTendancy)) {
+                                    position = _this.randomSpot();
+                                }
+                                else {
+                                    position = _this.randomSpotAlongEdge();
+                                }
+                            }
+                            for (var i = 0; i < radius * 2; i++) {
+                                for (var j = 0; j < radius * 2; j++) {
+                                    var iCentered = i - radius;
+                                    var jCentered = j - radius;
+                                    var point = new Vector2(iCentered + position.x, jCentered + position.y);
+                                    if (new Vector2(iCentered, jCentered).length() < radius) {
+                                        _this.setMap(point.x, point.y, t, canApplyTo);
+                                    }
+                                }
+                            }
+                        }
+                    };
+                    this.autowired = autowired;
+                    this.generatePlane();
+                    this.generate(500, 7, 2, 0.5, 50, 0.25, 1.0, TileType_1.TileType.woods, [TileType_1.TileType.plains]);
+                    this.generate(500, 3, 2, 1.0, 150, 0.5, 1.0, TileType_1.TileType.sea, [TileType_1.TileType.plains]);
+                    this.generate(500, 3, 2, 0.0, 250, 0.0, 0.3, TileType_1.TileType.desert, [TileType_1.TileType.plains]);
+                    this.generate(500, 4, 4, 0.0, 100, 0.0, 0.3, TileType_1.TileType.mountains, [TileType_1.TileType.woods]);
+                    this.generate(500, 1, 1, 0.0, 40, 0.0, 0.0, TileType_1.TileType.gold, [TileType_1.TileType.plains, TileType_1.TileType.woods]);
+                    this.generate(500, 1, 1, 0.0, 80, 0.0, 0.0, TileType_1.TileType.diamond, [TileType_1.TileType.plains, TileType_1.TileType.woods]);
+                    for (var i = 0; i < this.autowired.WIDTH; i++) {
+                        for (var j = 0; j < this.autowired.HEIGHT; j++) {
                             var tileType = this.map[i][j];
                             var geometry = new THREE.PlaneGeometry(8, 8);
                             var material = new THREE.MeshBasicMaterial({ color: tileType.color, side: THREE.DoubleSide });
@@ -58,6 +119,25 @@ System.register("World", ["TileType"], function(exports_2, context_2) {
                         }
                     }
                 }
+                World.prototype.randomSpot = function () {
+                    return new THREE.Vector2(Math.random() * this.autowired.WIDTH, Math.random() * this.autowired.HEIGHT);
+                };
+                ;
+                World.prototype.randomSpotAlongEdge = function () {
+                    if (Math.random() < 0.5) {
+                        var xEdge = Math.round(Math.random()) * this.autowired.WIDTH;
+                        return new THREE.Vector2(xEdge, Math.random() * this.autowired.HEIGHT);
+                    }
+                    else {
+                        var yEdge = Math.round(Math.random()) * this.autowired.HEIGHT;
+                        return new THREE.Vector2(Math.random() * this.autowired.WIDTH, yEdge);
+                    }
+                };
+                ;
+                World.prototype.randomDirection = function (scalar) {
+                    return new THREE.Vector2(Math.random() * 2 - 1, Math.random() * 2 - 1).multiplyScalar(scalar);
+                };
+                ;
                 return World;
             }());
             exports_2("World", World);
@@ -78,6 +158,8 @@ System.register("Autowired", ["World"], function(exports_3, context_3) {
             PCFSoftShadowMap = THREE.PCFSoftShadowMap;
             Autowired = (function () {
                 function Autowired() {
+                    this.WIDTH = 100;
+                    this.HEIGHT = 100;
                     this.isGameOver = false;
                     this.canvasElement = $("#myCanvas");
                     var VIEW_ANGLE = 75;
@@ -97,7 +179,7 @@ System.register("Autowired", ["World"], function(exports_3, context_3) {
                     this.camera.lookAt(new THREE.Vector3(0, 0, 0));
                     this.camera.position.set(500, 500, 700);
                     this.scene = new THREE.Scene();
-                    var light = new THREE.PointLight(0xFFFFFF, 0.5, 30);
+                    var light = new THREE.PointLight(0xFFFFFF, 0.5, 10000);
                     light.position.set(0, 0, 0);
                     this.scene.add(light);
                     this.scene.add(new THREE.AmbientLight(0x404040));
