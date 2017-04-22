@@ -423,4 +423,116 @@ System.register("Main", ["Autowired"], function(exports_7, context_7) {
         }
     }
 });
+System.register("PlayerStatistics", ["Player", "TileType"], function(exports_8, context_8) {
+    "use strict";
+    var __moduleName = context_8 && context_8.id;
+    var Player_2, TileType_3;
+    var Vector2, nextPowerOfTwo, Simulator;
+    return {
+        setters:[
+            function (Player_2_1) {
+                Player_2 = Player_2_1;
+            },
+            function (TileType_3_1) {
+                TileType_3 = TileType_3_1;
+            }],
+        execute: function() {
+            Vector2 = THREE.Vector2;
+            Simulator = (function () {
+                function Simulator() {
+                    this.neighborOffsets = [new Vector2(1, 0), new Vector2(-1, 0), new Vector2(0, 1), new Vector2(0, -1)];
+                    this.autowired = autowired;
+                    for (var i = 0; i < 4; i++) {
+                        var newPlayer = new Player_2.Player();
+                        this.players.push(newPlayer);
+                        var startingPosition = this.autowired.world.randomSpot();
+                        var startingWorldBlock = this.autowired.world.map[startingPosition.x][startingPosition.y];
+                        startingWorldBlock.setOwningPlayer(newPlayer);
+                        startingWorldBlock.setTileType(TileType_3.TileType.townHall1);
+                    }
+                    this.playerCharacter = this.players[0];
+                }
+                Simulator.prototype.withNeighborOffsets = function (point) {
+                    var returnValue = [];
+                    for (var _i = 0, _a = this.neighborOffsets; _i < _a.length; _i++) {
+                        var neighborOffset = _a[_i];
+                        var neighborPoint = point.clone().add(neighborOffset);
+                        if (this.autowired.world.isWithinBounds(neighborPoint.x, neighborPoint.y)) {
+                            returnValue.push(neighborPoint);
+                        }
+                    }
+                    return _.shuffle(returnValue);
+                };
+                Simulator.prototype.openNeighborBlocks = function (point) {
+                    var neighborPoints = this.withNeighborOffsets(point);
+                    var returnValue = [];
+                    for (var _i = 0, neighborPoints_3 = neighborPoints; _i < neighborPoints_3.length; _i++) {
+                        var neighbor = neighborPoints_3[_i];
+                        var neighborBlock = this.autowired.world.map[neighbor.x][neighbor.y];
+                        var neighborTileIsEmpty = !neighborBlock.owningPlayer;
+                        if (neighborTileIsEmpty) {
+                            returnValue.push(neighborBlock);
+                        }
+                    }
+                    return returnValue;
+                };
+                Simulator.prototype.enemyNeighborBlocks = function (point) {
+                    var neighborPoints = this.withNeighborOffsets(point);
+                    var block = this.autowired.world.map[point.x][point.y];
+                    var returnValue = [];
+                    for (var _i = 0, neighborPoints_4 = neighborPoints; _i < neighborPoints_4.length; _i++) {
+                        var neighbor = neighborPoints_4[_i];
+                        var neighborBlock = this.autowired.world.map[neighbor.x][neighbor.y];
+                        var isEnemyTile = neighborBlock.owningPlayer != null && neighborBlock.owningPlayer != block.owningPlayer;
+                        if (isEnemyTile) {
+                            returnValue.push(neighborBlock);
+                        }
+                    }
+                    return returnValue;
+                };
+                Simulator.prototype.update = function () {
+                    for (var i = 0; i < this.autowired.WIDTH; i++) {
+                        for (var j = 0; j < this.autowired.HEIGHT; j++) {
+                            var point = new THREE.Vector2(i, j);
+                            var worldBlock = this.autowired.world.map[i][j];
+                            var tileType = worldBlock.tileType;
+                            if (worldBlock.owningPlayer) {
+                                for (var _i = 0, _a = this.openNeighborBlocks(point); _i < _a.length; _i++) {
+                                    var neighborBlock = _a[_i];
+                                    var shouldSpawn = tileType.chanceToSpawn > Math.random();
+                                    if (shouldSpawn) {
+                                        neighborBlock.setOwningPlayer(worldBlock.owningPlayer);
+                                    }
+                                }
+                                var enemyNeighbors = this.enemyNeighborBlocks(point);
+                                for (var _b = 0, enemyNeighbors_2 = enemyNeighbors; _b < enemyNeighbors_2.length; _b++) {
+                                    var neighborBlock = enemyNeighbors_2[_b];
+                                    var shouldKill = worldBlock.owningPlayer.attack / neighborBlock.owningPlayer.defense > Math.random();
+                                    if (shouldKill) {
+                                        neighborBlock.setOwningPlayer(null);
+                                    }
+                                }
+                                var openNeighbors = this.openNeighborBlocks(point);
+                                if (openNeighbors.length > 0) {
+                                    var possibleNewPosition = openNeighbors[0];
+                                    var probabilityToMove = tileType.tendencyToLeave / possibleNewPosition.tileType.tendencyToEnter;
+                                    if (probabilityToMove > Math.random()) {
+                                        possibleNewPosition.setOwningPlayer(worldBlock.owningPlayer);
+                                        worldBlock.setOwningPlayer(null);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    for (var i = 0; i < this.autowired.WIDTH; i++) {
+                        for (var j = 0; j < this.autowired.HEIGHT; j++) {
+                        }
+                    }
+                };
+                return Simulator;
+            }());
+            exports_8("Simulator", Simulator);
+        }
+    }
+});
 //# sourceMappingURL=bundle.js.map
