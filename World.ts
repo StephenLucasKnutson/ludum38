@@ -21,7 +21,7 @@ export class World {
         this.generate(500, 1, 1, 0.0, 40, 0.0, 0.0, TileType.gold, [TileType.plains, TileType.woods]);
         this.generate(500, 1, 1, 0.0, 80, 0.0, 0.0, TileType.diamond, [TileType.plains, TileType.woods]);
 
-        let geometry = new THREE.PlaneGeometry(8, 8);
+        let geometry = new THREE.PlaneGeometry(7, 7);
         let backgroundGeometry = new THREE.PlaneGeometry(10, 10);
 
 
@@ -31,7 +31,7 @@ export class World {
 
                 let plane = new THREE.Mesh(geometry, tileType.material);
                 plane.rotateX(Math.PI);
-                plane.position.set(i * 10, j * 10, 0);
+                plane.position.set(i * 10 + .75, j * 10, 0);
                 this.autowired.scene.add(plane);
                 this.map[i][j].tileMesh = plane;
 

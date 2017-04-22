@@ -100,9 +100,22 @@ export class Simulator {
                 }
             }
         }
+        for(let player of this.players) {
+            player.resetStats()
+        }
         for (let i: number = 0; i < this.autowired.WIDTH; i++) {
             for (let j: number = 0; j < this.autowired.HEIGHT; j++) {
+                let point: THREE.Vector2 = new THREE.Vector2(i, j);
+                let worldBlock: WorldBlock = this.autowired.world.map[i][j];
+                let tileType: TileType = worldBlock.tileType;
+                if (worldBlock.owningPlayer) {
+                    let player : Player = worldBlock.owningPlayer;
+                    player.playerStats.incrementTileType(tileType);
+                }
             }
+        }
+        for(let player of this.players) {
+            player.gold += player.playerStats.totalGold();
         }
     }
 }

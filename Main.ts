@@ -1,5 +1,3 @@
-/// <reference path="Cube.ts" />
-/// <reference path="Room.ts" />
 /// <reference path="definitions/underscore.d.ts" />
 
 import {Autowired} from "./Autowired";
@@ -12,11 +10,11 @@ class Main {
         this.autowired = new Autowired();
     }
 
-
-
     render = () => {
         requestAnimationFrame(this.render);
         this.autowired.simulator.update();
+        this.autowired.ui.update();
+
         this.autowired.renderer.clear();
         this.autowired.renderer.render(this.autowired.scene, this.autowired.camera);
     };

@@ -3,6 +3,7 @@ import {Simulator} from "./Simulator";
 
 import ShadowMapType = THREE.ShadowMapType;
 import PCFSoftShadowMap = THREE.PCFSoftShadowMap;
+import {UI} from "./UI";
 
 export class Autowired {
     isGameOver: boolean;
@@ -10,22 +11,23 @@ export class Autowired {
     camera: THREE.Camera;
     scene: THREE.Scene;
     renderer: THREE.WebGLRenderer;
-    glowScene: THREE.Scene;
 
     canvasElement: JQuery;
 
     world : World;
     simulator: Simulator;
-    WIDTH: number = 100;
-    HEIGHT: number = 100;
+    ui : UI;
+    WIDTH: number = 120;
+    HEIGHT: number = 80;
 
     constructor() {
         this.isGameOver = false;
         this.canvasElement = $("#myCanvas");
 
+
         let VIEW_ANGLE = 75;
         let NEAR = 0.1;
-        let FAR = 1000;
+        let FAR = 750;
 
         this.renderer = new THREE.WebGLRenderer({
             canvas: <HTMLCanvasElement>this.canvasElement.get(0),
@@ -42,9 +44,9 @@ export class Autowired {
             window.innerWidth / window.innerHeight,
             NEAR,
             FAR);
-        this.camera.position.set(0, 0, 500);
+        this.camera.position.set(0, 0, 1);
         this.camera.lookAt(new THREE.Vector3(0,0,0));
-        this.camera.position.set(500, 500, 700);
+        this.camera.position.set(600, 400, 600);
 
         this.scene = new THREE.Scene();
 
@@ -56,5 +58,6 @@ export class Autowired {
 
         this.world = new World(this);
         this.simulator = new Simulator(this);
+        this.ui = new UI(this);
     }
 }
