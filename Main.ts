@@ -16,11 +16,9 @@ class Main {
 
     render = () => {
         requestAnimationFrame(this.render);
-
+        this.autowired.simulator.update();
         this.autowired.renderer.clear();
         this.autowired.renderer.render(this.autowired.scene, this.autowired.camera);
-        //this.autowired.renderer.clearDepth();
-        //this.autowired.renderer.render(this.autowired.glowScene, this.autowired.camera);
     };
 }
 let main: Main = new Main();

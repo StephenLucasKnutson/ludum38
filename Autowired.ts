@@ -1,4 +1,5 @@
 import {World} from "./World";
+import {Simulator} from "./Simulator";
 
 import ShadowMapType = THREE.ShadowMapType;
 import PCFSoftShadowMap = THREE.PCFSoftShadowMap;
@@ -14,9 +15,9 @@ export class Autowired {
     canvasElement: JQuery;
 
     world : World;
+    simulator: Simulator;
     WIDTH: number = 100;
     HEIGHT: number = 100;
-
 
     constructor() {
         this.isGameOver = false;
@@ -53,13 +54,7 @@ export class Autowired {
 
         this.scene.add(new THREE.AmbientLight(0x404040));
 
-        this.glowScene = new THREE.Scene();
-        this.glowScene.add(new THREE.AmbientLight(0xFFFFFF));
-
-        let dirLight = new THREE.PointLight(0xffffff, 1);
-        this.camera.add(dirLight);
-        this.glowScene.add(dirLight);
-
         this.world = new World(this);
+        this.simulator = new Simulator(this);
     }
 }
