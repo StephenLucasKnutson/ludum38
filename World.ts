@@ -1,25 +1,34 @@
 import {TileType} from "./TileType";
 import {WorldBlock} from "./WorldBlock";
 import {Autowired} from "./Autowired";
-import Vector2 = THREE.Vector2;
 import {Player} from "./Player";
+import Vector2 = THREE.Vector2;
+import ThrottleSettings = _.ThrottleSettings;
 
 export class World {
     autowired: Autowired;
     map: {[key: number]: {[key: number]: WorldBlock;};} = {};
-    static backgroundMaterial: THREE.MeshBasicMaterial = new THREE.MeshBasicMaterial({color: 0x000000, side: THREE.BackSide});
+    selectedWorldBlock: WorldBlock;
+    static backgroundMaterial: THREE.MeshBasicMaterial = new THREE.MeshBasicMaterial({
+        color: 0x000000,
+        side: THREE.BackSide
+    });
+    static backgroundSelectedMaterial: THREE.MeshBasicMaterial = new THREE.MeshBasicMaterial({
+        color: 0xFFFFFF,
+        side: THREE.BackSide
+    });
 
     constructor(autowired: Autowired) {
         this.autowired = autowired;
 
         this.generatePlane();
-        this.generate(500, 7, 2, 0.5, 50, 0.25, 1.0, TileType.woods, [TileType.plains]);
+        this.generate(500, 7, 2, 0.5, 50, 0.25, 1.0, TileType.forest, [TileType.plains]);
         this.generate(700, 3, 2, 1.0, 150, 0.25, 1.0, TileType.sea, [TileType.plains]);
         this.generate(500, 3, 2, 0.0, 250, 0.0, 0.3, TileType.desert, [TileType.plains]);
-        this.generate(500, 4, 4, 0.0, 100, 0.0, 0.3, TileType.mountains, [TileType.woods]);
+        this.generate(500, 4, 4, 0.0, 100, 0.0, 0.3, TileType.mountains, [TileType.forest]);
 
-        this.generate(500, 1, 1, 0.0, 40, 0.0, 0.0, TileType.gold, [TileType.plains, TileType.woods]);
-        this.generate(500, 1, 1, 0.0, 80, 0.0, 0.0, TileType.diamond, [TileType.plains, TileType.woods]);
+        this.generate(500, 1, 1, 0.0, 40, 0.0, 0.0, TileType.gold, [TileType.plains, TileType.forest]);
+        this.generate(500, 1, 1, 0.0, 80, 0.0, 0.0, TileType.diamond, [TileType.plains, TileType.forest]);
 
         let geometry = new THREE.PlaneGeometry(7, 7);
         let backgroundGeometry = new THREE.PlaneGeometry(10, 10);
@@ -31,7 +40,7 @@ export class World {
 
                 let plane = new THREE.Mesh(geometry, tileType.material);
                 plane.rotateX(Math.PI);
-                plane.position.set(i * 10 + .75, j * 10, 0);
+                plane.position.set(i * 10, j * 10, 0);
                 this.autowired.scene.add(plane);
                 this.map[i][j].tileMesh = plane;
 
@@ -42,15 +51,39 @@ export class World {
                 this.map[i][j].backgroundMesh = backgroundPlane;
             }
         }
+
+        let $this = this;
+        $(this.autowired.canvasElement).click((event) => {
+            let vector = new THREE.Vector3 (
+                ( event.clientX / $this.autowired.canvasElement.innerWidth() ) * 2 - 1,
+                -( event.clientY / $this.autowired.canvasElement.innerHeight() ) * 2 + 1,
+                0.5);
+
+            vector.unproject($this.autowired.camera);
+            let mapPosition : THREE.Vector2 = new THREE.Vector2(Math.round(vector.x / 10), Math.round(vector.y / 10));
+            if(this.isWithinBounds(mapPosition)){
+                for (let i = 0; i < this.autowired.WIDTH; i++) {
+                    for (let j = 0; j < this.autowired.HEIGHT; j++) {
+                        this.map[i][j].setSelected(false);
+                    }
+                }
+                let selectedWorldBlock = this.getMap(mapPosition);
+                this.selectedWorldBlock = selectedWorldBlock;
+                selectedWorldBlock.setSelected(true);
+
+            }
+            //console.log(pos);
+        })
     }
-    isWithinBounds(x: number, y: number) : boolean {
-        return x >= 0 && x < this.autowired.WIDTH && y >= 0 && y < this.autowired.HEIGHT;
-    }
+
+    isWithinBounds(position: Vector2) :boolean {
+        return position.x >= 0 && position.x < this.autowired.WIDTH && position.y >= 0 && position.y < this.autowired.HEIGHT;
+    };
 
     setMap = (xUnrounded: number, yUnrounded: number, t: TileType, canApplyTo: TileType[]) => {
         let x: number = Math.round(xUnrounded);
         let y: number = Math.round(yUnrounded);
-        if (this.isWithinBounds(x, y)) {
+        if (this.isWithinBounds(new Vector2(x, y))) {
             let existingType: TileType = this.map[x][y].tileType;
             let canBeApplied: boolean = _.contains(canApplyTo, existingType);
             if (canBeApplied) {
@@ -58,15 +91,9 @@ export class World {
             }
         }
     };
-
-    setMapOwner = (xUnrounded: number, yUnrounded: number, player: Player) => {
-        let x: number = Math.round(xUnrounded);
-        let y: number = Math.round(yUnrounded);
-        if (this.isWithinBounds(x, y)) {
-            let worldBlock: WorldBlock = this.map[x][y];
-
-        }
-    };
+    getMap (position: THREE.Vector2) {
+        return this.map[position.x][position.y]
+    }
 
     generatePlane = () => {
         for (let i = 0; i < this.autowired.WIDTH; i++) {

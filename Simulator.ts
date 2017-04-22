@@ -21,7 +21,7 @@ export class Simulator {
             let startingPosition: THREE.Vector2 = this.autowired.world.randomSpot();
             let startingWorldBlock: WorldBlock = this.autowired.world.map[startingPosition.x][startingPosition.y];
             startingWorldBlock.setOwningPlayer(newPlayer);
-            startingWorldBlock.setTileType(TileType.townHall1)
+            startingWorldBlock.setTileType(TileType.village)
         }
         this.playerCharacter = this.players[0];
 
@@ -33,7 +33,7 @@ export class Simulator {
         let returnValue: THREE.Vector2[] = [];
         for (let neighborOffset of this.neighborOffsets) {
             let neighborPoint = point.clone().add(neighborOffset);
-            if (this.autowired.world.isWithinBounds(neighborPoint.x, neighborPoint.y)) {
+            if (this.autowired.world.isWithinBounds(new Vector2(neighborPoint.x, neighborPoint.y))) {
                 returnValue.push(neighborPoint)
             }
         }
@@ -84,7 +84,10 @@ export class Simulator {
                     for (let neighborBlock of enemyNeighbors) {
                         let shouldKill = worldBlock.owningPlayer.attack / neighborBlock.owningPlayer.defense > Math.random();
                         if (shouldKill) {
+                            neighborBlock.owningPlayer.deaths ++;
+                            worldBlock.owningPlayer.kills ++;
                             neighborBlock.setOwningPlayer(null);
+
                         }
                     }
                     let openNeighbors: WorldBlock[] = this.openNeighborBlocks(point);

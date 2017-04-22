@@ -8,6 +8,7 @@ export class WorldBlock {
     tileMesh: THREE.Mesh;
     backgroundMesh: THREE.Mesh;
     owningPlayer: Player;
+    isSelected: boolean;
 
     constructor() {
 
@@ -26,5 +27,18 @@ export class WorldBlock {
     setTileType(newTileType: TileType) {
         this.tileType = newTileType;
         this.tileMesh.material = newTileType.material;
+    }
+
+    setSelected(isSelected: boolean) {
+        if (isSelected == this.isSelected) {
+            return;
+        }
+        this.isSelected = isSelected;
+        if (isSelected) {
+            this.backgroundMesh.material = World.backgroundSelectedMaterial;
+        } else {
+            this.setOwningPlayer(this.owningPlayer)
+        }
+
     }
 }

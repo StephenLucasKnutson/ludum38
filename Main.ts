@@ -15,7 +15,6 @@ class Main {
         this.autowired.simulator.update();
         this.autowired.ui.update();
 
-        this.autowired.renderer.clear();
         this.autowired.renderer.render(this.autowired.scene, this.autowired.camera);
     };
 }

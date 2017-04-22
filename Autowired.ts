@@ -24,29 +24,22 @@ export class Autowired {
         this.isGameOver = false;
         this.canvasElement = $("#myCanvas");
 
-
-        let VIEW_ANGLE = 75;
-        let NEAR = 0.1;
-        let FAR = 750;
-
         this.renderer = new THREE.WebGLRenderer({
             canvas: <HTMLCanvasElement>this.canvasElement.get(0),
             antialias: true,
             precision: "highp"
         });
-        this.renderer.autoClear = false;
-        this.renderer.shadowMap.enabled = true;
-        this.renderer.shadowMap.type = PCFSoftShadowMap;
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
 
-        this.camera = new THREE.PerspectiveCamera(
-            VIEW_ANGLE,
-            window.innerWidth / window.innerHeight,
-            NEAR,
-            FAR);
+        let width = $(document).innerWidth() - 50;
+        let height = $(document).innerHeight() - 70;
+        let aspectRatio = width / height;
+        this.renderer.setSize(width, height);
+
+        let size: number = 900;
+        this.camera = new THREE.OrthographicCamera( -size, size, size / aspectRatio, -size / aspectRatio, 0, 10 );
         this.camera.position.set(0, 0, 1);
         this.camera.lookAt(new THREE.Vector3(0,0,0));
-        this.camera.position.set(600, 400, 600);
+        this.camera.position.set(400, 400, 5);
 
         this.scene = new THREE.Scene();
 
