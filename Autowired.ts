@@ -1,9 +1,9 @@
 import {World} from "./World";
 import {Simulator} from "./Simulator";
+import {UI} from "./UI";
 
 import ShadowMapType = THREE.ShadowMapType;
 import PCFSoftShadowMap = THREE.PCFSoftShadowMap;
-import {UI} from "./UI";
 
 export class Autowired {
     isGameOver: boolean;
@@ -14,11 +14,24 @@ export class Autowired {
 
     canvasElement: JQuery;
 
-    world : World;
+    world: World;
     simulator: Simulator;
-    ui : UI;
+    ui: UI;
     WIDTH: number = 100;
     HEIGHT: number = 60;
+
+    resetCameraAndRenderer() {
+        let width = $(window).innerWidth() - 40;
+        let height = $(window).innerHeight() - 40;
+        let aspectRatio = width / height;
+        this.renderer.setSize(width, height);
+
+        let size: number = 650;
+        this.camera = new THREE.OrthographicCamera(-size, size, size / aspectRatio, -size / aspectRatio, 0, 10);
+        this.camera.position.set(0, 0, 1);
+        this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+        this.camera.position.set(355, 300, 5);
+    }
 
     constructor() {
         this.isGameOver = false;
@@ -30,16 +43,7 @@ export class Autowired {
             precision: "highp"
         });
 
-        let width = $(document).innerWidth() - 50;
-        let height = $(document).innerHeight() - 70;
-        let aspectRatio = width / height;
-        this.renderer.setSize(width, height);
-
-        let size: number = 700;
-        this.camera = new THREE.OrthographicCamera( -size, size, size / aspectRatio, -size / aspectRatio, 0, 10 );
-        this.camera.position.set(0, 0, 1);
-        this.camera.lookAt(new THREE.Vector3(0,0,0));
-        this.camera.position.set(350, 300, 5);
+        this.resetCameraAndRenderer();
 
         this.scene = new THREE.Scene();
 
@@ -52,5 +56,9 @@ export class Autowired {
         this.world = new World(this);
         this.simulator = new Simulator(this);
         this.ui = new UI(this);
+
+        window.addEventListener('resize', (event) => {
+            this.resetCameraAndRenderer();
+        });
     }
 }

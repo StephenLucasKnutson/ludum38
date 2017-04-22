@@ -635,6 +635,7 @@ System.register("Autowired", ["World", "Simulator", "UI"], function(exports_8, c
         execute: function() {
             Autowired = (function () {
                 function Autowired() {
+                    var _this = this;
                     this.WIDTH = 100;
                     this.HEIGHT = 60;
                     this.isGameOver = false;
@@ -644,15 +645,7 @@ System.register("Autowired", ["World", "Simulator", "UI"], function(exports_8, c
                         antialias: true,
                         precision: "highp"
                     });
-                    var width = $(document).innerWidth() - 50;
-                    var height = $(document).innerHeight() - 70;
-                    var aspectRatio = width / height;
-                    this.renderer.setSize(width, height);
-                    var size = 700;
-                    this.camera = new THREE.OrthographicCamera(-size, size, size / aspectRatio, -size / aspectRatio, 0, 10);
-                    this.camera.position.set(0, 0, 1);
-                    this.camera.lookAt(new THREE.Vector3(0, 0, 0));
-                    this.camera.position.set(350, 300, 5);
+                    this.resetCameraAndRenderer();
                     this.scene = new THREE.Scene();
                     var light = new THREE.PointLight(0xFFFFFF, 0.5, 10000);
                     light.position.set(0, 0, 0);
@@ -661,7 +654,21 @@ System.register("Autowired", ["World", "Simulator", "UI"], function(exports_8, c
                     this.world = new World_2.World(this);
                     this.simulator = new Simulator_1.Simulator(this);
                     this.ui = new UI_1.UI(this);
+                    window.addEventListener('resize', function (event) {
+                        _this.resetCameraAndRenderer();
+                    });
                 }
+                Autowired.prototype.resetCameraAndRenderer = function () {
+                    var width = $(window).innerWidth() - 40;
+                    var height = $(window).innerHeight() - 40;
+                    var aspectRatio = width / height;
+                    this.renderer.setSize(width, height);
+                    var size = 650;
+                    this.camera = new THREE.OrthographicCamera(-size, size, size / aspectRatio, -size / aspectRatio, 0, 10);
+                    this.camera.position.set(0, 0, 1);
+                    this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+                    this.camera.position.set(355, 300, 5);
+                };
                 return Autowired;
             }());
             exports_8("Autowired", Autowired);
