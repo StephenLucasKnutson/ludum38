@@ -17,8 +17,8 @@ export class Autowired {
     world : World;
     simulator: Simulator;
     ui : UI;
-    WIDTH: number = 120;
-    HEIGHT: number = 80;
+    WIDTH: number = 100;
+    HEIGHT: number = 60;
 
     constructor() {
         this.isGameOver = false;
@@ -35,11 +35,11 @@ export class Autowired {
         let aspectRatio = width / height;
         this.renderer.setSize(width, height);
 
-        let size: number = 900;
+        let size: number = 700;
         this.camera = new THREE.OrthographicCamera( -size, size, size / aspectRatio, -size / aspectRatio, 0, 10 );
         this.camera.position.set(0, 0, 1);
         this.camera.lookAt(new THREE.Vector3(0,0,0));
-        this.camera.position.set(400, 400, 5);
+        this.camera.position.set(350, 300, 5);
 
         this.scene = new THREE.Scene();
 

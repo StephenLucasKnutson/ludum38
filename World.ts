@@ -72,7 +72,6 @@ export class World {
                 selectedWorldBlock.setSelected(true);
 
             }
-            //console.log(pos);
         })
     }
 
@@ -106,7 +105,48 @@ export class World {
     };
 
     randomSpot(): THREE.Vector2 {
-        return new THREE.Vector2(Math.round(Math.random() * this.autowired.WIDTH), Math.round(Math.random() * this.autowired.HEIGHT));
+        return new THREE.Vector2(Math.floor(Math.random() * this.autowired.WIDTH), Math.floor(Math.random() * this.autowired.HEIGHT));
+    };
+
+    randomSpotOnPlains(): THREE.Vector2 {
+        let position : THREE.Vector2;
+        do {
+            position = this.randomSpot()
+        } while (!this.isInMiddleOfPlains(position));
+        return position;
+    }
+
+    isInMiddleOfPlains(point: THREE.Vector2){
+        let blocksToCheck : WorldBlock[] = [this.getMap(point)];
+        blocksToCheck = blocksToCheck.concat(this.neighborBlocks(point));
+        let good : boolean = true;
+        good = good && (blocksToCheck.length == 5);
+        for(let block of blocksToCheck) {
+            good = good && (block.tileType == TileType.plains);
+        }
+        return good;
+    };
+
+    neighborOffsets: THREE.Vector2[] = [new Vector2(1, 0), new Vector2(-1, 0), new Vector2(0, 1), new Vector2(0, -1)];
+    withNeighborOffsets(point: THREE.Vector2): THREE.Vector2[] {
+        let returnValue: THREE.Vector2[] = [];
+        for (let neighborOffset of this.neighborOffsets) {
+            let neighborPoint = point.clone().add(neighborOffset);
+            if (this.autowired.world.isWithinBounds(new Vector2(neighborPoint.x, neighborPoint.y))) {
+                returnValue.push(neighborPoint)
+            }
+        }
+        return _.shuffle(returnValue) as THREE.Vector2[];
+    }
+
+    neighborBlocks(point: THREE.Vector2): WorldBlock[] {
+        let neighborPoints: Vector2[] = this.withNeighborOffsets(point);
+        let returnValue: WorldBlock[] = [];
+        for (let neighbor of neighborPoints) {
+            let neighborBlock = this.autowired.world.getMap(neighbor);
+            returnValue.push(neighborBlock);
+        }
+        return returnValue;
     };
 
     randomSpotAlongEdge(): THREE.Vector2 {

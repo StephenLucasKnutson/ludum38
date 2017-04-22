@@ -17,12 +17,10 @@ export class PlayerStats {
     }
 
     totalGold() {
-        let tileTypeToGold: {[key: string]: number;} = TileType.tileTypeNameToGold();
-
         let returnValue: number = 0;
         for(let tileTypeName in this.tileTypeToNumberOwned) {
             let numberOwned = this.tileTypeToNumberOwned[tileTypeName];
-            let goldPer = tileTypeToGold[tileTypeName];
+            let goldPer = TileType.tileTypeToGold[tileTypeName];
             returnValue += numberOwned * goldPer;
         }
         return returnValue;
@@ -31,8 +29,7 @@ export class PlayerStats {
     totalUnits() {
         let returnValue: number = 0;
         for(let tileTypeName in this.tileTypeToNumberOwned) {
-            let numberOwned = this.tileTypeToNumberOwned[tileTypeName];
-            returnValue += numberOwned;
+            returnValue += this.tileTypeToNumberOwned[tileTypeName];
         }
         return returnValue;
     }

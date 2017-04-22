@@ -18,7 +18,7 @@ export class Simulator {
             let newPlayer: Player = new Player();
             this.players.push(newPlayer);
 
-            let startingPosition: THREE.Vector2 = this.autowired.world.randomSpot();
+            let startingPosition: THREE.Vector2 = this.autowired.world.randomSpotOnPlains();
             let startingWorldBlock: WorldBlock = this.autowired.world.map[startingPosition.x][startingPosition.y];
             startingWorldBlock.setOwningPlayer(newPlayer);
             startingWorldBlock.setTileType(TileType.village)
@@ -27,24 +27,10 @@ export class Simulator {
 
     }
 
-    neighborOffsets: THREE.Vector2[] = [new Vector2(1, 0), new Vector2(-1, 0), new Vector2(0, 1), new Vector2(0, -1)];
-
-    withNeighborOffsets(point: THREE.Vector2): THREE.Vector2[] {
-        let returnValue: THREE.Vector2[] = [];
-        for (let neighborOffset of this.neighborOffsets) {
-            let neighborPoint = point.clone().add(neighborOffset);
-            if (this.autowired.world.isWithinBounds(new Vector2(neighborPoint.x, neighborPoint.y))) {
-                returnValue.push(neighborPoint)
-            }
-        }
-        return _.shuffle(returnValue) as THREE.Vector2[];
-    }
-
     openNeighborBlocks(point: THREE.Vector2): WorldBlock[] {
-        let neighborPoints: Vector2[] = this.withNeighborOffsets(point);
+        let neighborBlocks: WorldBlock[] = this.autowired.world.neighborBlocks(point);
         let returnValue: WorldBlock[] = [];
-        for (let neighbor of neighborPoints) {
-            let neighborBlock = this.autowired.world.map[neighbor.x][neighbor.y];
+        for (let neighborBlock of neighborBlocks) {
             let neighborTileIsEmpty = !neighborBlock.owningPlayer;
             if (neighborTileIsEmpty) {
                 returnValue.push(neighborBlock);
@@ -54,12 +40,11 @@ export class Simulator {
     }
 
     enemyNeighborBlocks(point: THREE.Vector2): WorldBlock[] {
-        let neighborPoints: Vector2[] = this.withNeighborOffsets(point);
-        let block: WorldBlock = this.autowired.world.map[point.x][point.y];
+        let neighborBlocks: WorldBlock[] = this.autowired.world.neighborBlocks(point);
+        let block: WorldBlock = this.autowired.world.getMap(point);
         let returnValue: WorldBlock[] = [];
-        for (let neighbor of neighborPoints) {
-            let neighborBlock: WorldBlock = this.autowired.world.map[neighbor.x][neighbor.y];
-            let isEnemyTile: boolean = neighborBlock.owningPlayer != null && neighborBlock.owningPlayer != block.owningPlayer
+        for (let neighborBlock of neighborBlocks) {
+            let isEnemyTile: boolean = neighborBlock.owningPlayer != null && neighborBlock.owningPlayer != block.owningPlayer;
             if (isEnemyTile) {
                 returnValue.push(neighborBlock);
             }
@@ -84,8 +69,8 @@ export class Simulator {
                     for (let neighborBlock of enemyNeighbors) {
                         let shouldKill = worldBlock.owningPlayer.attack / neighborBlock.owningPlayer.defense > Math.random();
                         if (shouldKill) {
-                            neighborBlock.owningPlayer.deaths ++;
-                            worldBlock.owningPlayer.kills ++;
+                            neighborBlock.owningPlayer.deaths++;
+                            worldBlock.owningPlayer.kills++;
                             neighborBlock.setOwningPlayer(null);
 
                         }
@@ -93,7 +78,7 @@ export class Simulator {
                     let openNeighbors: WorldBlock[] = this.openNeighborBlocks(point);
                     if (openNeighbors.length > 0) {
                         let possibleNewPosition = openNeighbors[0];
-                        let probabilityToMove = tileType.tendencyToLeave / possibleNewPosition.tileType.tendencyToEnter;
+                        let probabilityToMove = possibleNewPosition.tileType.tendencyToEnter * tileType.tendencyToLeave;
                         if (probabilityToMove > Math.random()) {
                             possibleNewPosition.setOwningPlayer(worldBlock.owningPlayer);
                             worldBlock.setOwningPlayer(null);
@@ -103,7 +88,7 @@ export class Simulator {
                 }
             }
         }
-        for(let player of this.players) {
+        for (let player of this.players) {
             player.resetStats()
         }
         for (let i: number = 0; i < this.autowired.WIDTH; i++) {
@@ -112,12 +97,12 @@ export class Simulator {
                 let worldBlock: WorldBlock = this.autowired.world.map[i][j];
                 let tileType: TileType = worldBlock.tileType;
                 if (worldBlock.owningPlayer) {
-                    let player : Player = worldBlock.owningPlayer;
+                    let player: Player = worldBlock.owningPlayer;
                     player.playerStats.incrementTileType(tileType);
                 }
             }
         }
-        for(let player of this.players) {
+        for (let player of this.players) {
             player.gold += player.playerStats.totalGold();
         }
     }

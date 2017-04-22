@@ -6,44 +6,89 @@ System.register("TileType", [], function(exports_1, context_1) {
         setters:[],
         execute: function() {
             TileType = (function () {
-                function TileType(name, color, goldPerTurn, tendencyToEnter, tendencyToLeave, chanceToSpawn) {
+                function TileType(name, color, goldPerTurn, tendencyToEnter, tendencyToLeave, chanceToSpawn, upgradeCost) {
                     this.name = name;
                     this.color = color;
                     this.goldPerTurn = goldPerTurn;
                     this.tendencyToEnter = tendencyToEnter;
                     this.tendencyToLeave = tendencyToLeave;
                     this.chanceToSpawn = chanceToSpawn;
+                    this.upgradeCost = upgradeCost;
                     this.material = new THREE.MeshBasicMaterial({ color: this.color, side: THREE.BackSide });
                 }
-                TileType.tileTypeNameToGold = function () {
-                    var tileTypeToGold = {};
+                TileType.initialize = function () {
+                    TileType.destroyed = new TileType("DESTROYED", 0x000000, 0, 0, 1, 0, 1000000);
+                    TileType.destroyedCheaply = new TileType("DESTROYED", 0x000000, 0, 0, 1, 0, 1000);
+                    TileType.plains = new TileType("PLAINS", 0xC0FF6D, 1, 0.5, 0.2, 0, 100);
+                    TileType.farm = new TileType("FARM", 0xC0FF6D, 5, 0.2, 0.0, 0, 1000);
+                    TileType.factoryFarm = new TileType("FACTORY FARM", 0xC0FF6D, 50, 0.5, 0.0, 0, 10000);
+                    TileType.forest = new TileType("FOREST", 0x228B22, 2, 0.5, 0.21, 0, 1000);
+                    TileType.mountains = new TileType("MOUNTAINS", 0x968D99, 3, 0.25, 0.1, 0, 0);
+                    TileType.sea = new TileType("SEA", 0x006994, 1, 0.00001, 0.1, 0, 0);
+                    TileType.desert = new TileType("DESERT", 0xEDC9AF, 0, 0.01, 0.1, 0, 0);
+                    TileType.goldMine = new TileType("GOLD MINE", 0xFFDF00, 100, 0.01, 0.0, 0, 10000);
+                    TileType.gold = new TileType("GOLD", 0xFFDF00, 20, 0.01, 0.0, 0, 0);
+                    TileType.diamondMine = new TileType("DIAMOND MINE", 0x9AC5DB, 200, 0.01, 0.0, 0, 20000);
+                    TileType.diamond = new TileType("DIAMOND", 0x9AC5DB, 40, 0.01, 0.0, 0, 0);
+                    TileType.megalopolis = new TileType("MEGALOPOLIS", 0x000000, 100000, 0.1, 0.0, 1.0, 1000000);
+                    TileType.city = new TileType("CITY", 0x000000, 1000, 0.1, 0.0, 0.5, 500000);
+                    TileType.town = new TileType("TOWN", 0x000000, 100, 0.1, 0.0, 0.1, 100000);
+                    TileType.village = new TileType("VILLAGE", 0x000000, 10, 0.1, 0.0, 0.01, 10000);
+                    TileType.militaryBase = new TileType("MILITARY BASE", 0x000000, -1000, 0.1, 0.0, 0.75, 100000);
+                    TileType.barracks = new TileType("BARRACKS", 0x000000, -100, 0.1, 0.0, 0.1, 10000);
+                    TileType.wall = new TileType("WALL", 0x000000, -1, 0.01, 0.0, 0.01, 1000);
+                    TileType.destroyed.possibleUpgrades = [TileType.plains];
+                    TileType.destroyedCheaply.possibleUpgrades = [TileType.plains];
+                    TileType.plains.possibleUpgrades = [TileType.village, TileType.farm, TileType.barracks, TileType.wall, TileType.forest, TileType.destroyedCheaply];
+                    TileType.farm.possibleUpgrades = [TileType.factoryFarm, TileType.destroyed];
+                    TileType.factoryFarm.possibleUpgrades = [TileType.destroyed];
+                    TileType.forest.possibleUpgrades = [TileType.plains, TileType.destroyedCheaply];
+                    TileType.mountains.possibleUpgrades = [TileType.destroyedCheaply];
+                    TileType.sea.possibleUpgrades = [TileType.plains, TileType.destroyedCheaply];
+                    TileType.desert.possibleUpgrades = [TileType.destroyedCheaply];
+                    TileType.goldMine.possibleUpgrades = [TileType.destroyed];
+                    TileType.gold.possibleUpgrades = [TileType.goldMine, TileType.destroyed];
+                    TileType.diamondMine.possibleUpgrades = [TileType.destroyed];
+                    TileType.diamond.possibleUpgrades = [TileType.diamondMine, TileType.destroyed];
+                    TileType.megalopolis.possibleUpgrades = [TileType.destroyed];
+                    TileType.city.possibleUpgrades = [TileType.megalopolis, TileType.destroyed];
+                    TileType.town.possibleUpgrades = [TileType.city, TileType.destroyed];
+                    TileType.village.possibleUpgrades = [TileType.town, TileType.destroyed];
+                    TileType.militaryBase.possibleUpgrades = [TileType.destroyed];
+                    TileType.barracks.possibleUpgrades = [TileType.militaryBase, TileType.destroyed];
+                    TileType.wall.possibleUpgrades = [TileType.destroyedCheaply];
+                    TileType.allTileTypes = [
+                        TileType.destroyed,
+                        TileType.destroyedCheaply,
+                        TileType.plains,
+                        TileType.farm,
+                        TileType.factoryFarm,
+                        TileType.forest,
+                        TileType.mountains,
+                        TileType.sea,
+                        TileType.desert,
+                        TileType.goldMine,
+                        TileType.gold,
+                        TileType.diamondMine,
+                        TileType.diamond,
+                        TileType.megalopolis,
+                        TileType.city,
+                        TileType.town,
+                        TileType.village,
+                        TileType.militaryBase,
+                        TileType.barracks,
+                        TileType.wall
+                    ];
                     for (var _i = 0, _a = TileType.allTileTypes; _i < _a.length; _i++) {
                         var tileType = _a[_i];
-                        tileTypeToGold[tileType.name] = tileType.goldPerTurn;
+                        TileType.tileTypeToGold[tileType.name] = tileType.goldPerTurn;
                     }
-                    return tileTypeToGold;
                 };
-                TileType.plains = new TileType("PLAINS", 0xC0FF6D, 1, 0.5, 0.2, 0);
-                TileType.forest = new TileType("FOREST", 0x228B22, 2, 0.25, 0.21, 0);
-                TileType.mountains = new TileType("MOUNTAINS", 0x968D99, 3, 0.1, 0.1, 0);
-                TileType.sea = new TileType("SEA", 0x006994, 1, 0.01, 0.1, 0);
-                TileType.desert = new TileType("DESERT", 0xEDC9AF, 0, 0.01, 0.1, 0);
-                TileType.gold = new TileType("GOLD", 0xFFDF00, 10, 0.01, 0.0, 0);
-                TileType.diamond = new TileType("DIAMOND", 0x9AC5DB, 20, 0.01, 0.0, 0);
-                TileType.village = new TileType("VILLAGE", 0x000000, 10, 0.01, 0.0, 0.01);
-                TileType.allTileTypes = [
-                    TileType.plains,
-                    TileType.forest,
-                    TileType.mountains,
-                    TileType.sea,
-                    TileType.desert,
-                    TileType.gold,
-                    TileType.diamond,
-                    TileType.village
-                ];
+                TileType.tileTypeToGold = {};
                 return TileType;
             }());
             exports_1("TileType", TileType);
+            TileType.initialize();
         }
     }
 });
@@ -70,11 +115,10 @@ System.register("PlayerStats", ["TileType"], function(exports_2, context_2) {
                     this.tileTypeToNumberOwned[tileTypeName]++;
                 };
                 PlayerStats.prototype.totalGold = function () {
-                    var tileTypeToGold = TileType_1.TileType.tileTypeNameToGold();
                     var returnValue = 0;
                     for (var tileTypeName in this.tileTypeToNumberOwned) {
                         var numberOwned = this.tileTypeToNumberOwned[tileTypeName];
-                        var goldPer = tileTypeToGold[tileTypeName];
+                        var goldPer = TileType_1.TileType.tileTypeToGold[tileTypeName];
                         returnValue += numberOwned * goldPer;
                     }
                     return returnValue;
@@ -82,8 +126,7 @@ System.register("PlayerStats", ["TileType"], function(exports_2, context_2) {
                 PlayerStats.prototype.totalUnits = function () {
                     var returnValue = 0;
                     for (var tileTypeName in this.tileTypeToNumberOwned) {
-                        var numberOwned = this.tileTypeToNumberOwned[tileTypeName];
-                        returnValue += numberOwned;
+                        returnValue += this.tileTypeToNumberOwned[tileTypeName];
                     }
                     return returnValue;
                 };
@@ -217,6 +260,7 @@ System.register("World", ["TileType", "WorldBlock"], function(exports_5, context
                             }
                         }
                     };
+                    this.neighborOffsets = [new Vector2(1, 0), new Vector2(-1, 0), new Vector2(0, 1), new Vector2(0, -1)];
                     this.generate = function (numberOfIterations, radiusMax, radiusMin, directionScalar, shuffleIterations, edgeTendancy, movementScalar, t, canApplyTo) {
                         var position = _this.randomSpotAlongEdge();
                         var radius;
@@ -295,7 +339,6 @@ System.register("World", ["TileType", "WorldBlock"], function(exports_5, context
                             _this.selectedWorldBlock = selectedWorldBlock;
                             selectedWorldBlock.setSelected(true);
                         }
-                        //console.log(pos);
                     });
                 }
                 World.prototype.isWithinBounds = function (position) {
@@ -306,7 +349,48 @@ System.register("World", ["TileType", "WorldBlock"], function(exports_5, context
                     return this.map[position.x][position.y];
                 };
                 World.prototype.randomSpot = function () {
-                    return new THREE.Vector2(Math.round(Math.random() * this.autowired.WIDTH), Math.round(Math.random() * this.autowired.HEIGHT));
+                    return new THREE.Vector2(Math.floor(Math.random() * this.autowired.WIDTH), Math.floor(Math.random() * this.autowired.HEIGHT));
+                };
+                ;
+                World.prototype.randomSpotOnPlains = function () {
+                    var position;
+                    do {
+                        position = this.randomSpot();
+                    } while (!this.isInMiddleOfPlains(position));
+                    return position;
+                };
+                World.prototype.isInMiddleOfPlains = function (point) {
+                    var blocksToCheck = [this.getMap(point)];
+                    blocksToCheck = blocksToCheck.concat(this.neighborBlocks(point));
+                    var good = true;
+                    good = good && (blocksToCheck.length == 5);
+                    for (var _i = 0, blocksToCheck_1 = blocksToCheck; _i < blocksToCheck_1.length; _i++) {
+                        var block = blocksToCheck_1[_i];
+                        good = good && (block.tileType == TileType_2.TileType.plains);
+                    }
+                    return good;
+                };
+                ;
+                World.prototype.withNeighborOffsets = function (point) {
+                    var returnValue = [];
+                    for (var _i = 0, _a = this.neighborOffsets; _i < _a.length; _i++) {
+                        var neighborOffset = _a[_i];
+                        var neighborPoint = point.clone().add(neighborOffset);
+                        if (this.autowired.world.isWithinBounds(new Vector2(neighborPoint.x, neighborPoint.y))) {
+                            returnValue.push(neighborPoint);
+                        }
+                    }
+                    return _.shuffle(returnValue);
+                };
+                World.prototype.neighborBlocks = function (point) {
+                    var neighborPoints = this.withNeighborOffsets(point);
+                    var returnValue = [];
+                    for (var _i = 0, neighborPoints_1 = neighborPoints; _i < neighborPoints_1.length; _i++) {
+                        var neighbor = neighborPoints_1[_i];
+                        var neighborBlock = this.autowired.world.getMap(neighbor);
+                        returnValue.push(neighborBlock);
+                    }
+                    return returnValue;
                 };
                 ;
                 World.prototype.randomSpotAlongEdge = function () {
@@ -352,39 +436,25 @@ System.register("Simulator", ["Player", "TileType"], function(exports_6, context
                 TileType_3 = TileType_3_1;
             }],
         execute: function() {
-            Vector2 = THREE.Vector2;
             Simulator = (function () {
                 function Simulator(autowired) {
                     this.players = [];
-                    this.neighborOffsets = [new Vector2(1, 0), new Vector2(-1, 0), new Vector2(0, 1), new Vector2(0, -1)];
                     this.autowired = autowired;
                     for (var i = 0; i < 4; i++) {
                         var newPlayer = new Player_1.Player();
                         this.players.push(newPlayer);
-                        var startingPosition = this.autowired.world.randomSpot();
+                        var startingPosition = this.autowired.world.randomSpotOnPlains();
                         var startingWorldBlock = this.autowired.world.map[startingPosition.x][startingPosition.y];
                         startingWorldBlock.setOwningPlayer(newPlayer);
                         startingWorldBlock.setTileType(TileType_3.TileType.village);
                     }
                     this.playerCharacter = this.players[0];
                 }
-                Simulator.prototype.withNeighborOffsets = function (point) {
-                    var returnValue = [];
-                    for (var _i = 0, _a = this.neighborOffsets; _i < _a.length; _i++) {
-                        var neighborOffset = _a[_i];
-                        var neighborPoint = point.clone().add(neighborOffset);
-                        if (this.autowired.world.isWithinBounds(new Vector2(neighborPoint.x, neighborPoint.y))) {
-                            returnValue.push(neighborPoint);
-                        }
-                    }
-                    return _.shuffle(returnValue);
-                };
                 Simulator.prototype.openNeighborBlocks = function (point) {
-                    var neighborPoints = this.withNeighborOffsets(point);
+                    var neighborBlocks = this.autowired.world.neighborBlocks(point);
                     var returnValue = [];
-                    for (var _i = 0, neighborPoints_1 = neighborPoints; _i < neighborPoints_1.length; _i++) {
-                        var neighbor = neighborPoints_1[_i];
-                        var neighborBlock = this.autowired.world.map[neighbor.x][neighbor.y];
+                    for (var _i = 0, neighborBlocks_1 = neighborBlocks; _i < neighborBlocks_1.length; _i++) {
+                        var neighborBlock = neighborBlocks_1[_i];
                         var neighborTileIsEmpty = !neighborBlock.owningPlayer;
                         if (neighborTileIsEmpty) {
                             returnValue.push(neighborBlock);
@@ -393,12 +463,11 @@ System.register("Simulator", ["Player", "TileType"], function(exports_6, context
                     return returnValue;
                 };
                 Simulator.prototype.enemyNeighborBlocks = function (point) {
-                    var neighborPoints = this.withNeighborOffsets(point);
-                    var block = this.autowired.world.map[point.x][point.y];
+                    var neighborBlocks = this.autowired.world.neighborBlocks(point);
+                    var block = this.autowired.world.getMap(point);
                     var returnValue = [];
-                    for (var _i = 0, neighborPoints_2 = neighborPoints; _i < neighborPoints_2.length; _i++) {
-                        var neighbor = neighborPoints_2[_i];
-                        var neighborBlock = this.autowired.world.map[neighbor.x][neighbor.y];
+                    for (var _i = 0, neighborBlocks_2 = neighborBlocks; _i < neighborBlocks_2.length; _i++) {
+                        var neighborBlock = neighborBlocks_2[_i];
                         var isEnemyTile = neighborBlock.owningPlayer != null && neighborBlock.owningPlayer != block.owningPlayer;
                         if (isEnemyTile) {
                             returnValue.push(neighborBlock);
@@ -433,7 +502,7 @@ System.register("Simulator", ["Player", "TileType"], function(exports_6, context
                                 var openNeighbors = this.openNeighborBlocks(point);
                                 if (openNeighbors.length > 0) {
                                     var possibleNewPosition = openNeighbors[0];
-                                    var probabilityToMove = tileType.tendencyToLeave / possibleNewPosition.tileType.tendencyToEnter;
+                                    var probabilityToMove = possibleNewPosition.tileType.tendencyToEnter * tileType.tendencyToLeave;
                                     if (probabilityToMove > Math.random()) {
                                         possibleNewPosition.setOwningPlayer(worldBlock.owningPlayer);
                                         worldBlock.setOwningPlayer(null);
@@ -499,6 +568,7 @@ System.register("UI", [], function(exports_7, context_7) {
                     element.appendChild(this.worldBlockDIV);
                 }
                 UI.prototype.update = function () {
+                    var self = this;
                     var gold = "TOTAL GOLD: " + this.nf.format(this.autowired.simulator.playerCharacter.gold);
                     var goldPerTurn = "RATE OF GOLD: " + this.nf.format(this.autowired.simulator.playerCharacter.playerStats.totalGold());
                     var units = "UNITS ALIVE: " + this.nf.format(this.autowired.simulator.playerCharacter.playerStats.totalUnits());
@@ -508,10 +578,33 @@ System.register("UI", [], function(exports_7, context_7) {
                     var selected = this.autowired.world.selectedWorldBlock;
                     if (selected) {
                         var selectedOwner = selected.owningPlayer;
-                        var tileType = "TYPE: " + selected.tileType.name;
+                        var tileTypeString = "TYPE: " + selected.tileType.name;
                         var player = "OWNER: " + ((!!selectedOwner) ? selectedOwner.name : "NONE");
-                        var rateOfGold = "GOLD GENERATED: " + selected.tileType.goldPerTurn;
-                        this.worldBlockDIV.innerText = [tileType, player, rateOfGold].join('\n');
+                        var rateOfGold = "GOLD GENERATED: " + this.nf.format(selected.tileType.goldPerTurn);
+                        var rateOfUnits = "UNITS GENERATED: " + this.nf.format(selected.tileType.chanceToSpawn);
+                        var possibleUpgrades = "POSSIBLE UPGRADES: ";
+                        this.worldBlockDIV.innerText = [tileTypeString, player, rateOfGold, possibleUpgrades, rateOfUnits].join('\n');
+                        var tileType = selected.tileType;
+                        this.upgradesDIV = document.createElement('div');
+                        var user_1 = self.autowired.simulator.playerCharacter;
+                        _(tileType.possibleUpgrades).each(function (possibleUpgrade) {
+                            var button = document.createElement('button');
+                            button.classList.add('upgrade-button');
+                            button.disabled = user_1.gold < possibleUpgrade.upgradeCost;
+                            button.innerText = possibleUpgrade.name + ' for ' + self.nf.format(possibleUpgrade.upgradeCost) + ' gold';
+                            self.upgradesDIV.appendChild(button);
+                            self.upgradesDIV.appendChild(document.createElement('br'));
+                            $(button).click(function (event) {
+                                alert();
+                                if (user_1.gold >= possibleUpgrade.upgradeCost) {
+                                    selected.setTileType(possibleUpgrade);
+                                    console.log(user_1.gold);
+                                    user_1.gold -= possibleUpgrade.upgradeCost;
+                                    console.log(user_1.gold);
+                                }
+                            });
+                        });
+                        this.worldBlockDIV.appendChild(this.upgradesDIV);
                     }
                     else {
                         this.worldBlockDIV.innerText = "";
@@ -542,8 +635,8 @@ System.register("Autowired", ["World", "Simulator", "UI"], function(exports_8, c
         execute: function() {
             Autowired = (function () {
                 function Autowired() {
-                    this.WIDTH = 120;
-                    this.HEIGHT = 80;
+                    this.WIDTH = 100;
+                    this.HEIGHT = 60;
                     this.isGameOver = false;
                     this.canvasElement = $("#myCanvas");
                     this.renderer = new THREE.WebGLRenderer({
@@ -555,11 +648,11 @@ System.register("Autowired", ["World", "Simulator", "UI"], function(exports_8, c
                     var height = $(document).innerHeight() - 70;
                     var aspectRatio = width / height;
                     this.renderer.setSize(width, height);
-                    var size = 900;
+                    var size = 700;
                     this.camera = new THREE.OrthographicCamera(-size, size, size / aspectRatio, -size / aspectRatio, 0, 10);
                     this.camera.position.set(0, 0, 1);
                     this.camera.lookAt(new THREE.Vector3(0, 0, 0));
-                    this.camera.position.set(400, 400, 5);
+                    this.camera.position.set(350, 300, 5);
                     this.scene = new THREE.Scene();
                     var light = new THREE.PointLight(0xFFFFFF, 0.5, 10000);
                     light.position.set(0, 0, 0);
@@ -575,7 +668,6 @@ System.register("Autowired", ["World", "Simulator", "UI"], function(exports_8, c
         }
     }
 });
-/// <reference path="definitions/underscore.d.ts" />
 System.register("Main", ["Autowired"], function(exports_9, context_9) {
     "use strict";
     var __moduleName = context_9 && context_9.id;
@@ -593,10 +685,12 @@ System.register("Main", ["Autowired"], function(exports_9, context_9) {
                     this.render = function () {
                         requestAnimationFrame(_this.render);
                         _this.autowired.simulator.update();
-                        _this.autowired.ui.update();
                         _this.autowired.renderer.render(_this.autowired.scene, _this.autowired.camera);
                     };
                     this.autowired = new Autowired_1.Autowired();
+                    setInterval(function () {
+                        _this.autowired.ui.update();
+                    }, 400);
                 }
                 return Main;
             }());

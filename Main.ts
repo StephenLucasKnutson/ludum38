@@ -1,5 +1,4 @@
 /// <reference path="definitions/underscore.d.ts" />
-
 import {Autowired} from "./Autowired";
 
 
@@ -8,12 +7,15 @@ class Main {
 
     constructor() {
         this.autowired = new Autowired();
+        setInterval(() => {
+            this.autowired.ui.update()
+        }, 400);
     }
 
     render = () => {
         requestAnimationFrame(this.render);
+
         this.autowired.simulator.update();
-        this.autowired.ui.update();
 
         this.autowired.renderer.render(this.autowired.scene, this.autowired.camera);
     };
