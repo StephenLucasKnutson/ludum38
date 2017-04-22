@@ -1,6 +1,122 @@
-System.register("Cube", ["./Room"], function(exports_1, context_1) {
+System.register("TileType", [], function(exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
+    var TileType;
+    return {
+        setters:[],
+        execute: function() {
+            TileType = (function () {
+                function TileType(name, color) {
+                    this.name = name;
+                    this.color = color;
+                }
+                TileType.plains = new TileType("plains", 0xC0FF6D);
+                TileType.woods = new TileType("woods", 0x228B22);
+                TileType.mountains = new TileType("mountains", 0x968D99);
+                TileType.sea = new TileType("sea", 0x006994);
+                TileType.desert = new TileType("desert", 0xEDC9AF);
+                TileType.allTileTypes = [TileType.plains, TileType.woods, TileType.mountains, TileType.sea, TileType.desert];
+                return TileType;
+            }());
+            exports_1("TileType", TileType);
+        }
+    }
+});
+System.register("World", ["TileType"], function(exports_2, context_2) {
+    "use strict";
+    var __moduleName = context_2 && context_2.id;
+    var TileType_1;
+    var World;
+    return {
+        setters:[
+            function (TileType_1_1) {
+                TileType_1 = TileType_1_1;
+            }],
+        execute: function() {
+            World = (function () {
+                function World(autowired) {
+                    this.WIDTH = 100;
+                    this.HEIGHT = 100;
+                    this.map = {};
+                    this.autowired = autowired;
+                    for (var i = 0; i < this.WIDTH; i++) {
+                        this.map[i] = {};
+                        for (var j = 0; j < this.HEIGHT; j++) {
+                            this.map[i][j] = TileType_1.TileType.allTileTypes[Math.floor(Math.random() * TileType_1.TileType.allTileTypes.length)];
+                        }
+                    }
+                    for (var i = 0; i < this.WIDTH; i++) {
+                        for (var j = 0; j < this.HEIGHT; j++) {
+                            var tileType = this.map[i][j];
+                            var geometry = new THREE.PlaneGeometry(8, 8);
+                            var material = new THREE.MeshBasicMaterial({ color: tileType.color, side: THREE.DoubleSide });
+                            var plane = new THREE.Mesh(geometry, material);
+                            plane.receiveShadow = true;
+                            plane.rotateX(Math.PI);
+                            plane.position.set(i * 10, j * 10, 0);
+                            this.autowired.scene.add(plane);
+                        }
+                    }
+                }
+                return World;
+            }());
+            exports_2("World", World);
+        }
+    }
+});
+System.register("Autowired", ["World"], function(exports_3, context_3) {
+    "use strict";
+    var __moduleName = context_3 && context_3.id;
+    var World_1;
+    var ShadowMapType, PCFSoftShadowMap, Autowired;
+    return {
+        setters:[
+            function (World_1_1) {
+                World_1 = World_1_1;
+            }],
+        execute: function() {
+            PCFSoftShadowMap = THREE.PCFSoftShadowMap;
+            Autowired = (function () {
+                function Autowired() {
+                    this.isGameOver = false;
+                    this.canvasElement = $("#myCanvas");
+                    var VIEW_ANGLE = 75;
+                    var NEAR = 0.1;
+                    var FAR = 1000;
+                    this.renderer = new THREE.WebGLRenderer({
+                        canvas: this.canvasElement.get(0),
+                        antialias: true,
+                        precision: "highp"
+                    });
+                    this.renderer.autoClear = false;
+                    this.renderer.shadowMap.enabled = true;
+                    this.renderer.shadowMap.type = PCFSoftShadowMap;
+                    this.renderer.setSize(window.innerWidth, window.innerHeight);
+                    this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, window.innerWidth / window.innerHeight, NEAR, FAR);
+                    this.camera.position.set(0, 0, 500);
+                    this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+                    this.camera.position.set(500, 500, 700);
+                    this.scene = new THREE.Scene();
+                    var light = new THREE.PointLight(0xFFFFFF, 0.5, 30);
+                    light.position.set(0, 0, 0);
+                    this.scene.add(light);
+                    this.scene.add(new THREE.AmbientLight(0x404040));
+                    this.glowScene = new THREE.Scene();
+                    this.glowScene.add(new THREE.AmbientLight(0xFFFFFF));
+                    var dirLight = new THREE.PointLight(0xffffff, 1);
+                    this.camera.add(dirLight);
+                    this.glowScene.add(dirLight);
+                    this.world = new World_1.World(this);
+                }
+                return Autowired;
+            }());
+            exports_3("Autowired", Autowired);
+        }
+    }
+});
+System.register("Cube", ["./Room"], function(exports_4, context_4) {
+    "use strict";
+    var __moduleName = context_4 && context_4.id;
     var Room_1;
     var Cube;
     return {
@@ -75,13 +191,13 @@ System.register("Cube", ["./Room"], function(exports_1, context_1) {
                 };
                 return Cube;
             }());
-            exports_1("Cube", Cube);
+            exports_4("Cube", Cube);
         }
     }
 });
-System.register("Room", [], function(exports_2, context_2) {
+System.register("Room", [], function(exports_5, context_5) {
     "use strict";
-    var __moduleName = context_2 && context_2.id;
+    var __moduleName = context_5 && context_5.id;
     var Room;
     return {
         setters:[],
@@ -166,50 +282,41 @@ System.register("Room", [], function(exports_2, context_2) {
                 Room.blockSize = 10;
                 return Room;
             }());
-            exports_2("Room", Room);
+            exports_5("Room", Room);
         }
     }
 });
 /// <reference path="Cube.ts" />
 /// <reference path="Room.ts" />
-/// <reference path="definitions/cannon.d.ts" />
-var ShadowMapType = THREE.ShadowMapType;
-var PCFSoftShadowMap = THREE.PCFSoftShadowMap;
-//import {Autowired} from "./Autowired";
-//import {Scoreboard} from "./Scoreboard";
-var Main = (function () {
-    function Main() {
-        var _this = this;
-        this.render = function () {
-            requestAnimationFrame(_this.render);
-        };
-        var VIEW_ANGLE = 75;
-        var NEAR = 0.1;
-        var FAR = 100;
-        this.canvasElement = $("#myCanvas");
-        this.renderer = new THREE.WebGLRenderer({
-            canvas: this.canvasElement.get(0),
-            antialias: true,
-            precision: "highp"
-        });
-        this.renderer.autoClear = false;
-        this.renderer.shadowMap.enabled = true;
-        this.renderer.shadowMap.type = PCFSoftShadowMap;
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
-        this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, window.innerWidth / window.innerHeight, NEAR, FAR);
-        this.scene = new THREE.Scene();
-        var light = new THREE.PointLight(0xFFFFFF, 0.5, 30);
-        light.position.set(0, 0, 0);
-        this.scene.add(light);
-        this.scene.add(new THREE.AmbientLight(0x404040));
-        this.glowScene = new THREE.Scene();
-        this.glowScene.add(new THREE.AmbientLight(0xFFFFFF));
-        var dirLight = new THREE.PointLight(0xffffff, 1);
-        this.camera.add(dirLight);
-        this.glowScene.add(dirLight);
+/// <reference path="definitions/underscore.d.ts" />
+System.register("Main", ["Autowired"], function(exports_6, context_6) {
+    "use strict";
+    var __moduleName = context_6 && context_6.id;
+    var Autowired_1;
+    var Main, main;
+    return {
+        setters:[
+            function (Autowired_1_1) {
+                Autowired_1 = Autowired_1_1;
+            }],
+        execute: function() {
+            Main = (function () {
+                function Main() {
+                    var _this = this;
+                    this.render = function () {
+                        requestAnimationFrame(_this.render);
+                        _this.autowired.renderer.clear();
+                        _this.autowired.renderer.render(_this.autowired.scene, _this.autowired.camera);
+                        //this.autowired.renderer.clearDepth();
+                        //this.autowired.renderer.render(this.autowired.glowScene, this.autowired.camera);
+                    };
+                    this.autowired = new Autowired_1.Autowired();
+                }
+                return Main;
+            }());
+            main = new Main();
+            main.render();
+        }
     }
-    return Main;
-}());
-var main = new Main();
-main.render();
+});
 //# sourceMappingURL=bundle.js.map
