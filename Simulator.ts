@@ -23,7 +23,7 @@ export class Simulator {
             let startingWorldBlock: WorldBlock = this.autowired.world.map[startingPosition.x][startingPosition.y];
             startingWorldBlock.setOwningPlayer(newPlayer);
             startingWorldBlock.setTileType(TileType.village);
-            if(i == 0) {
+            if (i == 0) {
                 this.playerCharacter = newPlayer;
                 this.autowired.camera.position.x = startingPosition.x * 10;
                 this.autowired.camera.position.y = startingPosition.y * 10;
@@ -76,7 +76,7 @@ export class Simulator {
                     continue;
                 }
                 returnValue.push(worldBlock);
-                for(let neighbor of this.openNeighborBlocks(new Vector2(i, j))){
+                for (let neighbor of this.openNeighborBlocks(new Vector2(i, j))) {
                     returnValue.push(neighbor);
                 }
             }
@@ -84,7 +84,35 @@ export class Simulator {
         return returnValue
     }
 
+    calculateCentersOfMass(): {[key: string]: Vector2;} {
+        let playerColorToNumberOfTiles: {[key: string]: number;} = {};
+        let playerColorToNetMassDistance: {[key: string]: Vector2;} = {};
+        for (let i: number = 0; i < this.autowired.WIDTH; i++) {
+            for (let j: number = 0; j < this.autowired.HEIGHT; j++) {
+                let worldBlock: WorldBlock = this.autowired.world.map[i][j];
+                let player = worldBlock.owningPlayer;
+                if (player) {
+                    let playerColor = player.colorAsString;
+                    if (!playerColorToNumberOfTiles[playerColor]) {
+                        playerColorToNumberOfTiles[playerColor] = 0;
+                        playerColorToNetMassDistance[playerColor] = new Vector2();
+                    }
+                    playerColorToNumberOfTiles[playerColor]++;
+                    playerColorToNetMassDistance[playerColor].add(new Vector2(i, j));
+                }
+            }
+        }
+        let returnValue: {[key: string]: Vector2;} = {};
+        for (let color in playerColorToNumberOfTiles) {
+            let numberOfTiles = playerColorToNumberOfTiles[color];
+            let netMass = playerColorToNetMassDistance[color];
+            returnValue[color] = netMass.divideScalar(numberOfTiles);
+        }
+        return returnValue
+    }
+
     update(): void {
+        let playerColorToCenterOfMass: {[key: string]: Vector2;} = this.calculateCentersOfMass();
         for (let i: number = 0; i < this.autowired.WIDTH; i++) {
             for (let j: number = 0; j < this.autowired.HEIGHT; j++) {
                 let point: THREE.Vector2 = new THREE.Vector2(i, j);
@@ -107,16 +135,25 @@ export class Simulator {
                             neighborBlock.resetToNature()
                         }
                     }
-                    let openNeighbors: WorldBlock[] = this.openNeighborBlocks(point);
-                    if (openNeighbors.length > 0) {
-                        let possibleNewPosition = openNeighbors[0];
-                        let probabilityToMove = possibleNewPosition.tileType.tendencyToEnter * tileType.tendencyToLeave;
-                        if (probabilityToMove > Math.random()) {
-                            possibleNewPosition.setOwningPlayer(worldBlock.owningPlayer);
-                            worldBlock.setOwningPlayer(null);
+                    let target: Vector2 = null;
+                    let colors = Object.keys(playerColorToCenterOfMass);
+                    _(colors).shuffle();
+                    for (let color of colors) {
+                        if (target == null && color != worldBlock.owningPlayer.colorAsString) {
+                            target = playerColorToCenterOfMass[color]
                         }
                     }
-
+                    let mustMoveTowardsTarget = (0.9 > Math.random());
+                    for (let possibleNewPosition of  this.openNeighborBlocks(point)) {
+                        let probabilityToMove = possibleNewPosition.tileType.tendencyToEnter * tileType.tendencyToLeave;
+                        let shouldMove = probabilityToMove > Math.random();
+                        let isMovingTowardsTarget = possibleNewPosition.position.distanceTo(target) < point.distanceTo(target);
+                        if (target && shouldMove && (!mustMoveTowardsTarget || isMovingTowardsTarget)) {
+                            possibleNewPosition.setOwningPlayer(worldBlock.owningPlayer);
+                            worldBlock.setOwningPlayer(null);
+                            break;
+                        }
+                    }
                 }
             }
         }

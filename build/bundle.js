@@ -577,7 +577,8 @@ System.register("WorldBlock", ["World"], function(exports_23, context_23) {
         execute: function() {
             // https://i.stack.imgur.com/4laaY.jpg
             WorldBlock = (function () {
-                function WorldBlock() {
+                function WorldBlock(position) {
+                    this.position = position;
                 }
                 WorldBlock.prototype.setOwningPlayer = function (newOwningPlayer) {
                     this.owningPlayer = newOwningPlayer;
@@ -654,7 +655,7 @@ System.register("World", ["TileType", "WorldBlock"], function(exports_24, contex
                         for (var i = 0; i < _this.autowired.WIDTH; i++) {
                             _this.map[i] = {};
                             for (var j = 0; j < _this.autowired.HEIGHT; j++) {
-                                _this.map[i][j] = new WorldBlock_1.WorldBlock();
+                                _this.map[i][j] = new WorldBlock_1.WorldBlock(new Vector2(i, j));
                                 _this.map[i][j].setTileType(TileType_2.TileType.plains);
                             }
                         }
@@ -944,7 +945,34 @@ System.register("Simulator", ["Player", "TileType"], function(exports_25, contex
                     }
                     return returnValue;
                 };
+                Simulator.prototype.calculateCentersOfMass = function () {
+                    var playerColorToNumberOfTiles = {};
+                    var playerColorToNetMassDistance = {};
+                    for (var i = 0; i < this.autowired.WIDTH; i++) {
+                        for (var j = 0; j < this.autowired.HEIGHT; j++) {
+                            var worldBlock = this.autowired.world.map[i][j];
+                            var player = worldBlock.owningPlayer;
+                            if (player) {
+                                var playerColor = player.colorAsString;
+                                if (!playerColorToNumberOfTiles[playerColor]) {
+                                    playerColorToNumberOfTiles[playerColor] = 0;
+                                    playerColorToNetMassDistance[playerColor] = new Vector2();
+                                }
+                                playerColorToNumberOfTiles[playerColor]++;
+                                playerColorToNetMassDistance[playerColor].add(new Vector2(i, j));
+                            }
+                        }
+                    }
+                    var returnValue = {};
+                    for (var color in playerColorToNumberOfTiles) {
+                        var numberOfTiles = playerColorToNumberOfTiles[color];
+                        var netMass = playerColorToNetMassDistance[color];
+                        returnValue[color] = netMass.divideScalar(numberOfTiles);
+                    }
+                    return returnValue;
+                };
                 Simulator.prototype.update = function () {
+                    var playerColorToCenterOfMass = this.calculateCentersOfMass();
                     for (var i = 0; i < this.autowired.WIDTH; i++) {
                         for (var j = 0; j < this.autowired.HEIGHT; j++) {
                             var point = new THREE.Vector2(i, j);
@@ -969,20 +997,32 @@ System.register("Simulator", ["Player", "TileType"], function(exports_25, contex
                                         neighborBlock.resetToNature();
                                     }
                                 }
-                                var openNeighbors = this.openNeighborBlocks(point);
-                                if (openNeighbors.length > 0) {
-                                    var possibleNewPosition = openNeighbors[0];
+                                var target = null;
+                                var colors = Object.keys(playerColorToCenterOfMass);
+                                _(colors).shuffle();
+                                for (var _c = 0, colors_1 = colors; _c < colors_1.length; _c++) {
+                                    var color = colors_1[_c];
+                                    if (target == null && color != worldBlock.owningPlayer.colorAsString) {
+                                        target = playerColorToCenterOfMass[color];
+                                    }
+                                }
+                                var mustMoveTowardsTarget = (0.9 > Math.random());
+                                for (var _d = 0, _e = this.openNeighborBlocks(point); _d < _e.length; _d++) {
+                                    var possibleNewPosition = _e[_d];
                                     var probabilityToMove = possibleNewPosition.tileType.tendencyToEnter * tileType.tendencyToLeave;
-                                    if (probabilityToMove > Math.random()) {
+                                    var shouldMove = probabilityToMove > Math.random();
+                                    var isMovingTowardsTarget = possibleNewPosition.position.distanceTo(target) < point.distanceTo(target);
+                                    if (target && shouldMove && (!mustMoveTowardsTarget || isMovingTowardsTarget)) {
                                         possibleNewPosition.setOwningPlayer(worldBlock.owningPlayer);
                                         worldBlock.setOwningPlayer(null);
+                                        break;
                                     }
                                 }
                             }
                         }
                     }
-                    for (var _c = 0, _d = this.players; _c < _d.length; _c++) {
-                        var player = _d[_c];
+                    for (var _f = 0, _g = this.players; _f < _g.length; _f++) {
+                        var player = _g[_f];
                         player.resetStats();
                     }
                     for (var i = 0; i < this.autowired.WIDTH; i++) {
@@ -996,8 +1036,8 @@ System.register("Simulator", ["Player", "TileType"], function(exports_25, contex
                             }
                         }
                     }
-                    for (var _e = 0, _f = this.players; _e < _f.length; _e++) {
-                        var player = _f[_e];
+                    for (var _h = 0, _j = this.players; _h < _j.length; _h++) {
+                        var player = _j[_h];
                         player.gold += player.playerStats.totalGoldPerTurn();
                     }
                 };

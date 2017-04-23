@@ -97,7 +97,7 @@ export class World {
         for (let i = 0; i < this.autowired.WIDTH; i++) {
             this.map[i] = {};
             for (let j = 0; j < this.autowired.HEIGHT; j++) {
-                this.map[i][j] = new WorldBlock();
+                this.map[i][j] = new WorldBlock(new Vector2(i, j));
                 this.map[i][j].setTileType(TileType.plains);
             }
         }

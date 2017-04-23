@@ -6,6 +6,7 @@ import Vector2 = THREE.Vector2;
 
 // https://i.stack.imgur.com/4laaY.jpg
 export class WorldBlock {
+    position: Vector2;
     tileType: TileType;
     lastNatureState: TileType;
     tileMesh: THREE.Mesh;
@@ -13,8 +14,8 @@ export class WorldBlock {
     owningPlayer: Player;
     isSelected: boolean;
 
-    constructor() {
-
+    constructor(position: Vector2) {
+        this.position = position;
     }
 
     setOwningPlayer(newOwningPlayer: Player) {
