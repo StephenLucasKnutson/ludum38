@@ -623,36 +623,64 @@ System.register("UserControls", [], function(exports_8, context_8) {
     return {
         setters:[],
         execute: function() {
+            Vector2 = THREE.Vector2;
             Vector3 = THREE.Vector3;
             UserControls = (function () {
                 function UserControls(autowired) {
                     var _this = this;
+                    this.mousePosition = new Vector2(0.5, 0.5);
                     this.isKeyPressed = {};
                     this.autowired = autowired;
-                    document.onkeydown = function (e) {
-                        _this.onKeyPress(e, true);
-                    };
-                    document.onkeyup = function (e) {
-                        _this.onKeyPress(e, false);
-                    };
+                    var self = this;
+                    $(document).keydown(function (e) {
+                        self.onKeyPress(e, true);
+                    });
+                    $(document).keyup(function (e) {
+                        self.onKeyPress(e, false);
+                    });
+                    var canvas = this.autowired.canvasElement;
+                    $(canvas).mousemove(function (event) {
+                        var mousePosition = new Vector2(event.clientX, event.clientY);
+                        var screenSize = new Vector2(canvas.innerWidth(), canvas.innerHeight());
+                        _this.mousePosition = mousePosition.divide(screenSize);
+                        console.log(_this.mousePosition);
+                    });
                 }
                 ;
                 UserControls.prototype.update = function () {
+                    var left = new Vector3(-1, 0, 0);
+                    var right = new Vector3(1, 0, 0);
+                    var up = new Vector3(0, 1, 0);
+                    var down = new Vector3(0, -1, 0);
                     var keyToDirection = {
-                        37: new Vector3(-1, 0, 0),
-                        65: new Vector3(-1, 0, 0),
-                        39: new Vector3(1, 0, 0),
-                        68: new Vector3(1, 0, 0),
-                        38: new Vector3(0, 1, 0),
-                        87: new Vector3(0, 1, 0),
-                        40: new Vector3(0, -1, 0),
-                        83: new Vector3(0, -1, 0),
+                        37: left,
+                        65: left,
+                        39: right,
+                        68: right,
+                        38: up,
+                        87: up,
+                        40: down,
+                        83: down,
                     };
+                    var translationScalar = 10;
                     for (var key in keyToDirection) {
                         if (this.isKeyPressed[key]) {
                             var direction = keyToDirection[key];
-                            this.autowired.camera.translateOnAxis(direction, 10);
+                            this.autowired.camera.translateOnAxis(direction, translationScalar);
                         }
+                    }
+                    var margin = 0.05;
+                    if (this.mousePosition.x < margin) {
+                        this.autowired.camera.translateOnAxis(left, translationScalar);
+                    }
+                    if (this.mousePosition.x > (1.0 - margin)) {
+                        this.autowired.camera.translateOnAxis(right, translationScalar);
+                    }
+                    if (this.mousePosition.y < margin) {
+                        this.autowired.camera.translateOnAxis(up, translationScalar);
+                    }
+                    if (this.mousePosition.y > (1.0 - margin)) {
+                        this.autowired.camera.translateOnAxis(down, translationScalar);
                     }
                     var keyToScreenScalar = {
                         16: 0.97,
