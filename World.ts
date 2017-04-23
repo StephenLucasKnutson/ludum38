@@ -2,7 +2,6 @@ import {TileType} from "./TileType";
 import {WorldBlock} from "./WorldBlock";
 import {Autowired} from "./Autowired";
 import Vector2 = THREE.Vector2;
-import ThrottleSettings = _.ThrottleSettings;
 
 export class World {
     autowired: Autowired;
@@ -108,6 +107,32 @@ export class World {
         return new THREE.Vector2(Math.floor(Math.random() * this.autowired.WIDTH), Math.floor(Math.random() * this.autowired.HEIGHT));
     };
 
+    //Subtle bug that leaves possiblity of two players having same position. Chances are low, ignoring
+    createWellDistributedStartingPositions(numberOfPlayers: number) : THREE.Vector2[] {
+        let numberOfAttempts = 100;
+        let listOfPossibilities: THREE.Vector2[][] = [];
+        for(let i: number = 0; i < numberOfAttempts; i++){
+            listOfPossibilities[i] = [];
+            for(let j : number = 0; j < numberOfPlayers; j++) {
+                listOfPossibilities[i].push(this.randomSpotOnPlains());
+            }
+        }
+        //Want list that maximizes minimum distance between any two players
+        //Sort by is ascending
+        let sorted: THREE.Vector2[][] = _(listOfPossibilities).sortBy((playerAssignment: THREE.Vector2[]) => {
+            let minimumDistance = Infinity;
+            for(let a of playerAssignment) {
+                for(let b of playerAssignment) {
+                    let distance = a.distanceTo(b);
+                    if(distance > 0.001){
+                        minimumDistance = Math.min(distance, minimumDistance);
+                    }
+                }
+            }
+            return minimumDistance;
+        });
+        return sorted[sorted.length - 1];
+    }
     randomSpotOnPlains(): THREE.Vector2 {
         let position: THREE.Vector2;
         do {

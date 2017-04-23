@@ -14,11 +14,12 @@ export class Simulator {
     constructor(autowired: Autowired) {
         this.autowired = autowired;
 
+        let startingPositions = this.autowired.world.createWellDistributedStartingPositions(5);
         for (let i: number = 0; i < 5; i++) {
+            let startingPosition: THREE.Vector2 = startingPositions[i];
             let newPlayer: Player = new Player();
             this.players.push(newPlayer);
 
-            let startingPosition: THREE.Vector2 = this.autowired.world.randomSpotOnPlains();
             let startingWorldBlock: WorldBlock = this.autowired.world.map[startingPosition.x][startingPosition.y];
             startingWorldBlock.setOwningPlayer(newPlayer);
             startingWorldBlock.setTileType(TileType.village);
