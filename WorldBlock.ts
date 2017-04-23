@@ -40,9 +40,6 @@ export class WorldBlock {
     }
 
     resetToNature() {
-        if(this.lastNatureState == null) {
-            debugger;
-        }
         this.setTileType(this.lastNatureState);
     }
 

@@ -13,7 +13,6 @@ export class UI {
 
         this.scoreDiv = document.createElement('div');
         this.scoreDiv.style.position = 'absolute';
-        //this.scoreDiv.style.color = this.autowired.simulator.playerCharacter.colorAsString;
         this.scoreDiv.innerHTML = "";
         this.scoreDiv.style.top = '25px';
         this.scoreDiv.style.left = '25px';
@@ -22,12 +21,19 @@ export class UI {
 
         this.worldBlockDIV = document.createElement('div');
         this.worldBlockDIV.style.position = 'absolute';
-        //this.worldBlockDIV.style.color = this.autowired.simulator.playerCharacter.colorAsString;
         this.worldBlockDIV.innerHTML = "";
-        this.worldBlockDIV.style.top = '50%';
+        this.worldBlockDIV.style.top = '30%';
         this.worldBlockDIV.style.left = '25px';
         this.worldBlockDIV.style.fontSize = "20px";
         element.appendChild(this.worldBlockDIV);
+
+        this.upgradesDIV = document.createElement('div');
+        this.upgradesDIV.style.position = 'absolute';
+        this.upgradesDIV.innerHTML = "";
+        this.upgradesDIV.style.top = '60%';
+        this.upgradesDIV.style.left = '25px';
+        this.upgradesDIV.style.fontSize = "20px";
+        element.appendChild(this.upgradesDIV);
     }
 
     nf = new Intl.NumberFormat();
@@ -48,13 +54,13 @@ export class UI {
             let player: string = "OWNER: " + ((!!selectedOwner) ? selectedOwner.name : "NONE");
             let rateOfGold: string = "GOLD GENERATED: " + this.nf.format(selected.tileType.goldPerTurn);
             let rateOfUnits: string = "UNITS GENERATED: " + this.nf.format(selected.tileType.chanceToSpawn);
-            let possibleUpgrades: String = "POSSIBLE UPGRADES: ";
-            this.worldBlockDIV.innerText = [tileTypeString, player, rateOfGold, rateOfUnits, "", possibleUpgrades].join('\n');
+            this.worldBlockDIV.innerText = [tileTypeString, player, rateOfGold, rateOfUnits].join('\n');
 
             let tileType = selected.tileType;
-            this.upgradesDIV = document.createElement('div');
-
             let user = self.autowired.simulator.playerCharacter;
+
+            self.upgradesDIV.innerHTML = '';
+            $('<div>POSSIBLE UPGRADES: </div>').appendTo(self.upgradesDIV);
             _(tileType.possibleUpgrades).each(function (possibleUpgrade: TileType) {
                 let button: HTMLButtonElement = document.createElement('button');
                 button.classList.add('btn');
@@ -64,19 +70,18 @@ export class UI {
                 button.innerText = possibleUpgrade.name + ' for ' + self.nf.format(possibleUpgrade.upgradeCost) + ' gold';
                 self.upgradesDIV.appendChild(button);
                 self.upgradesDIV.appendChild(document.createElement('br'));
-                $(button).click(function (event) {
-                    alert();
+                button.onmousedown = (event) => {
+                    //alert();
                     if (user.gold >= possibleUpgrade.upgradeCost) {
                         selected.setTileType(possibleUpgrade);
                         user.gold -= possibleUpgrade.upgradeCost;
                     }
-                });
+                };
+
             });
-            this.worldBlockDIV.appendChild(this.upgradesDIV);
-
-
         } else {
             this.worldBlockDIV.innerText = "";
+            this.upgradesDIV.innerHTML = '';
         }
     }
 }

@@ -8,15 +8,13 @@ class Main {
 
     constructor() {
         this.autowired = new Autowired();
-        setInterval(() => {
-            this.autowired.ui.update()
-        }, 400);
     }
 
     render = () => {
         this.autowired.userControls.update();
         this.autowired.simulator.update();
         this.autowired.ai.update();
+        this.autowired.ui.update()
 
         let winning: boolean = true;
         let defeated: boolean = true;

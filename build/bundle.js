@@ -600,9 +600,6 @@ System.register("WorldBlock", ["World"], function(exports_23, context_23) {
                     }
                 };
                 WorldBlock.prototype.resetToNature = function () {
-                    if (this.lastNatureState == null) {
-                        debugger;
-                    }
                     this.setTileType(this.lastNatureState);
                 };
                 WorldBlock.prototype.setSelected = function (isSelected) {
@@ -986,7 +983,6 @@ System.register("UI", [], function(exports_26, context_26) {
                     var element = document.body;
                     this.scoreDiv = document.createElement('div');
                     this.scoreDiv.style.position = 'absolute';
-                    //this.scoreDiv.style.color = this.autowired.simulator.playerCharacter.colorAsString;
                     this.scoreDiv.innerHTML = "";
                     this.scoreDiv.style.top = '25px';
                     this.scoreDiv.style.left = '25px';
@@ -994,12 +990,18 @@ System.register("UI", [], function(exports_26, context_26) {
                     element.appendChild(this.scoreDiv);
                     this.worldBlockDIV = document.createElement('div');
                     this.worldBlockDIV.style.position = 'absolute';
-                    //this.worldBlockDIV.style.color = this.autowired.simulator.playerCharacter.colorAsString;
                     this.worldBlockDIV.innerHTML = "";
-                    this.worldBlockDIV.style.top = '50%';
+                    this.worldBlockDIV.style.top = '30%';
                     this.worldBlockDIV.style.left = '25px';
                     this.worldBlockDIV.style.fontSize = "20px";
                     element.appendChild(this.worldBlockDIV);
+                    this.upgradesDIV = document.createElement('div');
+                    this.upgradesDIV.style.position = 'absolute';
+                    this.upgradesDIV.innerHTML = "";
+                    this.upgradesDIV.style.top = '60%';
+                    this.upgradesDIV.style.left = '25px';
+                    this.upgradesDIV.style.fontSize = "20px";
+                    element.appendChild(this.upgradesDIV);
                 }
                 UI.prototype.update = function () {
                     var self = this;
@@ -1016,11 +1018,11 @@ System.register("UI", [], function(exports_26, context_26) {
                         var player = "OWNER: " + ((!!selectedOwner) ? selectedOwner.name : "NONE");
                         var rateOfGold = "GOLD GENERATED: " + this.nf.format(selected.tileType.goldPerTurn);
                         var rateOfUnits = "UNITS GENERATED: " + this.nf.format(selected.tileType.chanceToSpawn);
-                        var possibleUpgrades = "POSSIBLE UPGRADES: ";
-                        this.worldBlockDIV.innerText = [tileTypeString, player, rateOfGold, rateOfUnits, "", possibleUpgrades].join('\n');
+                        this.worldBlockDIV.innerText = [tileTypeString, player, rateOfGold, rateOfUnits].join('\n');
                         var tileType = selected.tileType;
-                        this.upgradesDIV = document.createElement('div');
                         var user_1 = self.autowired.simulator.playerCharacter;
+                        self.upgradesDIV.innerHTML = '';
+                        $('<div>POSSIBLE UPGRADES: </div>').appendTo(self.upgradesDIV);
                         _(tileType.possibleUpgrades).each(function (possibleUpgrade) {
                             var button = document.createElement('button');
                             button.classList.add('btn');
@@ -1030,18 +1032,18 @@ System.register("UI", [], function(exports_26, context_26) {
                             button.innerText = possibleUpgrade.name + ' for ' + self.nf.format(possibleUpgrade.upgradeCost) + ' gold';
                             self.upgradesDIV.appendChild(button);
                             self.upgradesDIV.appendChild(document.createElement('br'));
-                            $(button).click(function (event) {
-                                alert();
+                            button.onmousedown = function (event) {
+                                //alert();
                                 if (user_1.gold >= possibleUpgrade.upgradeCost) {
                                     selected.setTileType(possibleUpgrade);
                                     user_1.gold -= possibleUpgrade.upgradeCost;
                                 }
-                            });
+                            };
                         });
-                        this.worldBlockDIV.appendChild(this.upgradesDIV);
                     }
                     else {
                         this.worldBlockDIV.innerText = "";
+                        this.upgradesDIV.innerHTML = '';
                     }
                 };
                 return UI;
@@ -1274,6 +1276,7 @@ System.register("Main", ["Autowired"], function(exports_30, context_30) {
                         _this.autowired.userControls.update();
                         _this.autowired.simulator.update();
                         _this.autowired.ai.update();
+                        _this.autowired.ui.update();
                         var winning = true;
                         var defeated = true;
                         var player = _this.autowired.simulator.playerCharacter;
@@ -1296,9 +1299,6 @@ System.register("Main", ["Autowired"], function(exports_30, context_30) {
                         }
                     };
                     this.autowired = new Autowired_1.Autowired();
-                    setInterval(function () {
-                        _this.autowired.ui.update();
-                    }, 400);
                 }
                 return Main;
             }());
