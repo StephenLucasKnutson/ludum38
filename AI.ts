@@ -17,12 +17,13 @@ export class AI {
     }
 
     playCharacter(npc: Player) {
-        let worldBlocks: WorldBlock[] = this.autowired.simulator.worldBlocksForPlayer(npc);
+        let worldBlocks: WorldBlock[] = this.autowired.simulator.worldBlocksAndEmptyNeighborsBlocksForPlayer(npc);
         if(worldBlocks.length == 0){
             return;
         }
         let safteyBreak = 0;
         let isGainingMoney = npc.playerStats.totalGoldPerTurn() > 2000;
+        console.log(worldBlocks);
         while(npc.gold > 10000 && safteyBreak++ < 100) {
             let randomBlock = worldBlocks[Math.floor(Math.random() * worldBlocks.length)];
             let possibleUpgrades = randomBlock.tileType.possibleUpgrades;

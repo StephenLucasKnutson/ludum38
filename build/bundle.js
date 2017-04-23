@@ -416,12 +416,12 @@ System.register("TileType", ["images/ImageWater", "images/ImageForest", "images/
                     TileType.gold = new TileType("GOLD", new ImageGold_1.ImageGold(), 0xFFDF00, 10000 * TileType.defaultRevenuePerCost * 1, 0.5, TileType.defaultChanceToLeave, 0, 0, true, true);
                     TileType.diamondMine = new TileType("DIAMOND MINE", new ImageDiamondMine_1.ImageDiamondMine(), 0x9AC5DB, 10000 * TileType.defaultRevenuePerCost * 4, 0.5, TileType.defaultChanceToLeave, 0, 20000, true, false);
                     TileType.diamond = new TileType("DIAMOND", new ImageDiamond_1.ImageDiamond(), 0x9AC5DB, 10000 * TileType.defaultRevenuePerCost * 2, 0.5, TileType.defaultChanceToLeave, 0, 0, true, true);
-                    TileType.megalopolis = new TileType("MEGALOPOLIS", new ImageMegalopolis_1.ImageMegalopolis(), 0x000000, 10000000 * TileType.defaultRevenuePerCost * 0.01, 0.5, TileType.defaultChanceToLeave, 0.05, 10000000, true, false);
-                    TileType.city = new TileType("CITY", new ImageCity_1.ImageCity(), 0x000000, 5000000 * TileType.defaultRevenuePerCost * 0.01, 0.5, TileType.defaultChanceToLeave, 0.01, 5000000, true, false);
-                    TileType.town = new TileType("TOWN", new ImageTown_1.ImageTown(), 0x000000, 1000000 * TileType.defaultRevenuePerCost * 0.01, 0.5, TileType.defaultChanceToLeave, 0.005, 1000000, true, false);
-                    TileType.village = new TileType("VILLAGE", new ImageVillage_1.ImageVillage(), 0x000000, 50000 * TileType.defaultRevenuePerCost * 0.01, 0.5, TileType.defaultChanceToLeave, 0.001, 50000, true, false);
-                    TileType.militaryBase = new TileType("MILITARY BASE", new ImageMilitaryBase_1.ImageMilitaryBase(), 0x000000, -1000, 0.5, TileType.defaultChanceToLeave, 0.03, 1000000, true, false);
-                    TileType.barracks = new TileType("BARRACKS", new ImageBarracks_1.ImageBarracks(), 0x000000, -100, 0.5, TileType.defaultChanceToLeave, 0.01, 100000, true, false);
+                    TileType.megalopolis = new TileType("MEGALOPOLIS", new ImageMegalopolis_1.ImageMegalopolis(), 0x000000, 10000000 * TileType.defaultRevenuePerCost * 0.1, 0.5, TileType.defaultChanceToLeave, 0.05, 10000000, true, false);
+                    TileType.city = new TileType("CITY", new ImageCity_1.ImageCity(), 0x000000, 5000000 * TileType.defaultRevenuePerCost * 0.1, 0.5, TileType.defaultChanceToLeave, 0.01, 5000000, true, false);
+                    TileType.town = new TileType("TOWN", new ImageTown_1.ImageTown(), 0x000000, 1000000 * TileType.defaultRevenuePerCost * 0.1, 0.5, TileType.defaultChanceToLeave, 0.005, 1000000, true, false);
+                    TileType.village = new TileType("VILLAGE", new ImageVillage_1.ImageVillage(), 0x000000, 50000 * TileType.defaultRevenuePerCost * 0.1, 0.5, TileType.defaultChanceToLeave, 0.001, 50000, true, false);
+                    TileType.militaryBase = new TileType("MILITARY BASE", new ImageMilitaryBase_1.ImageMilitaryBase(), 0x000000, -1000, 0.5, TileType.defaultChanceToLeave, 0.015, 1000000, true, false);
+                    TileType.barracks = new TileType("BARRACKS", new ImageBarracks_1.ImageBarracks(), 0x000000, -100, 0.5, TileType.defaultChanceToLeave, 0.005, 50000, true, false);
                     TileType.wall = new TileType("WALL", new ImageWall_1.ImageWall(), 0x000000, -1, 0.0, 0.0, 0.01, 10000, false, false);
                     TileType.destroyed.possibleUpgrades = [TileType.plains];
                     TileType.destroyedCheaply.possibleUpgrades = [TileType.plains];
@@ -872,6 +872,7 @@ System.register("Simulator", ["Player", "TileType"], function(exports_25, contex
                 TileType_3 = TileType_3_1;
             }],
         execute: function() {
+            Vector2 = THREE.Vector2;
             Simulator = (function () {
                 function Simulator(autowired) {
                     this.players = [];
@@ -926,13 +927,18 @@ System.register("Simulator", ["Player", "TileType"], function(exports_25, contex
                     }
                     return returnValue;
                 };
-                Simulator.prototype.worldBlocksForPlayer = function (player) {
+                Simulator.prototype.worldBlocksAndEmptyNeighborsBlocksForPlayer = function (player) {
                     var returnValue = [];
                     for (var i = 0; i < this.autowired.WIDTH; i++) {
                         for (var j = 0; j < this.autowired.HEIGHT; j++) {
                             var worldBlock = this.autowired.world.map[i][j];
-                            if (worldBlock.owningPlayer == player) {
-                                returnValue.push(worldBlock);
+                            if (worldBlock.owningPlayer != player) {
+                                continue;
+                            }
+                            returnValue.push(worldBlock);
+                            for (var _i = 0, _a = this.openNeighborBlocks(new Vector2(i, j)); _i < _a.length; _i++) {
+                                var neighbor = _a[_i];
+                                returnValue.push(neighbor);
                             }
                         }
                     }
@@ -1263,12 +1269,13 @@ System.register("AI", [], function(exports_29, context_29) {
                     }
                 };
                 AI.prototype.playCharacter = function (npc) {
-                    var worldBlocks = this.autowired.simulator.worldBlocksForPlayer(npc);
+                    var worldBlocks = this.autowired.simulator.worldBlocksAndEmptyNeighborsBlocksForPlayer(npc);
                     if (worldBlocks.length == 0) {
                         return;
                     }
                     var safteyBreak = 0;
                     var isGainingMoney = npc.playerStats.totalGoldPerTurn() > 2000;
+                    console.log(worldBlocks);
                     while (npc.gold > 10000 && safteyBreak++ < 100) {
                         var randomBlock = worldBlocks[Math.floor(Math.random() * worldBlocks.length)];
                         var possibleUpgrades = randomBlock.tileType.possibleUpgrades;

@@ -67,13 +67,17 @@ export class Simulator {
         return returnValue;
     }
 
-    worldBlocksForPlayer(player: Player): WorldBlock[] {
+    worldBlocksAndEmptyNeighborsBlocksForPlayer(player: Player): WorldBlock[] {
         let returnValue: WorldBlock[] = [];
         for (let i: number = 0; i < this.autowired.WIDTH; i++) {
             for (let j: number = 0; j < this.autowired.HEIGHT; j++) {
                 let worldBlock: WorldBlock = this.autowired.world.map[i][j];
-                if (worldBlock.owningPlayer == player) {
-                    returnValue.push(worldBlock)
+                if (worldBlock.owningPlayer != player) {
+                    continue;
+                }
+                returnValue.push(worldBlock);
+                for(let neighbor of this.openNeighborBlocks(new Vector2(i, j))){
+                    returnValue.push(neighbor);
                 }
             }
         }
