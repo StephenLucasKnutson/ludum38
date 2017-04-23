@@ -4,7 +4,6 @@
  * this code works with the implementation in google's closure library (https://code.google.com/p/closure-library/).
  * Use goog.require('goog.structs.PriorityQueue'); and new goog.structs.PriorityQueue()
  */
-
 import {PriorityQueue} from "./PriorityQueue";
 /**
  * Pathfinding starts here
@@ -16,29 +15,21 @@ export class Graph {
     addVertex = function (name, edges) {
         this.vertices[name] = edges;
     };
-
+    nodes = new PriorityQueue();
     shortestPath = function (start, finish) {
-        var nodes = new PriorityQueue(),
-            distances = {},
+        var distances = {},
             previous = {},
             path = [],
             smallest, vertex, neighbor, alt;
 
         for (vertex in this.vertices) {
-            if (vertex === start) {
-                distances[vertex] = 0;
-                nodes.add({weight: 0, value: vertex});
-            }
-            else {
-                distances[vertex] = this.INFINITY;
-                nodes.add({weight: this.INFINITY, value: vertex});
-            }
-
-            previous[vertex] = null;
+            distances[vertex] = this.INFINITY;
         }
+        distances[start] = 0;
+        this.nodes.add({weight: 0, value: start});
 
-        while (!nodes.isEmpty()) {
-            smallest = nodes.poll().value;
+        while (!this.nodes.isEmpty()) {
+            smallest = this.nodes.poll().value;
 
             if (smallest === finish) {
                 path = [];
@@ -62,7 +53,7 @@ export class Graph {
                     distances[neighbor] = alt;
                     previous[neighbor] = smallest;
 
-                    nodes.add({weight: alt, value: neighbor});
+                    this.nodes.add({weight: alt, value: neighbor});
                 }
             }
         }

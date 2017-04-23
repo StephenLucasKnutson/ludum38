@@ -1416,12 +1416,6 @@ System.register("PriorityQueue", [], function(exports_29, context_29) {
         }
     }
 });
-// https://raw.githubusercontent.com/mburst/dijkstras-algorithm/master/dijkstras.js
-/**
- * Basic priority queue implementation. If a better priority queue is wanted/needed,
- * this code works with the implementation in google's closure library (https://code.google.com/p/closure-library/).
- * Use goog.require('goog.structs.PriorityQueue'); and new goog.structs.PriorityQueue()
- */
 System.register("ShortestPath", ["PriorityQueue"], function(exports_30, context_30) {
     "use strict";
     var __moduleName = context_30 && context_30.id;
@@ -1443,21 +1437,16 @@ System.register("ShortestPath", ["PriorityQueue"], function(exports_30, context_
                     this.addVertex = function (name, edges) {
                         this.vertices[name] = edges;
                     };
+                    this.nodes = new PriorityQueue_1.PriorityQueue();
                     this.shortestPath = function (start, finish) {
-                        var nodes = new PriorityQueue_1.PriorityQueue(), distances = {}, previous = {}, path = [], smallest, vertex, neighbor, alt;
+                        var distances = {}, previous = {}, path = [], smallest, vertex, neighbor, alt;
                         for (vertex in this.vertices) {
-                            if (vertex === start) {
-                                distances[vertex] = 0;
-                                nodes.add({ weight: 0, value: vertex });
-                            }
-                            else {
-                                distances[vertex] = this.INFINITY;
-                                nodes.add({ weight: this.INFINITY, value: vertex });
-                            }
-                            previous[vertex] = null;
+                            distances[vertex] = this.INFINITY;
                         }
-                        while (!nodes.isEmpty()) {
-                            smallest = nodes.poll().value;
+                        distances[start] = 0;
+                        this.nodes.add({ weight: 0, value: start });
+                        while (!this.nodes.isEmpty()) {
+                            smallest = this.nodes.poll().value;
                             if (smallest === finish) {
                                 path = [];
                                 while (previous[smallest]) {
@@ -1474,7 +1463,7 @@ System.register("ShortestPath", ["PriorityQueue"], function(exports_30, context_
                                 if (alt < distances[neighbor]) {
                                     distances[neighbor] = alt;
                                     previous[neighbor] = smallest;
-                                    nodes.add({ weight: alt, value: neighbor });
+                                    this.nodes.add({ weight: alt, value: neighbor });
                                 }
                             }
                         }
@@ -1553,6 +1542,7 @@ System.register("Pathfinder", ["ShortestPath", "TileType"], function(exports_31,
                                 var aSmall = this.smallBucketKey(aPosition);
                                 var bSmall = this.smallBucketKey(bPosition);
                                 var path = graph.shortestPath(aSmall, bSmall);
+                                console.log(path);
                                 if (path.length == 0) {
                                     localLargeToLarge[a][b] = null;
                                 }

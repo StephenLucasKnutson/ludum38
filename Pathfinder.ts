@@ -106,6 +106,7 @@ export class Pathfinder {
                     let aSmall = this.smallBucketKey(aPosition);
                     let bSmall = this.smallBucketKey(bPosition);
                     let path: any[] = graph.shortestPath(aSmall, bSmall);
+                    console.log(path);
                     if (path.length == 0) {
                         localLargeToLarge[a][b] = null;
                     }
