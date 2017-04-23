@@ -3,8 +3,11 @@ import {Player} from "./Player";
 import {World} from "./World";
 import Vector2 = THREE.Vector2;
 
+
+// https://i.stack.imgur.com/4laaY.jpg
 export class WorldBlock {
     tileType: TileType;
+    lastNatureState: TileType;
     tileMesh: THREE.Mesh;
     backgroundMesh: THREE.Mesh;
     owningPlayer: Player;
@@ -16,17 +19,31 @@ export class WorldBlock {
 
     setOwningPlayer(newOwningPlayer: Player) {
         this.owningPlayer = newOwningPlayer;
-        if (newOwningPlayer) {
-            this.backgroundMesh.material = newOwningPlayer.material;
-        } else {
-            this.backgroundMesh.material = World.backgroundMaterial;
+        if (!this.isSelected) {
+            if (newOwningPlayer) {
+                this.backgroundMesh.material = newOwningPlayer.material;
+            } else {
+                this.backgroundMesh.material = World.backgroundMaterial;
+            }
         }
-
     }
 
     setTileType(newTileType: TileType) {
+        if(newTileType.isNatureState){
+            this.lastNatureState = newTileType;
+        }
+
         this.tileType = newTileType;
-        this.tileMesh.material = newTileType.material;
+        if (this.tileMesh != null) {
+            this.tileMesh.material = newTileType.material;
+        }
+    }
+
+    resetToNature() {
+        if(this.lastNatureState == null) {
+            debugger;
+        }
+        this.setTileType(this.lastNatureState);
     }
 
     setSelected(isSelected: boolean) {

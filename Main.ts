@@ -16,6 +16,7 @@ class Main {
     render = () => {
         this.autowired.userControls.update();
         this.autowired.simulator.update();
+        this.autowired.ai.update();
 
         let winning: boolean = true;
         let defeated: boolean = true;

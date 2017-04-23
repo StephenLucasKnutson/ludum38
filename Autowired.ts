@@ -8,6 +8,7 @@ import PCFSoftShadowMap = THREE.PCFSoftShadowMap;
 import Side = THREE.Side;
 import Vector2 = THREE.Vector2;
 import Vector3 = THREE.Vector3;
+import {AI} from "./AI";
 
 export class Autowired {
     isGameOver: boolean;
@@ -22,6 +23,7 @@ export class Autowired {
     simulator: Simulator;
     userControls: UserControls;
     ui: UI;
+    ai: AI;
     WIDTH: number = 100;
     HEIGHT: number = 60;
 
@@ -32,6 +34,9 @@ export class Autowired {
         this.renderer.setSize(width, height);
 
         let size: number = 300;
+        if(this.camera != null) {
+            this.scene.remove(this.camera);
+        }
         this.camera = new THREE.OrthographicCamera(-size, size, size / aspectRatio, -size / aspectRatio, 0, 10);
         this.camera.position.set(0, 0, 1);
         this.camera.lookAt(new THREE.Vector3(0, 0, 0));
@@ -41,7 +46,7 @@ export class Autowired {
         let geometry = new THREE.PlaneGeometry(size * 0.8, size / aspectRatio * 200);
         let material: THREE.MeshStandardMaterial = new THREE.MeshStandardMaterial(
             {
-                color: "blue",
+                color: "#FFFFFF",
                 side: THREE.BackSide
             });
 
@@ -68,12 +73,13 @@ export class Autowired {
         this.scene = new THREE.Scene();
         this.resetCameraAndRenderer();
 
-        this.scene.add(new THREE.AmbientLight(0x404040));
+        this.scene.add(new THREE.AmbientLight(0xFFFFFF));
 
         this.world = new World(this);
         this.simulator = new Simulator(this);
         this.ui = new UI(this);
         this.userControls = new UserControls(this);
+        this.ai = new AI(this);
 
         window.addEventListener('resize', (event) => {
             this.resetCameraAndRenderer();

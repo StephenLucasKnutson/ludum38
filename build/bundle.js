@@ -376,7 +376,7 @@ System.register("TileType", ["images/ImageWater", "images/ImageForest", "images/
             }],
         execute: function() {
             TileType = (function () {
-                function TileType(name, image, color, goldPerTurn, tendencyToEnter, tendencyToLeave, chanceToSpawn, upgradeCost) {
+                function TileType(name, image, color, goldPerTurn, tendencyToEnter, tendencyToLeave, chanceToSpawn, upgradeCost, desirableUpgrade, isNatureState) {
                     this.name = name;
                     this.imageSource = image;
                     this.color = color;
@@ -385,6 +385,8 @@ System.register("TileType", ["images/ImageWater", "images/ImageForest", "images/
                     this.tendencyToLeave = tendencyToLeave;
                     this.chanceToSpawn = chanceToSpawn;
                     this.upgradeCost = upgradeCost;
+                    this.desirableUpgrade = desirableUpgrade;
+                    this.isNatureState = isNatureState;
                     if (this.imageSource) {
                         var image_1 = new Image();
                         image_1.src = this.imageSource.base64Encoding;
@@ -401,33 +403,33 @@ System.register("TileType", ["images/ImageWater", "images/ImageForest", "images/
                     }
                 }
                 TileType.initialize = function () {
-                    TileType.destroyed = new TileType("DESTROYED", null, 0x000000, 0, 0, 1, 0, 1000000);
-                    TileType.destroyedCheaply = new TileType("DESTROYED", null, 0x000000, 0, 0, 1, 0, 1000);
-                    TileType.plains = new TileType("PLAINS", new ImagePrairie_1.ImagePrairie(), 0xC0FF6D, 1, 0.5, 0.2, 0, 100);
-                    TileType.farm = new TileType("FARM", new ImageFarm_1.ImageFarm(), 0xC0FF6D, 5, 0.2, 0.0, 0, 1000);
-                    TileType.factoryFarm = new TileType("FACTORY FARM", new ImageFactoryFarm_1.ImageFactoryFarm, 0xC0FF6D, 50, 0.5, 0.0, 0, 10000);
-                    TileType.forest = new TileType("FOREST", new ImageForest_1.ImageForest(), 0x228B22, 2, 0.5, 0.21, 0, 1000);
-                    TileType.mountains = new TileType("MOUNTAINS", new ImageMountain_1.ImageMountain(), 0x968D99, 3, 0.25, 0.1, 0, 0);
-                    TileType.sea = new TileType("SEA", new ImageWater_1.ImageWater(), 0x006994, 1, 0.00001, 0.1, 0, 0);
-                    TileType.desert = new TileType("DESERT", new ImageDesert_1.ImageDesert(), 0xEDC9AF, 0, 0.01, 0.1, 0, 0);
-                    TileType.goldMine = new TileType("GOLD MINE", new ImageGoldMine_1.ImageGoldMine(), 0xFFDF00, 100, 0.01, 0.0, 0, 10000);
-                    TileType.gold = new TileType("GOLD", new ImageGold_1.ImageGold(), 0xFFDF00, 20, 0.01, 0.0, 0, 0);
-                    TileType.diamondMine = new TileType("DIAMOND MINE", new ImageDiamondMine_1.ImageDiamondMine(), 0x9AC5DB, 200, 0.01, 0.0, 0, 20000);
-                    TileType.diamond = new TileType("DIAMOND", new ImageDiamond_1.ImageDiamond(), 0x9AC5DB, 40, 0.01, 0.0, 0, 0);
-                    TileType.megalopolis = new TileType("MEGALOPOLIS", new ImageMegalopolis_1.ImageMegalopolis(), 0x000000, 100000, 0.1, 0.0, 1.0, 1000000);
-                    TileType.city = new TileType("CITY", new ImageCity_1.ImageCity(), 0x000000, 1000, 0.1, 0.0, 0.5, 500000);
-                    TileType.town = new TileType("TOWN", new ImageTown_1.ImageTown(), 0x000000, 100, 0.1, 0.0, 0.1, 100000);
-                    TileType.village = new TileType("VILLAGE", new ImageVillage_1.ImageVillage(), 0x000000, 10, 0.1, 0.0, 0.01, 10000);
-                    TileType.militaryBase = new TileType("MILITARY BASE", new ImageMilitaryBase_1.ImageMilitaryBase(), 0x000000, -1000, 0.1, 0.0, 0.75, 100000);
-                    TileType.barracks = new TileType("BARRACKS", new ImageBarracks_1.ImageBarracks(), 0x000000, -100, 0.1, 0.0, 0.1, 10000);
-                    TileType.wall = new TileType("WALL", new ImageWall_1.ImageWall(), 0x000000, -1, 0.01, 0.0, 0.01, 1000);
+                    TileType.destroyed = new TileType("DESTROYED", null, 0x000000, 0, 0, 1, 0, 1000000, false, false);
+                    TileType.destroyedCheaply = new TileType("DESTROYED", null, 0x000000, 0, 0, 1, 0, 1000, false, false);
+                    TileType.plains = new TileType("PLAINS", new ImagePrairie_1.ImagePrairie(), 0xC0FF6D, 1, 0.5, 0.5, 0, 50000, true, true);
+                    TileType.farm = new TileType("FARM", new ImageFarm_1.ImageFarm(), 0xC0FF6D, 50000 * TileType.defaultRevenuePerCost, 0.5, TileType.defaultChanceToLeave * 10, 0, 50000, true, false);
+                    TileType.factoryFarm = new TileType("FACTORY FARM", new ImageFactoryFarm_1.ImageFactoryFarm, 0xC0FF6D, 100000 * TileType.defaultRevenuePerCost, 0.5, TileType.defaultChanceToLeave * 10, 0, 100000, true, false);
+                    TileType.forest = new TileType("FOREST", new ImageForest_1.ImageForest(), 0x228B22, 2, 0.5, 0.5, 0, 1000, false, true);
+                    TileType.mountains = new TileType("MOUNTAINS", new ImageMountain_1.ImageMountain(), 0x968D99, 3, 0.25, 0.1, 0, 0, false, true);
+                    TileType.sea = new TileType("SEA", new ImageWater_1.ImageWater(), 0x006994, 1, 0.00001, 0.1, 0, 0, false, true);
+                    TileType.desert = new TileType("DESERT", new ImageDesert_1.ImageDesert(), 0xEDC9AF, 0, 0.01, 0.1, 0, 0, false, true);
+                    TileType.goldMine = new TileType("GOLD MINE", new ImageGoldMine_1.ImageGoldMine(), 0xFFDF00, 10000 * TileType.defaultRevenuePerCost * 3, 0.5, TileType.defaultChanceToLeave, 0, 10000, true, false);
+                    TileType.gold = new TileType("GOLD", new ImageGold_1.ImageGold(), 0xFFDF00, 10000 * TileType.defaultRevenuePerCost * 1, 0.5, TileType.defaultChanceToLeave, 0, 0, true, true);
+                    TileType.diamondMine = new TileType("DIAMOND MINE", new ImageDiamondMine_1.ImageDiamondMine(), 0x9AC5DB, 10000 * TileType.defaultRevenuePerCost * 4, 0.5, TileType.defaultChanceToLeave, 0, 20000, true, false);
+                    TileType.diamond = new TileType("DIAMOND", new ImageDiamond_1.ImageDiamond(), 0x9AC5DB, 10000 * TileType.defaultRevenuePerCost * 2, 0.5, TileType.defaultChanceToLeave, 0, 0, true, true);
+                    TileType.megalopolis = new TileType("MEGALOPOLIS", new ImageMegalopolis_1.ImageMegalopolis(), 0x000000, 10000000 * TileType.defaultRevenuePerCost * 0.01, 0.5, TileType.defaultChanceToLeave, 0.05, 10000000, true, false);
+                    TileType.city = new TileType("CITY", new ImageCity_1.ImageCity(), 0x000000, 5000000 * TileType.defaultRevenuePerCost * 0.01, 0.5, TileType.defaultChanceToLeave, 0.01, 5000000, true, false);
+                    TileType.town = new TileType("TOWN", new ImageTown_1.ImageTown(), 0x000000, 1000000 * TileType.defaultRevenuePerCost * 0.01, 0.5, TileType.defaultChanceToLeave, 0.005, 1000000, true, false);
+                    TileType.village = new TileType("VILLAGE", new ImageVillage_1.ImageVillage(), 0x000000, 50000 * TileType.defaultRevenuePerCost * 0.01, 0.5, TileType.defaultChanceToLeave, 0.001, 50000, true, false);
+                    TileType.militaryBase = new TileType("MILITARY BASE", new ImageMilitaryBase_1.ImageMilitaryBase(), 0x000000, -1000, 0.5, TileType.defaultChanceToLeave, 0.03, 1000000, true, false);
+                    TileType.barracks = new TileType("BARRACKS", new ImageBarracks_1.ImageBarracks(), 0x000000, -100, 0.5, TileType.defaultChanceToLeave, 0.01, 100000, true, false);
+                    TileType.wall = new TileType("WALL", new ImageWall_1.ImageWall(), 0x000000, -1, 0.0, 0.0, 0.01, 10000, false, false);
                     TileType.destroyed.possibleUpgrades = [TileType.plains];
                     TileType.destroyedCheaply.possibleUpgrades = [TileType.plains];
                     TileType.plains.possibleUpgrades = [TileType.village, TileType.farm, TileType.barracks, TileType.wall, TileType.forest, TileType.destroyedCheaply];
                     TileType.farm.possibleUpgrades = [TileType.factoryFarm, TileType.destroyed];
                     TileType.factoryFarm.possibleUpgrades = [TileType.destroyed];
                     TileType.forest.possibleUpgrades = [TileType.plains, TileType.destroyedCheaply];
-                    TileType.mountains.possibleUpgrades = [TileType.destroyedCheaply];
+                    TileType.mountains.possibleUpgrades = [TileType.village, TileType.destroyedCheaply];
                     TileType.sea.possibleUpgrades = [TileType.plains, TileType.destroyedCheaply];
                     TileType.desert.possibleUpgrades = [TileType.destroyedCheaply];
                     TileType.goldMine.possibleUpgrades = [TileType.destroyed];
@@ -469,6 +471,8 @@ System.register("TileType", ["images/ImageWater", "images/ImageForest", "images/
                     }
                 };
                 TileType.tileTypeToGold = {};
+                TileType.defaultChanceToLeave = 0.00001;
+                TileType.defaultRevenuePerCost = 0.0005;
                 return TileType;
             }());
             exports_20("TileType", TileType);
@@ -498,7 +502,7 @@ System.register("PlayerStats", ["TileType"], function(exports_21, context_21) {
                     }
                     this.tileTypeToNumberOwned[tileTypeName]++;
                 };
-                PlayerStats.prototype.totalGold = function () {
+                PlayerStats.prototype.totalGoldPerTurn = function () {
                     var returnValue = 0;
                     for (var tileTypeName in this.tileTypeToNumberOwned) {
                         var numberOwned = this.tileTypeToNumberOwned[tileTypeName];
@@ -534,8 +538,8 @@ System.register("Player", ["PlayerStats"], function(exports_22, context_22) {
             Player = (function () {
                 function Player() {
                     this.gold = 0;
-                    this.attack = 0.01;
-                    this.defense = 1.0;
+                    this.attack = 0.1;
+                    this.defense = 0.5;
                     this.kills = 0;
                     this.deaths = 0;
                     if (Player.nextPlayerColorIndex == Player.allPlayerColors.length) {
@@ -551,9 +555,9 @@ System.register("Player", ["PlayerStats"], function(exports_22, context_22) {
                     this.playerStats = new PlayerStats_1.PlayerStats();
                 };
                 Player.nextPlayerColorIndex = 0;
-                Player.allPlayerColors = [0xFF0000, 0x0000FF, 0xFFA500, 0x00FF00, 0xD2691E];
-                Player.allPlayerColorsAsString = ['#FF0000', '#0000FF', '#FFA500', '#00FF00', '#D2691E'];
-                Player.allPlayersName = ['YOU', 'BLUE', 'ORANGE', 'GREEN', 'BROWN'];
+                Player.allPlayerColors = [0xFF0000, 0x0000FF, 0xFFA500, 0x00FF00, 0xFF69B4];
+                Player.allPlayerColorsAsString = ['#FF0000', '#0000FF', '#FFA500', '#00FF00', '#FF69B4'];
+                Player.allPlayersName = ['YOU', 'BLUE', 'ORANGE', 'GREEN', 'PINK'];
                 return Player;
             }());
             exports_22("Player", Player);
@@ -571,21 +575,35 @@ System.register("WorldBlock", ["World"], function(exports_23, context_23) {
                 World_1 = World_1_1;
             }],
         execute: function() {
+            // https://i.stack.imgur.com/4laaY.jpg
             WorldBlock = (function () {
                 function WorldBlock() {
                 }
                 WorldBlock.prototype.setOwningPlayer = function (newOwningPlayer) {
                     this.owningPlayer = newOwningPlayer;
-                    if (newOwningPlayer) {
-                        this.backgroundMesh.material = newOwningPlayer.material;
-                    }
-                    else {
-                        this.backgroundMesh.material = World_1.World.backgroundMaterial;
+                    if (!this.isSelected) {
+                        if (newOwningPlayer) {
+                            this.backgroundMesh.material = newOwningPlayer.material;
+                        }
+                        else {
+                            this.backgroundMesh.material = World_1.World.backgroundMaterial;
+                        }
                     }
                 };
                 WorldBlock.prototype.setTileType = function (newTileType) {
+                    if (newTileType.isNatureState) {
+                        this.lastNatureState = newTileType;
+                    }
                     this.tileType = newTileType;
-                    this.tileMesh.material = newTileType.material;
+                    if (this.tileMesh != null) {
+                        this.tileMesh.material = newTileType.material;
+                    }
+                };
+                WorldBlock.prototype.resetToNature = function () {
+                    if (this.lastNatureState == null) {
+                        debugger;
+                    }
+                    this.setTileType(this.lastNatureState);
                 };
                 WorldBlock.prototype.setSelected = function (isSelected) {
                     if (isSelected == this.isSelected) {
@@ -631,7 +649,7 @@ System.register("World", ["TileType", "WorldBlock"], function(exports_24, contex
                             var existingType = _this.map[x][y].tileType;
                             var canBeApplied = _.contains(canApplyTo, existingType);
                             if (canBeApplied) {
-                                _this.map[x][y].tileType = t;
+                                _this.map[x][y].setTileType(t);
                             }
                         }
                     };
@@ -640,11 +658,20 @@ System.register("World", ["TileType", "WorldBlock"], function(exports_24, contex
                             _this.map[i] = {};
                             for (var j = 0; j < _this.autowired.HEIGHT; j++) {
                                 _this.map[i][j] = new WorldBlock_1.WorldBlock();
-                                _this.map[i][j].tileType = TileType_2.TileType.plains;
+                                _this.map[i][j].setTileType(TileType_2.TileType.plains);
                             }
                         }
                     };
-                    this.neighborOffsets = [new Vector2(1, 0), new Vector2(-1, 0), new Vector2(0, 1), new Vector2(0, -1)];
+                    this.neighborOffsets = [
+                        new Vector2(1, 0),
+                        new Vector2(1, 1),
+                        new Vector2(0, 1),
+                        new Vector2(-1, 1),
+                        new Vector2(-1, 0),
+                        new Vector2(-1, -1),
+                        new Vector2(0, -1),
+                        new Vector2(1, -1),
+                    ];
                     this.generate = function (numberOfIterations, radiusMax, radiusMin, directionScalar, shuffleIterations, edgeTendancy, movementScalar, t, canApplyTo) {
                         var position = _this.randomSpotAlongEdge();
                         var radius;
@@ -685,7 +712,7 @@ System.register("World", ["TileType", "WorldBlock"], function(exports_24, contex
                     };
                     this.autowired = autowired;
                     this.generatePlane();
-                    this.generate(500, 7, 2, 0.5, 50, 0.25, 1.0, TileType_2.TileType.forest, [TileType_2.TileType.plains]);
+                    this.generate(300, 7, 2, 0.5, 50, 0.25, 1.0, TileType_2.TileType.forest, [TileType_2.TileType.plains]);
                     this.generate(700, 3, 2, 1.0, 150, 0.25, 1.0, TileType_2.TileType.sea, [TileType_2.TileType.plains]);
                     this.generate(500, 3, 2, 0.0, 250, 0.0, 0.3, TileType_2.TileType.desert, [TileType_2.TileType.plains]);
                     this.generate(500, 4, 4, 0.0, 100, 0.0, 0.3, TileType_2.TileType.mountains, [TileType_2.TileType.forest]);
@@ -747,7 +774,7 @@ System.register("World", ["TileType", "WorldBlock"], function(exports_24, contex
                     var blocksToCheck = [this.getMap(point)];
                     blocksToCheck = blocksToCheck.concat(this.neighborBlocks(point));
                     var good = true;
-                    good = good && (blocksToCheck.length == 5);
+                    good = good && (blocksToCheck.length == 9);
                     for (var _i = 0, blocksToCheck_1 = blocksToCheck; _i < blocksToCheck_1.length; _i++) {
                         var block = blocksToCheck_1[_i];
                         good = good && (block.tileType == TileType_2.TileType.plains);
@@ -824,7 +851,7 @@ System.register("Simulator", ["Player", "TileType"], function(exports_25, contex
                 function Simulator(autowired) {
                     this.players = [];
                     this.autowired = autowired;
-                    for (var i = 0; i < 4; i++) {
+                    for (var i = 0; i < 5; i++) {
                         var newPlayer = new Player_1.Player();
                         this.players.push(newPlayer);
                         var startingPosition = this.autowired.world.randomSpotOnPlains();
@@ -834,6 +861,16 @@ System.register("Simulator", ["Player", "TileType"], function(exports_25, contex
                     }
                     this.playerCharacter = this.players[0];
                 }
+                Simulator.prototype.nonPlayerCharacters = function () {
+                    var returnValue = [];
+                    for (var _i = 0, _a = this.players; _i < _a.length; _i++) {
+                        var player = _a[_i];
+                        if (player != this.playerCharacter) {
+                            returnValue.push(player);
+                        }
+                    }
+                    return returnValue;
+                };
                 Simulator.prototype.openNeighborBlocks = function (point) {
                     var neighborBlocks = this.autowired.world.neighborBlocks(point);
                     var returnValue = [];
@@ -855,6 +892,18 @@ System.register("Simulator", ["Player", "TileType"], function(exports_25, contex
                         var isEnemyTile = neighborBlock.owningPlayer != null && neighborBlock.owningPlayer != block.owningPlayer;
                         if (isEnemyTile) {
                             returnValue.push(neighborBlock);
+                        }
+                    }
+                    return returnValue;
+                };
+                Simulator.prototype.worldBlocksForPlayer = function (player) {
+                    var returnValue = [];
+                    for (var i = 0; i < this.autowired.WIDTH; i++) {
+                        for (var j = 0; j < this.autowired.HEIGHT; j++) {
+                            var worldBlock = this.autowired.world.map[i][j];
+                            if (worldBlock.owningPlayer == player) {
+                                returnValue.push(worldBlock);
+                            }
                         }
                     }
                     return returnValue;
@@ -881,6 +930,7 @@ System.register("Simulator", ["Player", "TileType"], function(exports_25, contex
                                         neighborBlock.owningPlayer.deaths++;
                                         worldBlock.owningPlayer.kills++;
                                         neighborBlock.setOwningPlayer(null);
+                                        neighborBlock.resetToNature();
                                     }
                                 }
                                 var openNeighbors = this.openNeighborBlocks(point);
@@ -912,7 +962,7 @@ System.register("Simulator", ["Player", "TileType"], function(exports_25, contex
                     }
                     for (var _e = 0, _f = this.players; _e < _f.length; _e++) {
                         var player = _f[_e];
-                        player.gold += player.playerStats.totalGold();
+                        player.gold += player.playerStats.totalGoldPerTurn();
                     }
                 };
                 return Simulator;
@@ -936,25 +986,25 @@ System.register("UI", [], function(exports_26, context_26) {
                     var element = document.body;
                     this.scoreDiv = document.createElement('div');
                     this.scoreDiv.style.position = 'absolute';
-                    this.scoreDiv.style.color = this.autowired.simulator.playerCharacter.colorAsString;
+                    //this.scoreDiv.style.color = this.autowired.simulator.playerCharacter.colorAsString;
                     this.scoreDiv.innerHTML = "";
                     this.scoreDiv.style.top = '25px';
                     this.scoreDiv.style.left = '25px';
-                    this.scoreDiv.style.fontSize = "25px";
+                    this.scoreDiv.style.fontSize = "20px";
                     element.appendChild(this.scoreDiv);
                     this.worldBlockDIV = document.createElement('div');
                     this.worldBlockDIV.style.position = 'absolute';
-                    this.worldBlockDIV.style.color = this.autowired.simulator.playerCharacter.colorAsString;
+                    //this.worldBlockDIV.style.color = this.autowired.simulator.playerCharacter.colorAsString;
                     this.worldBlockDIV.innerHTML = "";
                     this.worldBlockDIV.style.top = '50%';
                     this.worldBlockDIV.style.left = '25px';
-                    this.worldBlockDIV.style.fontSize = "25px";
+                    this.worldBlockDIV.style.fontSize = "20px";
                     element.appendChild(this.worldBlockDIV);
                 }
                 UI.prototype.update = function () {
                     var self = this;
                     var gold = "TOTAL GOLD: " + this.nf.format(this.autowired.simulator.playerCharacter.gold);
-                    var goldPerTurn = "RATE OF GOLD: " + this.nf.format(this.autowired.simulator.playerCharacter.playerStats.totalGold());
+                    var goldPerTurn = "RATE OF GOLD: " + this.nf.format(this.autowired.simulator.playerCharacter.playerStats.totalGoldPerTurn());
                     var units = "UNITS ALIVE: " + this.nf.format(this.autowired.simulator.playerCharacter.playerStats.totalUnits());
                     var kills = "TOTAL KILLS: " + this.nf.format(this.autowired.simulator.playerCharacter.kills);
                     var deaths = "TOTAL DEATHS: " + this.nf.format(this.autowired.simulator.playerCharacter.deaths);
@@ -967,13 +1017,15 @@ System.register("UI", [], function(exports_26, context_26) {
                         var rateOfGold = "GOLD GENERATED: " + this.nf.format(selected.tileType.goldPerTurn);
                         var rateOfUnits = "UNITS GENERATED: " + this.nf.format(selected.tileType.chanceToSpawn);
                         var possibleUpgrades = "POSSIBLE UPGRADES: ";
-                        this.worldBlockDIV.innerText = [tileTypeString, player, rateOfGold, rateOfUnits, possibleUpgrades].join('\n');
+                        this.worldBlockDIV.innerText = [tileTypeString, player, rateOfGold, rateOfUnits, "", possibleUpgrades].join('\n');
                         var tileType = selected.tileType;
                         this.upgradesDIV = document.createElement('div');
                         var user_1 = self.autowired.simulator.playerCharacter;
                         _(tileType.possibleUpgrades).each(function (possibleUpgrade) {
                             var button = document.createElement('button');
-                            button.classList.add('upgrade-button');
+                            button.classList.add('btn');
+                            button.classList.add('btn-secondary');
+                            button.classList.add('btn-sm');
                             button.disabled = user_1.gold < possibleUpgrade.upgradeCost;
                             button.innerText = possibleUpgrade.name + ' for ' + self.nf.format(possibleUpgrade.upgradeCost) + ' gold';
                             self.upgradesDIV.appendChild(button);
@@ -1079,10 +1131,10 @@ System.register("UserControls", [], function(exports_27, context_27) {
         }
     }
 });
-System.register("Autowired", ["World", "Simulator", "UI", "UserControls"], function(exports_28, context_28) {
+System.register("Autowired", ["World", "Simulator", "UI", "UserControls", "AI"], function(exports_28, context_28) {
     "use strict";
     var __moduleName = context_28 && context_28.id;
-    var World_2, Simulator_1, UI_1, UserControls_1;
+    var World_2, Simulator_1, UI_1, UserControls_1, AI_1;
     var ShadowMapType, PCFSoftShadowMap, Side, Vector2, Vector3, Autowired;
     return {
         setters:[
@@ -1097,6 +1149,9 @@ System.register("Autowired", ["World", "Simulator", "UI", "UserControls"], funct
             },
             function (UserControls_1_1) {
                 UserControls_1 = UserControls_1_1;
+            },
+            function (AI_1_1) {
+                AI_1 = AI_1_1;
             }],
         execute: function() {
             Autowired = (function () {
@@ -1113,11 +1168,12 @@ System.register("Autowired", ["World", "Simulator", "UI", "UserControls"], funct
                     });
                     this.scene = new THREE.Scene();
                     this.resetCameraAndRenderer();
-                    this.scene.add(new THREE.AmbientLight(0x404040));
+                    this.scene.add(new THREE.AmbientLight(0xFFFFFF));
                     this.world = new World_2.World(this);
                     this.simulator = new Simulator_1.Simulator(this);
                     this.ui = new UI_1.UI(this);
                     this.userControls = new UserControls_1.UserControls(this);
+                    this.ai = new AI_1.AI(this);
                     window.addEventListener('resize', function (event) {
                         _this.resetCameraAndRenderer();
                     });
@@ -1128,6 +1184,9 @@ System.register("Autowired", ["World", "Simulator", "UI", "UserControls"], funct
                     var aspectRatio = width / height;
                     this.renderer.setSize(width, height);
                     var size = 300;
+                    if (this.camera != null) {
+                        this.scene.remove(this.camera);
+                    }
                     this.camera = new THREE.OrthographicCamera(-size, size, size / aspectRatio, -size / aspectRatio, 0, 10);
                     this.camera.position.set(0, 0, 1);
                     this.camera.lookAt(new THREE.Vector3(0, 0, 0));
@@ -1135,7 +1194,7 @@ System.register("Autowired", ["World", "Simulator", "UI", "UserControls"], funct
                     this.camera.updateProjectionMatrix();
                     var geometry = new THREE.PlaneGeometry(size * 0.8, size / aspectRatio * 200);
                     var material = new THREE.MeshStandardMaterial({
-                        color: "blue",
+                        color: "#FFFFFF",
                         side: THREE.BackSide
                     });
                     var sidePanelPlane = new THREE.Mesh(geometry, material);
@@ -1150,9 +1209,55 @@ System.register("Autowired", ["World", "Simulator", "UI", "UserControls"], funct
         }
     }
 });
-System.register("Main", ["Autowired"], function(exports_29, context_29) {
+System.register("AI", [], function(exports_29, context_29) {
     "use strict";
     var __moduleName = context_29 && context_29.id;
+    var AI;
+    return {
+        setters:[],
+        execute: function() {
+            AI = (function () {
+                function AI(autowired) {
+                    this.autowired = autowired;
+                }
+                AI.prototype.update = function () {
+                    var npcs = this.autowired.simulator.nonPlayerCharacters();
+                    for (var _i = 0, npcs_1 = npcs; _i < npcs_1.length; _i++) {
+                        var npc = npcs_1[_i];
+                        this.playCharacter(npc);
+                    }
+                };
+                AI.prototype.playCharacter = function (npc) {
+                    var worldBlocks = this.autowired.simulator.worldBlocksForPlayer(npc);
+                    if (worldBlocks.length == 0) {
+                        return;
+                    }
+                    var safteyBreak = 0;
+                    var isGainingMoney = npc.playerStats.totalGoldPerTurn() > 2000;
+                    while (npc.gold > 10000 && safteyBreak++ < 100) {
+                        var randomBlock = worldBlocks[Math.floor(Math.random() * worldBlocks.length)];
+                        var possibleUpgrades = randomBlock.tileType.possibleUpgrades;
+                        var goodUpgrades = _(possibleUpgrades).filter(function (upgrade) {
+                            return (upgrade.desirableUpgrade && (isGainingMoney || upgrade.goldPerTurn > 0));
+                        });
+                        if (goodUpgrades.length > 0) {
+                            var randomUpgrade = goodUpgrades[Math.floor(Math.random() * goodUpgrades.length)];
+                            if (randomUpgrade.upgradeCost <= npc.gold) {
+                                randomBlock.setTileType(randomUpgrade);
+                                npc.gold -= randomUpgrade.upgradeCost;
+                            }
+                        }
+                    }
+                };
+                return AI;
+            }());
+            exports_29("AI", AI);
+        }
+    }
+});
+System.register("Main", ["Autowired"], function(exports_30, context_30) {
+    "use strict";
+    var __moduleName = context_30 && context_30.id;
     var Autowired_1;
     var Vector2, Main, main;
     return {
@@ -1168,6 +1273,7 @@ System.register("Main", ["Autowired"], function(exports_29, context_29) {
                     this.render = function () {
                         _this.autowired.userControls.update();
                         _this.autowired.simulator.update();
+                        _this.autowired.ai.update();
                         var winning = true;
                         var defeated = true;
                         var player = _this.autowired.simulator.playerCharacter;

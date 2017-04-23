@@ -21,7 +21,7 @@ export class World {
         this.autowired = autowired;
 
         this.generatePlane();
-        this.generate(500, 7, 2, 0.5, 50, 0.25, 1.0, TileType.forest, [TileType.plains]);
+        this.generate(300, 7, 2, 0.5, 50, 0.25, 1.0, TileType.forest, [TileType.plains]);
         this.generate(700, 3, 2, 1.0, 150, 0.25, 1.0, TileType.sea, [TileType.plains]);
         this.generate(500, 3, 2, 0.0, 250, 0.0, 0.3, TileType.desert, [TileType.plains]);
         this.generate(500, 4, 4, 0.0, 100, 0.0, 0.3, TileType.mountains, [TileType.forest]);
@@ -53,14 +53,14 @@ export class World {
 
         let $this = this;
         $(this.autowired.canvasElement).click((event) => {
-            let vector = new THREE.Vector3 (
+            let vector = new THREE.Vector3(
                 ( event.clientX / $this.autowired.canvasElement.innerWidth() ) * 2 - 1,
                 -( event.clientY / $this.autowired.canvasElement.innerHeight() ) * 2 + 1,
                 0.5);
 
             vector.unproject($this.autowired.camera);
-            let mapPosition : THREE.Vector2 = new THREE.Vector2(Math.round(vector.x / 10), Math.round(vector.y / 10));
-            if(this.isWithinBounds(mapPosition)){
+            let mapPosition: THREE.Vector2 = new THREE.Vector2(Math.round(vector.x / 10), Math.round(vector.y / 10));
+            if (this.isWithinBounds(mapPosition)) {
                 for (let i = 0; i < this.autowired.WIDTH; i++) {
                     for (let j = 0; j < this.autowired.HEIGHT; j++) {
                         this.map[i][j].setSelected(false);
@@ -74,7 +74,7 @@ export class World {
         })
     }
 
-    isWithinBounds(position: Vector2) :boolean {
+    isWithinBounds(position: Vector2): boolean {
         return position.x >= 0 && position.x < this.autowired.WIDTH && position.y >= 0 && position.y < this.autowired.HEIGHT;
     };
 
@@ -85,11 +85,12 @@ export class World {
             let existingType: TileType = this.map[x][y].tileType;
             let canBeApplied: boolean = _.contains(canApplyTo, existingType);
             if (canBeApplied) {
-                this.map[x][y].tileType = t;
+                this.map[x][y].setTileType(t);
             }
         }
     };
-    getMap (position: THREE.Vector2) {
+
+    getMap(position: THREE.Vector2) {
         return this.map[position.x][position.y]
     }
 
@@ -98,7 +99,7 @@ export class World {
             this.map[i] = {};
             for (let j = 0; j < this.autowired.HEIGHT; j++) {
                 this.map[i][j] = new WorldBlock();
-                this.map[i][j].tileType = TileType.plains;
+                this.map[i][j].setTileType(TileType.plains);
             }
         }
     };
@@ -108,25 +109,36 @@ export class World {
     };
 
     randomSpotOnPlains(): THREE.Vector2 {
-        let position : THREE.Vector2;
+        let position: THREE.Vector2;
         do {
             position = this.randomSpot()
         } while (!this.isInMiddleOfPlains(position));
         return position;
     }
 
-    isInMiddleOfPlains(point: THREE.Vector2){
-        let blocksToCheck : WorldBlock[] = [this.getMap(point)];
+    isInMiddleOfPlains(point: THREE.Vector2) {
+        let blocksToCheck: WorldBlock[] = [this.getMap(point)];
         blocksToCheck = blocksToCheck.concat(this.neighborBlocks(point));
-        let good : boolean = true;
-        good = good && (blocksToCheck.length == 5);
-        for(let block of blocksToCheck) {
+        let good: boolean = true;
+        good = good && (blocksToCheck.length == 9);
+        for (let block of blocksToCheck) {
             good = good && (block.tileType == TileType.plains);
         }
         return good;
     };
 
-    neighborOffsets: THREE.Vector2[] = [new Vector2(1, 0), new Vector2(-1, 0), new Vector2(0, 1), new Vector2(0, -1)];
+
+    neighborOffsets: THREE.Vector2[] = [
+        new Vector2(1, 0),
+        new Vector2(1, 1),
+        new Vector2(0, 1),
+        new Vector2(-1, 1),
+        new Vector2(-1, 0),
+        new Vector2(-1, -1),
+        new Vector2(0, -1),
+        new Vector2(1, -1),
+    ];
+
     withNeighborOffsets(point: THREE.Vector2): THREE.Vector2[] {
         let returnValue: THREE.Vector2[] = [];
         for (let neighborOffset of this.neighborOffsets) {

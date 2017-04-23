@@ -13,20 +13,20 @@ export class UI {
 
         this.scoreDiv = document.createElement('div');
         this.scoreDiv.style.position = 'absolute';
-        this.scoreDiv.style.color = this.autowired.simulator.playerCharacter.colorAsString;
+        //this.scoreDiv.style.color = this.autowired.simulator.playerCharacter.colorAsString;
         this.scoreDiv.innerHTML = "";
         this.scoreDiv.style.top = '25px';
         this.scoreDiv.style.left = '25px';
-        this.scoreDiv.style.fontSize = "25px";
+        this.scoreDiv.style.fontSize = "20px";
         element.appendChild(this.scoreDiv);
 
         this.worldBlockDIV = document.createElement('div');
         this.worldBlockDIV.style.position = 'absolute';
-        this.worldBlockDIV.style.color = this.autowired.simulator.playerCharacter.colorAsString;
+        //this.worldBlockDIV.style.color = this.autowired.simulator.playerCharacter.colorAsString;
         this.worldBlockDIV.innerHTML = "";
         this.worldBlockDIV.style.top = '50%';
         this.worldBlockDIV.style.left = '25px';
-        this.worldBlockDIV.style.fontSize = "25px";
+        this.worldBlockDIV.style.fontSize = "20px";
         element.appendChild(this.worldBlockDIV);
     }
 
@@ -35,7 +35,7 @@ export class UI {
     public update() {
         let self = this;
         let gold: string = "TOTAL GOLD: " + this.nf.format(this.autowired.simulator.playerCharacter.gold);
-        let goldPerTurn: String = "RATE OF GOLD: " + this.nf.format(this.autowired.simulator.playerCharacter.playerStats.totalGold());
+        let goldPerTurn: String = "RATE OF GOLD: " + this.nf.format(this.autowired.simulator.playerCharacter.playerStats.totalGoldPerTurn());
         let units: string = "UNITS ALIVE: " + this.nf.format(this.autowired.simulator.playerCharacter.playerStats.totalUnits());
         let kills: string = "TOTAL KILLS: " + this.nf.format(this.autowired.simulator.playerCharacter.kills);
         let deaths: string = "TOTAL DEATHS: " + this.nf.format(this.autowired.simulator.playerCharacter.deaths);
@@ -49,7 +49,7 @@ export class UI {
             let rateOfGold: string = "GOLD GENERATED: " + this.nf.format(selected.tileType.goldPerTurn);
             let rateOfUnits: string = "UNITS GENERATED: " + this.nf.format(selected.tileType.chanceToSpawn);
             let possibleUpgrades: String = "POSSIBLE UPGRADES: ";
-            this.worldBlockDIV.innerText = [tileTypeString, player, rateOfGold, rateOfUnits, possibleUpgrades].join('\n');
+            this.worldBlockDIV.innerText = [tileTypeString, player, rateOfGold, rateOfUnits, "", possibleUpgrades].join('\n');
 
             let tileType = selected.tileType;
             this.upgradesDIV = document.createElement('div');
@@ -57,7 +57,9 @@ export class UI {
             let user = self.autowired.simulator.playerCharacter;
             _(tileType.possibleUpgrades).each(function (possibleUpgrade: TileType) {
                 let button: HTMLButtonElement = document.createElement('button');
-                button.classList.add('upgrade-button');
+                button.classList.add('btn');
+                button.classList.add('btn-secondary');
+                button.classList.add('btn-sm');
                 button.disabled = user.gold < possibleUpgrade.upgradeCost;
                 button.innerText = possibleUpgrade.name + ' for ' + self.nf.format(possibleUpgrade.upgradeCost) + ' gold';
                 self.upgradesDIV.appendChild(button);

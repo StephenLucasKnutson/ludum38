@@ -14,7 +14,7 @@ export class Simulator {
     constructor(autowired: Autowired) {
         this.autowired = autowired;
 
-        for (let i: number = 0; i < 4; i++) {
+        for (let i: number = 0; i < 5; i++) {
             let newPlayer: Player = new Player();
             this.players.push(newPlayer);
 
@@ -24,8 +24,18 @@ export class Simulator {
             startingWorldBlock.setTileType(TileType.village)
         }
         this.playerCharacter = this.players[0];
-
     }
+
+    nonPlayerCharacters() {
+        let returnValue: Player[] = [];
+        for (let player of this.players) {
+            if (player != this.playerCharacter) {
+                returnValue.push(player);
+            }
+        }
+        return returnValue;
+    }
+
 
     openNeighborBlocks(point: THREE.Vector2): WorldBlock[] {
         let neighborBlocks: WorldBlock[] = this.autowired.world.neighborBlocks(point);
@@ -52,6 +62,19 @@ export class Simulator {
         return returnValue;
     }
 
+    worldBlocksForPlayer(player: Player): WorldBlock[] {
+        let returnValue: WorldBlock[] = [];
+        for (let i: number = 0; i < this.autowired.WIDTH; i++) {
+            for (let j: number = 0; j < this.autowired.HEIGHT; j++) {
+                let worldBlock: WorldBlock = this.autowired.world.map[i][j];
+                if (worldBlock.owningPlayer == player) {
+                    returnValue.push(worldBlock)
+                }
+            }
+        }
+        return returnValue
+    }
+
     update(): void {
         for (let i: number = 0; i < this.autowired.WIDTH; i++) {
             for (let j: number = 0; j < this.autowired.HEIGHT; j++) {
@@ -72,7 +95,7 @@ export class Simulator {
                             neighborBlock.owningPlayer.deaths++;
                             worldBlock.owningPlayer.kills++;
                             neighborBlock.setOwningPlayer(null);
-
+                            neighborBlock.resetToNature()
                         }
                     }
                     let openNeighbors: WorldBlock[] = this.openNeighborBlocks(point);
@@ -103,7 +126,7 @@ export class Simulator {
             }
         }
         for (let player of this.players) {
-            player.gold += player.playerStats.totalGold();
+            player.gold += player.playerStats.totalGoldPerTurn();
         }
     }
 }

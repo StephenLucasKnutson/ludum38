@@ -27,6 +27,8 @@ export class TileType {
     chanceToSpawn: number;
     upgradeCost: number;
     possibleUpgrades: TileType[];
+    desirableUpgrade: boolean;
+    isNatureState: boolean;
 
     material: THREE.Material;
 
@@ -37,7 +39,9 @@ export class TileType {
                        tendencyToEnter: number,
                        tendencyToLeave: number,
                        chanceToSpawn: number,
-                       upgradeCost: number) {
+                       upgradeCost: number,
+                       desirableUpgrade: boolean,
+                       isNatureState: boolean) {
         this.name = name;
         this.imageSource = image;
         this.color = color;
@@ -46,6 +50,8 @@ export class TileType {
         this.tendencyToLeave = tendencyToLeave;
         this.chanceToSpawn = chanceToSpawn;
         this.upgradeCost = upgradeCost;
+        this.desirableUpgrade = desirableUpgrade;
+        this.isNatureState = isNatureState;
 
         if (this.imageSource) {
             let image = new Image();
@@ -89,27 +95,251 @@ export class TileType {
 
     static tileTypeToGold: {[key: string]: number;} = {};
 
+    static defaultChanceToLeave: number = 0.00001;
+    static defaultRevenuePerCost: number = 0.0005;
+
     static initialize() {
-        TileType.destroyed = new TileType("DESTROYED", null, 0x000000, 0, 0, 1, 0, 1000000);
-        TileType.destroyedCheaply = new TileType("DESTROYED", null, 0x000000, 0, 0, 1, 0, 1000);
-        TileType.plains = new TileType("PLAINS", new ImagePrairie(), 0xC0FF6D, 1, 0.5, 0.2, 0, 100);
-        TileType.farm = new TileType("FARM", new ImageFarm(), 0xC0FF6D, 5, 0.2, 0.0, 0, 1000);
-        TileType.factoryFarm = new TileType("FACTORY FARM", new ImageFactoryFarm, 0xC0FF6D, 50, 0.5, 0.0, 0, 10000);
-        TileType.forest = new TileType("FOREST", new ImageForest(), 0x228B22, 2, 0.5, 0.21, 0, 1000);
-        TileType.mountains = new TileType("MOUNTAINS", new ImageMountain(), 0x968D99, 3, 0.25, 0.1, 0, 0);
-        TileType.sea = new TileType("SEA", new ImageWater(), 0x006994, 1, 0.00001, 0.1, 0, 0);
-        TileType.desert = new TileType("DESERT", new ImageDesert(), 0xEDC9AF, 0, 0.01, 0.1, 0, 0);
-        TileType.goldMine = new TileType("GOLD MINE", new ImageGoldMine(), 0xFFDF00, 100, 0.01, 0.0, 0, 10000);
-        TileType.gold = new TileType("GOLD", new ImageGold(), 0xFFDF00, 20, 0.01, 0.0, 0, 0);
-        TileType.diamondMine = new TileType("DIAMOND MINE", new ImageDiamondMine(), 0x9AC5DB, 200, 0.01, 0.0, 0, 20000);
-        TileType.diamond = new TileType("DIAMOND", new ImageDiamond(), 0x9AC5DB, 40, 0.01, 0.0, 0, 0);
-        TileType.megalopolis = new TileType("MEGALOPOLIS", new ImageMegalopolis(), 0x000000, 100000, 0.1, 0.0, 1.0, 1000000);
-        TileType.city = new TileType("CITY", new ImageCity(), 0x000000, 1000, 0.1, 0.0, 0.5, 500000);
-        TileType.town = new TileType("TOWN", new ImageTown(), 0x000000, 100, 0.1, 0.0, 0.1, 100000);
-        TileType.village = new TileType("VILLAGE", new ImageVillage(), 0x000000, 10, 0.1, 0.0, 0.01, 10000);
-        TileType.militaryBase = new TileType("MILITARY BASE", new ImageMilitaryBase(), 0x000000, -1000, 0.1, 0.0, 0.75, 100000);
-        TileType.barracks = new TileType("BARRACKS", new ImageBarracks(), 0x000000, -100, 0.1, 0.0, 0.1, 10000);
-        TileType.wall = new TileType("WALL", new ImageWall(), 0x000000, -1, 0.01, 0.0, 0.01, 1000);
+        TileType.destroyed = new TileType(
+            "DESTROYED"
+            ,
+            null,
+            0x000000,
+            0,
+            0,
+            1,
+            0,
+            1000000,
+            false,
+            false
+        );
+        TileType.destroyedCheaply = new TileType(
+            "DESTROYED",
+            null,
+            0x000000,
+            0,
+            0,
+            1,
+            0,
+            1000,
+            false,
+            false
+        );
+        TileType.plains = new TileType(
+            "PLAINS",
+            new ImagePrairie(),
+            0xC0FF6D,
+            1,
+            0.5,
+            0.5,
+            0,
+            50000,
+            true,
+            true
+        );
+        TileType.farm = new TileType(
+            "FARM",
+            new ImageFarm(),
+            0xC0FF6D,
+            50000 * TileType.defaultRevenuePerCost,
+            0.5,
+            TileType.defaultChanceToLeave * 10,
+            0,
+            50000,
+            true,
+            false
+        );
+        TileType.factoryFarm = new TileType(
+            "FACTORY FARM",
+            new ImageFactoryFarm,
+            0xC0FF6D,
+            100000 * TileType.defaultRevenuePerCost,
+            0.5,
+            TileType.defaultChanceToLeave * 10,
+            0,
+            100000,
+            true,
+            false
+        );
+        TileType.forest = new TileType(
+            "FOREST",
+            new ImageForest(),
+            0x228B22,
+            2,
+            0.5,
+            0.5,
+            0,
+            1000,
+            false,
+            true
+        );
+        TileType.mountains = new TileType(
+            "MOUNTAINS",
+            new ImageMountain(),
+            0x968D99,
+            3,
+            0.25,
+            0.1,
+            0,
+            0,
+            false,
+            true
+        );
+        TileType.sea = new TileType(
+            "SEA",
+            new ImageWater(),
+            0x006994,
+            1,
+            0.00001,
+            0.1,
+            0,
+            0,
+            false,
+            true
+        );
+        TileType.desert = new TileType(
+            "DESERT",
+            new ImageDesert(),
+            0xEDC9AF,
+            0,
+            0.01,
+            0.1,
+            0,
+            0,
+            false,
+            true
+        );
+        TileType.goldMine = new TileType(
+            "GOLD MINE",
+            new ImageGoldMine(),
+            0xFFDF00,
+            10000 * TileType.defaultRevenuePerCost * 3,
+            0.5,
+            TileType.defaultChanceToLeave,
+            0,
+            10000,
+            true,
+            false
+        );
+        TileType.gold = new TileType(
+            "GOLD",
+            new ImageGold(),
+            0xFFDF00,
+            10000 * TileType.defaultRevenuePerCost * 1,
+            0.5,
+            TileType.defaultChanceToLeave,
+            0,
+            0,
+            true,
+            true
+        );
+        TileType.diamondMine = new TileType(
+            "DIAMOND MINE",
+            new ImageDiamondMine(),
+            0x9AC5DB,
+            10000 * TileType.defaultRevenuePerCost * 4,
+            0.5,
+            TileType.defaultChanceToLeave,
+            0,
+            20000,
+            true,
+            false
+        );
+        TileType.diamond = new TileType(
+            "DIAMOND",
+            new ImageDiamond(),
+            0x9AC5DB,
+            10000 * TileType.defaultRevenuePerCost * 2,
+            0.5,
+            TileType.defaultChanceToLeave,
+            0,
+            0,
+            true,
+            true
+        );
+        TileType.megalopolis = new TileType(
+            "MEGALOPOLIS",
+            new ImageMegalopolis(),
+            0x000000,
+            10000000 * TileType.defaultRevenuePerCost * 0.01,
+            0.5,
+            TileType.defaultChanceToLeave,
+            0.05,
+            10000000,
+            true,
+            false
+        );
+        TileType.city = new TileType(
+            "CITY",
+            new ImageCity(),
+            0x000000,
+            5000000 * TileType.defaultRevenuePerCost * 0.01,
+            0.5,
+            TileType.defaultChanceToLeave,
+            0.01,
+            5000000,
+            true,
+            false
+        );
+        TileType.town = new TileType(
+            "TOWN",
+            new ImageTown(),
+            0x000000,
+            1000000 * TileType.defaultRevenuePerCost * 0.01,
+            0.5,
+            TileType.defaultChanceToLeave,
+            0.005,
+            1000000,
+            true,
+            false
+        );
+        TileType.village = new TileType(
+            "VILLAGE",
+            new ImageVillage(),
+            0x000000,
+            50000 * TileType.defaultRevenuePerCost * 0.01,
+            0.5,
+            TileType.defaultChanceToLeave,
+            0.001,
+            50000,
+            true,
+            false
+        );
+        TileType.militaryBase = new TileType(
+            "MILITARY BASE",
+            new ImageMilitaryBase(),
+            0x000000,
+            -1000,
+            0.5,
+            TileType.defaultChanceToLeave,
+            0.03,
+            1000000,
+            true,
+            false
+        );
+        TileType.barracks = new TileType(
+            "BARRACKS",
+            new ImageBarracks(),
+            0x000000,
+            -100,
+            0.5,
+            TileType.defaultChanceToLeave,
+            0.01,
+            100000,
+            true,
+            false
+        );
+        TileType.wall = new TileType(
+            "WALL",
+            new ImageWall(),
+            0x000000,
+            -1,
+            0.0,
+            0.0,
+            0.01,
+            10000,
+            false,
+            false
+        );
 
         TileType.destroyed.possibleUpgrades = [TileType.plains];
         TileType.destroyedCheaply.possibleUpgrades = [TileType.plains];
@@ -117,7 +347,7 @@ export class TileType {
         TileType.farm.possibleUpgrades = [TileType.factoryFarm, TileType.destroyed];
         TileType.factoryFarm.possibleUpgrades = [TileType.destroyed];
         TileType.forest.possibleUpgrades = [TileType.plains, TileType.destroyedCheaply];
-        TileType.mountains.possibleUpgrades = [TileType.destroyedCheaply];
+        TileType.mountains.possibleUpgrades = [TileType.village, TileType.destroyedCheaply];
         TileType.sea.possibleUpgrades = [TileType.plains, TileType.destroyedCheaply];
         TileType.desert.possibleUpgrades = [TileType.destroyedCheaply];
         TileType.goldMine.possibleUpgrades = [TileType.destroyed];

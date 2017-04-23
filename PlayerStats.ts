@@ -16,7 +16,7 @@ export class PlayerStats {
         this.tileTypeToNumberOwned[tileTypeName] ++;
     }
 
-    totalGold() {
+    totalGoldPerTurn() {
         let returnValue: number = 0;
         for(let tileTypeName in this.tileTypeToNumberOwned) {
             let numberOwned = this.tileTypeToNumberOwned[tileTypeName];

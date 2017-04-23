@@ -9,8 +9,8 @@ export class Player {
     material: THREE.Material;
     gold: number = 0;
 
-    attack: number = 0.01;
-    defense: number = 1.0;
+    attack: number = 0.1;
+    defense: number = 0.5;
 
     kills: number = 0;
     deaths: number = 0;
@@ -33,7 +33,7 @@ export class Player {
     }
 
     static nextPlayerColorIndex: number = 0;
-    static allPlayerColors = [0xFF0000, 0x0000FF, 0xFFA500, 0x00FF00, 0xD2691E];
-    static allPlayerColorsAsString = ['#FF0000', '#0000FF', '#FFA500', '#00FF00', '#D2691E'];
-    static allPlayersName = ['YOU', 'BLUE', 'ORANGE', 'GREEN', 'BROWN'];
+    static allPlayerColors = [0xFF0000, 0x0000FF, 0xFFA500, 0x00FF00, 0xFF69B4];
+    static allPlayerColorsAsString = ['#FF0000', '#0000FF', '#FFA500', '#00FF00', '#FF69B4'];
+    static allPlayersName = ['YOU', 'BLUE', 'ORANGE', 'GREEN', 'PINK'];
 }
