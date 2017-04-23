@@ -4,11 +4,9 @@ import {Graph} from "./ShortestPath";
 import {TileType} from "./TileType";
 import Vector2 = THREE.Vector2;
 
-//wholeGraph.addVertex('A', {B: 7, C: 8});
-//console.log(g.shortestPath('A', 'H').concat(['A']).reverse());
 export class Pathfinder {
     autowired: Autowired;
-    resolution = 10;
+    resolution = 4;
 
     largeToLargeShortestPath: {[key: string]: {[key: string]: any[]};} = {};
 
@@ -23,6 +21,12 @@ export class Pathfinder {
         let unscaledY = parseInt(pieces[1]);
         let x = unscaledX * this.resolution;
         let y = unscaledY * this.resolution;
+        if (x >= this.autowired.WIDTH) {
+            x = (unscaledX - 1) * this.resolution;
+        }
+        if (y >= this.autowired.HEIGHT - 1) {
+            y = (unscaledY - 1) * this.resolution;
+        }
         return new Vector2(x, y)
     }
 
@@ -37,7 +41,12 @@ export class Pathfinder {
             let neighborMap = {};
             for (let neighbor of this.autowired.world.neighborBlocks(worldblock.position)) {
                 //todo: exclude sea earlier
-                if (worldblock.tileType != TileType.sea && neighbor.tileType != TileType.sea) {
+                if (
+                    worldblock.tileType != TileType.sea
+                    && neighbor.tileType != TileType.sea
+                    && worldblock.tileType != TileType.desert
+                    && neighbor.tileType != TileType.desert
+                ) {
                     neighborMap[this.smallBucketKey(neighbor.position)] = 1;
                 }
             }
@@ -55,6 +64,11 @@ export class Pathfinder {
                 let point = new Vector2(i, j);
                 let worldBlock = this.autowired.world.map[i][j];
                 let key = this.largeBucketKey(point);
+                let largeBucketCenter = this.fromLargeBucketKey(key);
+                let largeBucketWorldblock = this.autowired.world.getMap(largeBucketCenter);
+                if (largeBucketWorldblock.tileType == TileType.sea || largeBucketWorldblock.tileType == TileType.desert) {
+                    continue;
+                }
                 if (buckets[key] == null) {
                     buckets[key] = [];
                 }
@@ -70,6 +84,10 @@ export class Pathfinder {
                 hasBeenCalculated[a][b] = false;
             }
         }
+        var values = Object.keys(buckets).map(function (key) {
+            return buckets[key];
+        });
+        let graph = this.generateSubGraph(values);
         for (let a in buckets) {
             localLargeToLarge[a] = {};
             for (let b in buckets) {
@@ -81,17 +99,16 @@ export class Pathfinder {
                     localLargeToLarge[a][b] = localLargeToLarge[b][a];
                 }
                 hasBeenCalculated[a][b] = true;
-                let subgraph = this.generateSubGraph([buckets[a], buckets[b]]);
 
                 let aPosition = this.fromLargeBucketKey(a);
                 let bPosition = this.fromLargeBucketKey(b);
 
-                if (aPosition.distanceToManhattan(bPosition) > 10) {
+                if (aPosition.distanceToManhattan(bPosition) > this.resolution) {
                     localLargeToLarge[a][b] = null;
                 } else {
                     let aSmall = this.smallBucketKey(aPosition);
                     let bSmall = this.smallBucketKey(bPosition);
-                    let path: any[] = subgraph.shortestPath(aSmall, bSmall);
+                    let path: any[] = graph.shortestPath(aSmall, bSmall);
                     if (path.length == 0) {
                         localLargeToLarge[a][b] = null;
                     }
@@ -136,7 +153,10 @@ export class Pathfinder {
             return desiredPosition;
         } else {
             //global pathfinding
-            let largeShortestPath = this.largeToLargeShortestPath[currentKey][desiredKey];
+            let largeShortestPath = null;
+            if (this.largeToLargeShortestPath[currentKey] && this.largeToLargeShortestPath[desiredKey]) {
+                largeShortestPath = this.largeToLargeShortestPath[currentKey][desiredKey];
+            }
             if (largeShortestPath == null) {
                 //no way there
                 return null;

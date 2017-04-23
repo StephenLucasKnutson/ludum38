@@ -1033,6 +1033,7 @@ System.register("Simulator", ["Player", "TileType", "Minion"], function(exports_
                                     }
                                 }
                                 var colors = Object.keys(playerColorToPoorSucker);
+                                colors = _(colors).without(minion.owningPlayer.colorAsString);
                                 //If enemy has no more minions, retarget
                                 if (minion.targetColor != null && colors.indexOf(minion.targetColor) == -1) {
                                     minion.targetColor = null;
@@ -1046,7 +1047,7 @@ System.register("Simulator", ["Player", "TileType", "Minion"], function(exports_
                                     for (var _c = 0, colors_1 = colors; _c < colors_1.length; _c++) {
                                         var color = colors_1[_c];
                                         var thisColorTarget = playerColorToPoorSucker[color];
-                                        if (color != minion.owningPlayer.colorAsString && this.autowired.pathfinder.isReachable(point, thisColorTarget)) {
+                                        if (this.autowired.pathfinder.isReachable(point, thisColorTarget)) {
                                             minion.targetColor = color;
                                             break;
                                         }
@@ -1498,11 +1499,9 @@ System.register("Pathfinder", ["ShortestPath", "TileType"], function(exports_31,
             }],
         execute: function() {
             Vector2 = THREE.Vector2;
-            //wholeGraph.addVertex('A', {B: 7, C: 8});
-            //console.log(g.shortestPath('A', 'H').concat(['A']).reverse());
             Pathfinder = (function () {
                 function Pathfinder(autowired) {
-                    this.resolution = 10;
+                    this.resolution = 4;
                     this.largeToLargeShortestPath = {};
                     this.autowired = autowired;
                     var buckets = {};
@@ -1511,6 +1510,11 @@ System.register("Pathfinder", ["ShortestPath", "TileType"], function(exports_31,
                             var point = new Vector2(i, j);
                             var worldBlock = this.autowired.world.map[i][j];
                             var key = this.largeBucketKey(point);
+                            var largeBucketCenter = this.fromLargeBucketKey(key);
+                            var largeBucketWorldblock = this.autowired.world.getMap(largeBucketCenter);
+                            if (largeBucketWorldblock.tileType == TileType_4.TileType.sea || largeBucketWorldblock.tileType == TileType_4.TileType.desert) {
+                                continue;
+                            }
                             if (buckets[key] == null) {
                                 buckets[key] = [];
                             }
@@ -1525,6 +1529,10 @@ System.register("Pathfinder", ["ShortestPath", "TileType"], function(exports_31,
                             hasBeenCalculated[a][b] = false;
                         }
                     }
+                    var values = Object.keys(buckets).map(function (key) {
+                        return buckets[key];
+                    });
+                    var graph = this.generateSubGraph(values);
                     for (var a in buckets) {
                         localLargeToLarge[a] = {};
                         for (var b in buckets) {
@@ -1536,16 +1544,15 @@ System.register("Pathfinder", ["ShortestPath", "TileType"], function(exports_31,
                                 localLargeToLarge[a][b] = localLargeToLarge[b][a];
                             }
                             hasBeenCalculated[a][b] = true;
-                            var subgraph = this.generateSubGraph([buckets[a], buckets[b]]);
                             var aPosition = this.fromLargeBucketKey(a);
                             var bPosition = this.fromLargeBucketKey(b);
-                            if (aPosition.distanceToManhattan(bPosition) > 10) {
+                            if (aPosition.distanceToManhattan(bPosition) > this.resolution) {
                                 localLargeToLarge[a][b] = null;
                             }
                             else {
                                 var aSmall = this.smallBucketKey(aPosition);
                                 var bSmall = this.smallBucketKey(bPosition);
-                                var path = subgraph.shortestPath(aSmall, bSmall);
+                                var path = graph.shortestPath(aSmall, bSmall);
                                 if (path.length == 0) {
                                     localLargeToLarge[a][b] = null;
                                 }
@@ -1588,6 +1595,12 @@ System.register("Pathfinder", ["ShortestPath", "TileType"], function(exports_31,
                     var unscaledY = parseInt(pieces[1]);
                     var x = unscaledX * this.resolution;
                     var y = unscaledY * this.resolution;
+                    if (x >= this.autowired.WIDTH) {
+                        x = (unscaledX - 1) * this.resolution;
+                    }
+                    if (y >= this.autowired.HEIGHT - 1) {
+                        y = (unscaledY - 1) * this.resolution;
+                    }
                     return new Vector2(x, y);
                 };
                 Pathfinder.prototype.smallBucketKey = function (point) {
@@ -1602,7 +1615,10 @@ System.register("Pathfinder", ["ShortestPath", "TileType"], function(exports_31,
                         for (var _a = 0, _b = this.autowired.world.neighborBlocks(worldblock.position); _a < _b.length; _a++) {
                             var neighbor = _b[_a];
                             //todo: exclude sea earlier
-                            if (worldblock.tileType != TileType_4.TileType.sea && neighbor.tileType != TileType_4.TileType.sea) {
+                            if (worldblock.tileType != TileType_4.TileType.sea
+                                && neighbor.tileType != TileType_4.TileType.sea
+                                && worldblock.tileType != TileType_4.TileType.desert
+                                && neighbor.tileType != TileType_4.TileType.desert) {
                                 neighborMap[this.smallBucketKey(neighbor.position)] = 1;
                             }
                         }
@@ -1622,7 +1638,10 @@ System.register("Pathfinder", ["ShortestPath", "TileType"], function(exports_31,
                     }
                     else {
                         //global pathfinding
-                        var largeShortestPath = this.largeToLargeShortestPath[currentKey][desiredKey];
+                        var largeShortestPath = null;
+                        if (this.largeToLargeShortestPath[currentKey] && this.largeToLargeShortestPath[desiredKey]) {
+                            largeShortestPath = this.largeToLargeShortestPath[currentKey][desiredKey];
+                        }
                         if (largeShortestPath == null) {
                             //no way there
                             return null;

@@ -152,6 +152,7 @@ export class Simulator {
                         }
                     }
                     let colors = Object.keys(playerColorToPoorSucker);
+                    colors = _(colors).without(minion.owningPlayer.colorAsString);
 
                     //If enemy has no more minions, retarget
                     if (minion.targetColor != null && colors.indexOf(minion.targetColor) == -1) {
@@ -166,7 +167,7 @@ export class Simulator {
                         colors = _(colors).shuffle();
                         for (let color of colors) {
                             let thisColorTarget = playerColorToPoorSucker[color];
-                            if (color != minion.owningPlayer.colorAsString && this.autowired.pathfinder.isReachable(point, thisColorTarget)) {
+                            if (this.autowired.pathfinder.isReachable(point, thisColorTarget)) {
                                 minion.targetColor = color;
                                 break;
                             }
