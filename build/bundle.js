@@ -855,8 +855,12 @@ System.register("Simulator", ["Player", "TileType"], function(exports_25, contex
                         var startingWorldBlock = this.autowired.world.map[startingPosition.x][startingPosition.y];
                         startingWorldBlock.setOwningPlayer(newPlayer);
                         startingWorldBlock.setTileType(TileType_3.TileType.village);
+                        if (i == 0) {
+                            this.playerCharacter = newPlayer;
+                            this.autowired.camera.position.x = startingPosition.x * 10;
+                            this.autowired.camera.position.y = startingPosition.y * 10;
+                        }
                     }
-                    this.playerCharacter = this.players[0];
                 }
                 Simulator.prototype.nonPlayerCharacters = function () {
                     var returnValue = [];
@@ -2293,6 +2297,7 @@ catch (a) {
     throw a.source = i, a;
 } var c = function (n) { return o.call(this, n, m); }, f = t.variable || "obj"; return c.source = "function(" + f + "){\n" + i + "}", c; }, m.chain = function (n) { var t = m(n); return t._chain = !0, t; }; var P = function (n, t) { return n._chain ? m(t).chain() : t; }; m.mixin = function (n) { m.each(m.functions(n), function (t) { var r = m[t] = n[t]; m.prototype[t] = function () { var n = [this._wrapped]; return f.apply(n, arguments), P(this, r.apply(m, n)); }; }); }, m.mixin(m), m.each(["pop", "push", "reverse", "shift", "sort", "splice", "unshift"], function (n) { var t = o[n]; m.prototype[n] = function () { var r = this._wrapped; return t.apply(r, arguments), "shift" !== n && "splice" !== n || 0 !== r.length || delete r[0], P(this, r); }; }), m.each(["concat", "join", "slice"], function (n) { var t = o[n]; m.prototype[n] = function () { return P(this, t.apply(this._wrapped, arguments)); }; }), m.prototype.value = function () { return this._wrapped; }, m.prototype.valueOf = m.prototype.toJSON = m.prototype.value, m.prototype.toString = function () { return "" + this._wrapped; }, "function" == typeof define && define.amd && define("underscore", [], function () { return m; }); }).call(this);
 //# sourceMappingURL=underscore-min.map 
+//Source https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.min.js
 // threejs.org/license
 'use strict';
 var THREE = { REVISION: "79" };

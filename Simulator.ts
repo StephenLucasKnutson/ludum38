@@ -21,9 +21,13 @@ export class Simulator {
             let startingPosition: THREE.Vector2 = this.autowired.world.randomSpotOnPlains();
             let startingWorldBlock: WorldBlock = this.autowired.world.map[startingPosition.x][startingPosition.y];
             startingWorldBlock.setOwningPlayer(newPlayer);
-            startingWorldBlock.setTileType(TileType.village)
+            startingWorldBlock.setTileType(TileType.village);
+            if(i == 0) {
+                this.playerCharacter = newPlayer;
+                this.autowired.camera.position.x = startingPosition.x * 10;
+                this.autowired.camera.position.y = startingPosition.y * 10;
+            }
         }
-        this.playerCharacter = this.players[0];
     }
 
     nonPlayerCharacters() {
