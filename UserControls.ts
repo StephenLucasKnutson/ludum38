@@ -26,7 +26,6 @@ export class UserControls {
             let mousePosition = new Vector2(event.clientX, event.clientY);
             let screenSize = new Vector2(canvas.innerWidth(), canvas.innerHeight());
             this.mousePosition = mousePosition.divide(screenSize);
-            console.log(this.mousePosition);
         })
     };
 
