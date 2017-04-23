@@ -3,8 +3,6 @@
     "module": "system",
     "outFile": "build/bundle.js",
     "outDir": "build/classes",
-    "sourceMap": true,
-    "inlineSources": true,
     "target": "es5"
   }
 }

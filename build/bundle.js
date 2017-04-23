@@ -1400,6 +1400,9 @@ System.register("PriorityQueue", [], function(exports_29, context_29) {
                         }
                         return ans;
                     };
+                    this.clear = function () {
+                        this.size = 0;
+                    };
                     this.trim = function () {
                         this.array = this.array.slice(0, this.size);
                     };
@@ -1440,21 +1443,13 @@ System.register("ShortestPath", ["PriorityQueue"], function(exports_30, context_
                     this.addVertex = function (name, edges) {
                         this.vertices[name] = edges;
                     };
-                    this.shortestPath = function (start, finish) {
-                        var nodes = new PriorityQueue_1.PriorityQueue(), distances = {}, previous = {}, path = [], smallest, vertex, neighbor, alt;
-                        for (vertex in this.vertices) {
-                            if (vertex === start) {
-                                distances[vertex] = 0;
-                                nodes.add({ weight: 0, value: vertex });
-                            }
-                            else {
-                                distances[vertex] = this.INFINITY;
-                                nodes.add({ weight: this.INFINITY, value: vertex });
-                            }
-                            previous[vertex] = null;
-                        }
-                        while (!nodes.isEmpty()) {
-                            smallest = nodes.poll().value;
+                    this.nodes = new PriorityQueue_1.PriorityQueue();
+                    this.shortestPath = function (start, finish, maxSize) {
+                        var distances = {}, previous = {}, path = [], smallest, vertex, neighbor, alt;
+                        distances[start] = 0;
+                        this.nodes.add({ weight: 0, value: vertex });
+                        while (!this.nodes.isEmpty()) {
+                            smallest = this.nodes.poll().value;
                             if (smallest === finish) {
                                 path = [];
                                 while (previous[smallest]) {
@@ -1463,15 +1458,25 @@ System.register("ShortestPath", ["PriorityQueue"], function(exports_30, context_
                                 }
                                 break;
                             }
-                            if (!smallest || distances[smallest] === this.INFINITY) {
-                                continue;
+                            var distance = distances[smallest];
+                            if (distance == null) {
+                                distance = Infinity;
+                            }
+                            if (!smallest || distance > maxSize) {
+                                path = [];
+                                this.nodes.clear();
+                                break;
                             }
                             for (neighbor in this.vertices[smallest]) {
-                                alt = distances[smallest] + this.vertices[smallest][neighbor];
-                                if (alt < distances[neighbor]) {
+                                alt = distance + this.vertices[smallest][neighbor];
+                                var neighborDistance = distance[neighbor];
+                                if (neighborDistance == null) {
+                                    neighborDistance = null;
+                                }
+                                if (alt < neighborDistance) {
                                     distances[neighbor] = alt;
                                     previous[neighbor] = smallest;
-                                    nodes.add({ weight: alt, value: neighbor });
+                                    this.nodes.add({ weight: alt, value: neighbor });
                                 }
                             }
                         }
@@ -1501,7 +1506,7 @@ System.register("Pathfinder", ["ShortestPath", "TileType"], function(exports_31,
             Vector2 = THREE.Vector2;
             Pathfinder = (function () {
                 function Pathfinder(autowired) {
-                    this.resolution = 4;
+                    this.resolution = 2;
                     this.largeToLargeShortestPath = {};
                     this.autowired = autowired;
                     var buckets = {};
@@ -1525,9 +1530,6 @@ System.register("Pathfinder", ["ShortestPath", "TileType"], function(exports_31,
                     var hasBeenCalculated = {};
                     for (var a in buckets) {
                         hasBeenCalculated[a] = {};
-                        for (var b in buckets) {
-                            hasBeenCalculated[a][b] = false;
-                        }
                     }
                     var values = Object.keys(buckets).map(function (key) {
                         return buckets[key];
@@ -1552,7 +1554,7 @@ System.register("Pathfinder", ["ShortestPath", "TileType"], function(exports_31,
                             else {
                                 var aSmall = this.smallBucketKey(aPosition);
                                 var bSmall = this.smallBucketKey(bPosition);
-                                var path = graph.shortestPath(aSmall, bSmall);
+                                var path = graph.shortestPath(aSmall, bSmall, this.resolution * 2);
                                 if (path.length == 0) {
                                     localLargeToLarge[a][b] = null;
                                 }
@@ -1573,7 +1575,7 @@ System.register("Pathfinder", ["ShortestPath", "TileType"], function(exports_31,
                     for (var a in buckets) {
                         this.largeToLargeShortestPath[a] = {};
                         for (var b in buckets) {
-                            var shortestPath = globalGraph.shortestPath(a, b);
+                            var shortestPath = globalGraph.shortestPath(a, b, Infinity);
                             if (shortestPath.length == 0) {
                                 this.largeToLargeShortestPath[a][b] = null;
                             }
@@ -1842,4 +1844,3 @@ System.register("Main", ["Autowired"], function(exports_34, context_34) {
         }
     }
 });
-//# sourceMappingURL=bundle.js.map

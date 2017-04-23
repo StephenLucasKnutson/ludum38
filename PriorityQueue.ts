@@ -116,6 +116,9 @@ export class PriorityQueue {
         }
         return ans;
     };
+    clear = function () {
+        this.size = 0;
+    };
     trim = function () {
         this.array = this.array.slice(0, this.size);
     };
