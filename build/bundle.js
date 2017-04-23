@@ -967,7 +967,7 @@ System.register("UI", [], function(exports_26, context_26) {
                         var rateOfGold = "GOLD GENERATED: " + this.nf.format(selected.tileType.goldPerTurn);
                         var rateOfUnits = "UNITS GENERATED: " + this.nf.format(selected.tileType.chanceToSpawn);
                         var possibleUpgrades = "POSSIBLE UPGRADES: ";
-                        this.worldBlockDIV.innerText = [tileTypeString, player, rateOfGold, possibleUpgrades, rateOfUnits].join('\n');
+                        this.worldBlockDIV.innerText = [tileTypeString, player, rateOfGold, rateOfUnits, possibleUpgrades].join('\n');
                         var tileType = selected.tileType;
                         this.upgradesDIV = document.createElement('div');
                         var user_1 = self.autowired.simulator.playerCharacter;
@@ -1160,21 +1160,40 @@ System.register("Main", ["Autowired"], function(exports_29, context_29) {
     "use strict";
     var __moduleName = context_29 && context_29.id;
     var Autowired_1;
-    var Main, main;
+    var Vector2, Main, main;
     return {
         setters:[
             function (Autowired_1_1) {
                 Autowired_1 = Autowired_1_1;
             }],
         execute: function() {
+            Vector2 = THREE.Vector2;
             Main = (function () {
                 function Main() {
                     var _this = this;
                     this.render = function () {
                         _this.autowired.userControls.update();
                         _this.autowired.simulator.update();
+                        var winning = true;
+                        var defeated = true;
+                        var player = _this.autowired.simulator.playerCharacter;
+                        for (var i = 0; i < _this.autowired.WIDTH; i++) {
+                            for (var j = 0; j < _this.autowired.HEIGHT; j++) {
+                                var worldBlock = _this.autowired.world.getMap(new Vector2(i, j));
+                                winning = winning && (worldBlock.owningPlayer == null || worldBlock.owningPlayer == player);
+                                defeated = defeated && (worldBlock.owningPlayer != player);
+                            }
+                        }
+                        if (winning) {
+                            alert('You defeated all enemies to win. Congratulations! Thanks for playing! Refresh the page to play again!');
+                        }
+                        if (defeated) {
+                            alert('You have been defeated. Sorry! Thanks for playing! Refresh the page to play again!');
+                        }
                         _this.autowired.renderer.render(_this.autowired.scene, _this.autowired.camera);
-                        requestAnimationFrame(_this.render);
+                        if (!winning && !defeated) {
+                            requestAnimationFrame(_this.render);
+                        }
                     };
                     this.autowired = new Autowired_1.Autowired();
                     setInterval(function () {

@@ -49,7 +49,7 @@ export class UI {
             let rateOfGold: string = "GOLD GENERATED: " + this.nf.format(selected.tileType.goldPerTurn);
             let rateOfUnits: string = "UNITS GENERATED: " + this.nf.format(selected.tileType.chanceToSpawn);
             let possibleUpgrades: String = "POSSIBLE UPGRADES: ";
-            this.worldBlockDIV.innerText = [tileTypeString, player, rateOfGold, possibleUpgrades, rateOfUnits].join('\n');
+            this.worldBlockDIV.innerText = [tileTypeString, player, rateOfGold, rateOfUnits, possibleUpgrades].join('\n');
 
             let tileType = selected.tileType;
             this.upgradesDIV = document.createElement('div');
