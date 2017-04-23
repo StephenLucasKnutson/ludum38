@@ -6,7 +6,7 @@ import Vector2 = THREE.Vector2;
 
 export class Pathfinder {
     autowired: Autowired;
-    resolution = 2;
+    resolution = 4;
 
     largeToLargeShortestPath: {[key: string]: {[key: string]: any[]};} = {};
 
@@ -93,7 +93,7 @@ export class Pathfinder {
                     continue;
                 }
                 if (hasBeenCalculated[b][a]) {
-                    localLargeToLarge[a][b] = localLargeToLarge[b][a];
+                    localLargeToLarge[a][b] = new Array(localLargeToLarge[b][a]).reverse()
                 }
                 hasBeenCalculated[a][b] = true;
 
@@ -105,7 +105,7 @@ export class Pathfinder {
                 } else {
                     let aSmall = this.smallBucketKey(aPosition);
                     let bSmall = this.smallBucketKey(bPosition);
-                    let path: any[] = graph.shortestPath(aSmall, bSmall, this.resolution * 2);
+                    let path: any[] = graph.shortestPath(aSmall, bSmall);
                     if (path.length == 0) {
                         localLargeToLarge[a][b] = null;
                     }
@@ -126,7 +126,8 @@ export class Pathfinder {
         for (let a in buckets) {
             this.largeToLargeShortestPath[a] = {};
             for (let b in buckets) {
-                let shortestPath = globalGraph.shortestPath(a, b, Infinity);
+
+                let shortestPath = globalGraph.shortestPath(a, b);
                 if (shortestPath.length == 0) {
                     this.largeToLargeShortestPath[a][b] = null;
                 } else {

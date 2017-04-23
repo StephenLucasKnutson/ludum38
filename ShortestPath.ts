@@ -16,18 +16,29 @@ export class Graph {
     addVertex = function (name, edges) {
         this.vertices[name] = edges;
     };
-    nodes = new PriorityQueue();
-    shortestPath = function (start, finish, maxSize) {
-        let distances = {},
+
+    shortestPath = function (start, finish) {
+        var nodes = new PriorityQueue(),
+            distances = {},
             previous = {},
             path = [],
             smallest, vertex, neighbor, alt;
 
-        distances[start] = 0;
-        this.nodes.add({weight: 0, value: vertex});
+        for (vertex in this.vertices) {
+            if (vertex === start) {
+                distances[vertex] = 0;
+                nodes.add({weight: 0, value: vertex});
+            }
+            else {
+                distances[vertex] = this.INFINITY;
+                nodes.add({weight: this.INFINITY, value: vertex});
+            }
 
-        while (!this.nodes.isEmpty()) {
-            smallest = this.nodes.poll().value;
+            previous[vertex] = null;
+        }
+
+        while (!nodes.isEmpty()) {
+            smallest = nodes.poll().value;
 
             if (smallest === finish) {
                 path = [];
@@ -40,28 +51,18 @@ export class Graph {
                 break;
             }
 
-            let distance = distances[smallest];
-            if(distance == null) {
-                distance = Infinity;
-            }
-            if (!smallest || distance > maxSize) {
-                path = [];
-                this.nodes.clear();
-                break;
+            if (!smallest || distances[smallest] === this.INFINITY) {
+                continue;
             }
 
             for (neighbor in this.vertices[smallest]) {
-                alt = distance + this.vertices[smallest][neighbor];
+                alt = distances[smallest] + this.vertices[smallest][neighbor];
 
-                let neighborDistance = distance[neighbor];
-                if(neighborDistance == null) {
-                    neighborDistance = null;
-                }
-                if (alt < neighborDistance) {
+                if (alt < distances[neighbor]) {
                     distances[neighbor] = alt;
                     previous[neighbor] = smallest;
 
-                    this.nodes.add({weight: alt, value: neighbor});
+                    nodes.add({weight: alt, value: neighbor});
                 }
             }
         }
