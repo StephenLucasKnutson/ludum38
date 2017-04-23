@@ -50,7 +50,7 @@ export class Autowired {
         sidePanelPlane.rotateX(Math.PI);
 
         this.camera.add(sidePanelPlane);
-        sidePanelPlane.position.set(-650, 0, -2);
+        sidePanelPlane.position.set(-300, 0, -2);
 
         this.scene.add(this.camera);
     }

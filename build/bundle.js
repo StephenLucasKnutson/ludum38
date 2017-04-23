@@ -982,9 +982,7 @@ System.register("UI", [], function(exports_26, context_26) {
                                 alert();
                                 if (user_1.gold >= possibleUpgrade.upgradeCost) {
                                     selected.setTileType(possibleUpgrade);
-                                    console.log(user_1.gold);
                                     user_1.gold -= possibleUpgrade.upgradeCost;
-                                    console.log(user_1.gold);
                                 }
                             });
                         });
@@ -1065,14 +1063,10 @@ System.register("UserControls", [], function(exports_27, context_27) {
                     if (this.mousePosition.y > (1.0 - margin)) {
                         this.autowired.camera.translateOnAxis(down, translationScalar);
                     }
-                    var keyToScreenScalar = {
-                        16: 0.97,
-                        32: 1.03,
-                    };
-                    for (var key in keyToScreenScalar) {
-                        if (this.isKeyPressed[key]) {
-                        }
-                    }
+                    this.autowired.camera.position.x = Math.max(0, this.autowired.camera.position.x);
+                    this.autowired.camera.position.x = Math.min(10 * this.autowired.WIDTH, this.autowired.camera.position.x);
+                    this.autowired.camera.position.y = Math.max(0, this.autowired.camera.position.y);
+                    this.autowired.camera.position.y = Math.min(10 * this.autowired.HEIGHT, this.autowired.camera.position.y);
                 };
                 ;
                 UserControls.prototype.onKeyPress = function (event, isKeyDown) {
@@ -1147,7 +1141,7 @@ System.register("Autowired", ["World", "Simulator", "UI", "UserControls"], funct
                     var sidePanelPlane = new THREE.Mesh(geometry, material);
                     sidePanelPlane.rotateX(Math.PI);
                     this.camera.add(sidePanelPlane);
-                    sidePanelPlane.position.set(-650, 0, -2);
+                    sidePanelPlane.position.set(-300, 0, -2);
                     this.scene.add(this.camera);
                 };
                 return Autowired;

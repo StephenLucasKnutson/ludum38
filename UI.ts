@@ -66,9 +66,7 @@ export class UI {
                     alert();
                     if (user.gold >= possibleUpgrade.upgradeCost) {
                         selected.setTileType(possibleUpgrade);
-                        console.log(user.gold);
                         user.gold -= possibleUpgrade.upgradeCost;
-                        console.log(user.gold)
                     }
                 });
             });

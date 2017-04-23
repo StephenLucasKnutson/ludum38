@@ -54,29 +54,24 @@ export class UserControls {
             }
         }
         let margin = 0.05;
-        if(this.mousePosition.x < margin){
+        if (this.mousePosition.x < margin) {
             this.autowired.camera.translateOnAxis(left, translationScalar);
         }
-        if(this.mousePosition.x > (1.0 - margin)) {
+        if (this.mousePosition.x > (1.0 - margin)) {
             this.autowired.camera.translateOnAxis(right, translationScalar);
         }
-        if(this.mousePosition.y < margin){
+        if (this.mousePosition.y < margin) {
             this.autowired.camera.translateOnAxis(up, translationScalar);
         }
-        if(this.mousePosition.y > (1.0 - margin)) {
+        if (this.mousePosition.y > (1.0 - margin)) {
             this.autowired.camera.translateOnAxis(down, translationScalar);
         }
 
-        let keyToScreenScalar: {[key: number]: number;} = {
-            16: 0.97, //shift -> out
-            32: 1.03, //space -> in
-        };
-        for (let key in keyToScreenScalar) {
-            if (this.isKeyPressed[key]) {
-                //this.autowired.camera.zoom *= keyToScreenScalar[key];
-                //this.autowired.camera.updateProjectionMatrix();
-            }
-        }
+        this.autowired.camera.position.x = Math.max(0, this.autowired.camera.position.x);
+        this.autowired.camera.position.x = Math.min(10 * this.autowired.WIDTH, this.autowired.camera.position.x);
+
+        this.autowired.camera.position.y = Math.max(0, this.autowired.camera.position.y);
+        this.autowired.camera.position.y = Math.min(10 * this.autowired.HEIGHT, this.autowired.camera.position.y);
     };
 
     onKeyPress(event, isKeyDown: boolean) {
