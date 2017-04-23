@@ -1067,10 +1067,10 @@ System.register("Simulator", ["Player", "TileType", "Minion"], function(exports_
                                         nextMove = neighbors[Math.floor(neighbors.length)];
                                     }
                                 }
-                                var mustMoveTowardsTarget = (0.9 > Math.random());
+                                var mustMoveTowardsTarget = (0.8 > Math.random());
                                 for (var _d = 0, _e = this.openNeighborBlocks(point); _d < _e.length; _d++) {
                                     var possibleNewPosition = _e[_d];
-                                    var probabilityToMove = possibleNewPosition.tileType.tendencyToEnter * tileType.tendencyToLeave;
+                                    var probabilityToMove = possibleNewPosition.tileType.tendencyToEnter * tileType.tendencyToLeave * 0.3;
                                     var shouldMove = probabilityToMove > Math.random();
                                     var isMovingTowardsTarget = possibleNewPosition.position.distanceTo(nextMove) < point.distanceTo(nextMove);
                                     if (nextMove && shouldMove && (!mustMoveTowardsTarget || isMovingTowardsTarget)) {
@@ -1438,11 +1438,8 @@ System.register("ShortestPath", ["PriorityQueue"], function(exports_30, context_
                         this.vertices[name] = edges;
                     };
                     this.nodes = new PriorityQueue_1.PriorityQueue();
-                    this.shortestPath = function (start, finish) {
+                    this.shortestPath = function (start, finish, maxValue) {
                         var distances = {}, previous = {}, path = [], smallest, vertex, neighbor, alt;
-                        for (vertex in this.vertices) {
-                            distances[vertex] = this.INFINITY;
-                        }
                         distances[start] = 0;
                         this.nodes.add({ weight: 0, value: start });
                         while (!this.nodes.isEmpty()) {
@@ -1455,12 +1452,22 @@ System.register("ShortestPath", ["PriorityQueue"], function(exports_30, context_
                                 }
                                 break;
                             }
-                            if (!smallest || distances[smallest] === this.INFINITY) {
-                                continue;
+                            var distancesSmallest = distances[smallest];
+                            if (distancesSmallest == undefined) {
+                                distancesSmallest = Infinity;
                             }
-                            for (neighbor in this.vertices[smallest]) {
-                                alt = distances[smallest] + this.vertices[smallest][neighbor];
-                                if (alt < distances[neighbor]) {
+                            if (!smallest || distancesSmallest > maxValue) {
+                                this.nodes.clear();
+                                return [];
+                            }
+                            var neighbors = this.vertices[smallest];
+                            for (neighbor in neighbors) {
+                                alt = distancesSmallest + neighbors[neighbor];
+                                var distancesNeighbor = distances[neighbor];
+                                if (distancesNeighbor == undefined) {
+                                    distancesNeighbor = Infinity;
+                                }
+                                if (alt < distancesNeighbor) {
                                     distances[neighbor] = alt;
                                     previous[neighbor] = smallest;
                                     this.nodes.add({ weight: alt, value: neighbor });
@@ -1504,7 +1511,7 @@ System.register("Pathfinder", ["ShortestPath", "TileType"], function(exports_31,
                             var key = this.largeBucketKey(point);
                             var largeBucketCenter = this.fromLargeBucketKey(key);
                             var largeBucketWorldblock = this.autowired.world.getMap(largeBucketCenter);
-                            if (largeBucketWorldblock.tileType == TileType_4.TileType.sea || largeBucketWorldblock.tileType == TileType_4.TileType.desert) {
+                            if (largeBucketWorldblock.tileType == TileType_4.TileType.sea || largeBucketWorldblock.tileType == TileType_4.TileType.desert || largeBucketWorldblock.tileType == TileType_4.TileType.mountains) {
                                 continue;
                             }
                             if (buckets[key] == null) {
@@ -1541,8 +1548,7 @@ System.register("Pathfinder", ["ShortestPath", "TileType"], function(exports_31,
                             else {
                                 var aSmall = this.smallBucketKey(aPosition);
                                 var bSmall = this.smallBucketKey(bPosition);
-                                var path = graph.shortestPath(aSmall, bSmall);
-                                console.log(path);
+                                var path = graph.shortestPath(aSmall, bSmall, 2 * this.resolution);
                                 if (path.length == 0) {
                                     localLargeToLarge[a][b] = null;
                                 }
@@ -1563,7 +1569,7 @@ System.register("Pathfinder", ["ShortestPath", "TileType"], function(exports_31,
                     for (var a in buckets) {
                         this.largeToLargeShortestPath[a] = {};
                         for (var b in buckets) {
-                            var shortestPath = globalGraph.shortestPath(a, b);
+                            var shortestPath = globalGraph.shortestPath(a, b, Infinity);
                             if (shortestPath.length == 0) {
                                 this.largeToLargeShortestPath[a][b] = null;
                             }
@@ -1608,7 +1614,9 @@ System.register("Pathfinder", ["ShortestPath", "TileType"], function(exports_31,
                             if (worldblock.tileType != TileType_4.TileType.sea
                                 && neighbor.tileType != TileType_4.TileType.sea
                                 && worldblock.tileType != TileType_4.TileType.desert
-                                && neighbor.tileType != TileType_4.TileType.desert) {
+                                && neighbor.tileType != TileType_4.TileType.desert
+                                && worldblock.tileType != TileType_4.TileType.mountains
+                                && neighbor.tileType != TileType_4.TileType.mountains) {
                                 neighborMap[this.smallBucketKey(neighbor.position)] = 1;
                             }
                         }

@@ -46,6 +46,8 @@ export class Pathfinder {
                     && neighbor.tileType != TileType.sea
                     && worldblock.tileType != TileType.desert
                     && neighbor.tileType != TileType.desert
+                    && worldblock.tileType != TileType.mountains
+                    && neighbor.tileType != TileType.mountains
                 ) {
                     neighborMap[this.smallBucketKey(neighbor.position)] = 1;
                 }
@@ -66,7 +68,7 @@ export class Pathfinder {
                 let key = this.largeBucketKey(point);
                 let largeBucketCenter = this.fromLargeBucketKey(key);
                 let largeBucketWorldblock = this.autowired.world.getMap(largeBucketCenter);
-                if (largeBucketWorldblock.tileType == TileType.sea || largeBucketWorldblock.tileType == TileType.desert) {
+                if (largeBucketWorldblock.tileType == TileType.sea || largeBucketWorldblock.tileType == TileType.desert || largeBucketWorldblock.tileType == TileType.mountains) {
                     continue;
                 }
                 if (buckets[key] == null) {
@@ -105,8 +107,7 @@ export class Pathfinder {
                 } else {
                     let aSmall = this.smallBucketKey(aPosition);
                     let bSmall = this.smallBucketKey(bPosition);
-                    let path: any[] = graph.shortestPath(aSmall, bSmall);
-                    console.log(path);
+                    let path: any[] = graph.shortestPath(aSmall, bSmall, 2 * this.resolution);
                     if (path.length == 0) {
                         localLargeToLarge[a][b] = null;
                     }
@@ -128,7 +129,7 @@ export class Pathfinder {
             this.largeToLargeShortestPath[a] = {};
             for (let b in buckets) {
 
-                let shortestPath = globalGraph.shortestPath(a, b);
+                let shortestPath = globalGraph.shortestPath(a, b, Infinity);
                 if (shortestPath.length == 0) {
                     this.largeToLargeShortestPath[a][b] = null;
                 } else {

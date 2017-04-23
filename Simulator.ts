@@ -187,9 +187,9 @@ export class Simulator {
                         }
                     }
 
-                    let mustMoveTowardsTarget = (0.9 > Math.random());
+                    let mustMoveTowardsTarget = (0.8 > Math.random());
                     for (let possibleNewPosition of  this.openNeighborBlocks(point)) {
-                        let probabilityToMove = possibleNewPosition.tileType.tendencyToEnter * tileType.tendencyToLeave;
+                        let probabilityToMove = possibleNewPosition.tileType.tendencyToEnter * tileType.tendencyToLeave * 0.3;
                         let shouldMove = probabilityToMove > Math.random();
                         let isMovingTowardsTarget = possibleNewPosition.position.distanceTo(nextMove) < point.distanceTo(nextMove);
                         if (nextMove && shouldMove && (!mustMoveTowardsTarget || isMovingTowardsTarget)) {

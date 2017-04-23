@@ -16,15 +16,12 @@ export class Graph {
         this.vertices[name] = edges;
     };
     nodes = new PriorityQueue();
-    shortestPath = function (start, finish) {
+    shortestPath = function (start, finish, maxValue) {
         var distances = {},
             previous = {},
             path = [],
             smallest, vertex, neighbor, alt;
 
-        for (vertex in this.vertices) {
-            distances[vertex] = this.INFINITY;
-        }
         distances[start] = 0;
         this.nodes.add({weight: 0, value: start});
 
@@ -41,15 +38,25 @@ export class Graph {
 
                 break;
             }
-
-            if (!smallest || distances[smallest] === this.INFINITY) {
-                continue;
+            let distancesSmallest = distances[smallest];
+            if(distancesSmallest == undefined) {
+                distancesSmallest = Infinity
             }
 
-            for (neighbor in this.vertices[smallest]) {
-                alt = distances[smallest] + this.vertices[smallest][neighbor];
+            if (!smallest || distancesSmallest > maxValue) {
+                this.nodes.clear();
+                return []
+            }
 
-                if (alt < distances[neighbor]) {
+            let neighbors = this.vertices[smallest];
+            for (neighbor in neighbors) {
+                alt = distancesSmallest + neighbors[neighbor];
+
+                let distancesNeighbor = distances[neighbor];
+                if(distancesNeighbor == undefined) {
+                    distancesNeighbor = Infinity;
+                }
+                if (alt < distancesNeighbor) {
                     distances[neighbor] = alt;
                     previous[neighbor] = smallest;
 
