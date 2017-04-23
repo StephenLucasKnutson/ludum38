@@ -152,24 +152,46 @@ export class Simulator {
                         }
                     }
                     let colors = Object.keys(playerColorToPoorSucker);
-                    if (!!minion.targetColor) {
-                        if (colors.indexOf(minion.targetColor) == -1) {
-                            minion.targetColor = null;
-                        }
+
+                    //If enemy has no more minions, retarget
+                    if (minion.targetColor != null && colors.indexOf(minion.targetColor) == -1) {
+                        minion.targetColor = null;
+                    }
+                    //If cant reach enemies minions, retarget
+                    if (minion.targetColor != null && !this.autowired.pathfinder.isReachable(point, playerColorToPoorSucker[minion.targetColor])) {
+                        minion.targetColor = null;
                     }
 
                     if (minion.targetColor == null) {
                         colors = _(colors).shuffle();
-                        minion.targetColor = colors[0];
+                        for (let color of colors) {
+                            let thisColorTarget = playerColorToPoorSucker[color];
+                            if (color != minion.owningPlayer.colorAsString && this.autowired.pathfinder.isReachable(point, thisColorTarget)) {
+                                minion.targetColor = color;
+                                break;
+                            }
+                        }
                     }
-                    let target: Vector2 = playerColorToPoorSucker[minion.targetColor];
+                    if (minion.targetColor == null) {
+                        minion.targetColor = colors[Math.floor(colors.length * Math.random())];
+                    }
+                    let enemyTarget: Vector2 = playerColorToPoorSucker[minion.targetColor];
+                    let nextMove = this.autowired.pathfinder.nextPosition(point, enemyTarget);
+                    if (nextMove == null) {
+                        let neighbors = this.autowired.world.withNeighborOffsets(point);
+                        if (neighbors.length == 0) {
+                            nextMove = point;
+                        } else {
+                            nextMove = neighbors[Math.floor(neighbors.length)];
+                        }
+                    }
 
                     let mustMoveTowardsTarget = (0.9 > Math.random());
                     for (let possibleNewPosition of  this.openNeighborBlocks(point)) {
                         let probabilityToMove = possibleNewPosition.tileType.tendencyToEnter * tileType.tendencyToLeave;
                         let shouldMove = probabilityToMove > Math.random();
-                        let isMovingTowardsTarget = possibleNewPosition.position.distanceTo(target) < point.distanceTo(target);
-                        if (target && shouldMove && (!mustMoveTowardsTarget || isMovingTowardsTarget)) {
+                        let isMovingTowardsTarget = possibleNewPosition.position.distanceTo(nextMove) < point.distanceTo(nextMove);
+                        if (nextMove && shouldMove && (!mustMoveTowardsTarget || isMovingTowardsTarget)) {
                             possibleNewPosition.setMinion(minion);
                             worldBlock.setMinion(null);
                             break;

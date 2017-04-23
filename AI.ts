@@ -23,7 +23,6 @@ export class AI {
         }
         let safteyBreak = 0;
         let isGainingMoney = npc.playerStats.totalGoldPerTurn() > 2000;
-        console.log(worldBlocks);
         while(npc.gold > 10000 && safteyBreak++ < 100) {
             let randomBlock = worldBlocks[Math.floor(Math.random() * worldBlocks.length)];
             let possibleUpgrades = randomBlock.tileType.possibleUpgrades;

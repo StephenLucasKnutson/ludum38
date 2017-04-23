@@ -9,8 +9,11 @@ import Side = THREE.Side;
 import Vector2 = THREE.Vector2;
 import Vector3 = THREE.Vector3;
 import {AI} from "./AI";
+import {Pathfinder} from "./Pathfinder";
 
 export class Autowired {
+    WIDTH: number = 100;
+    HEIGHT: number = 60;
     isGameOver: boolean;
 
     camera: THREE.OrthographicCamera;
@@ -24,8 +27,7 @@ export class Autowired {
     userControls: UserControls;
     ui: UI;
     ai: AI;
-    WIDTH: number = 100;
-    HEIGHT: number = 60;
+    pathfinder: Pathfinder;
 
     resetCameraAndRenderer() {
         let width = $(window).innerWidth() - 40;
@@ -80,6 +82,7 @@ export class Autowired {
         this.ui = new UI(this);
         this.userControls = new UserControls(this);
         this.ai = new AI(this);
+        this.pathfinder = new Pathfinder(this);
 
         window.addEventListener('resize', (event) => {
             this.resetCameraAndRenderer();

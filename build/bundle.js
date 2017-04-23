@@ -1033,23 +1033,46 @@ System.register("Simulator", ["Player", "TileType", "Minion"], function(exports_
                                     }
                                 }
                                 var colors = Object.keys(playerColorToPoorSucker);
-                                if (!!minion.targetColor) {
-                                    if (colors.indexOf(minion.targetColor) == -1) {
-                                        minion.targetColor = null;
-                                    }
+                                //If enemy has no more minions, retarget
+                                if (minion.targetColor != null && colors.indexOf(minion.targetColor) == -1) {
+                                    minion.targetColor = null;
+                                }
+                                //If cant reach enemies minions, retarget
+                                if (minion.targetColor != null && !this.autowired.pathfinder.isReachable(point, playerColorToPoorSucker[minion.targetColor])) {
+                                    minion.targetColor = null;
                                 }
                                 if (minion.targetColor == null) {
                                     colors = _(colors).shuffle();
-                                    minion.targetColor = colors[0];
+                                    for (var _c = 0, colors_1 = colors; _c < colors_1.length; _c++) {
+                                        var color = colors_1[_c];
+                                        var thisColorTarget = playerColorToPoorSucker[color];
+                                        if (color != minion.owningPlayer.colorAsString && this.autowired.pathfinder.isReachable(point, thisColorTarget)) {
+                                            minion.targetColor = color;
+                                            break;
+                                        }
+                                    }
                                 }
-                                var target = playerColorToPoorSucker[minion.targetColor];
+                                if (minion.targetColor == null) {
+                                    minion.targetColor = colors[Math.floor(colors.length * Math.random())];
+                                }
+                                var enemyTarget = playerColorToPoorSucker[minion.targetColor];
+                                var nextMove = this.autowired.pathfinder.nextPosition(point, enemyTarget);
+                                if (nextMove == null) {
+                                    var neighbors = this.autowired.world.withNeighborOffsets(point);
+                                    if (neighbors.length == 0) {
+                                        nextMove = point;
+                                    }
+                                    else {
+                                        nextMove = neighbors[Math.floor(neighbors.length)];
+                                    }
+                                }
                                 var mustMoveTowardsTarget = (0.9 > Math.random());
-                                for (var _c = 0, _d = this.openNeighborBlocks(point); _c < _d.length; _c++) {
-                                    var possibleNewPosition = _d[_c];
+                                for (var _d = 0, _e = this.openNeighborBlocks(point); _d < _e.length; _d++) {
+                                    var possibleNewPosition = _e[_d];
                                     var probabilityToMove = possibleNewPosition.tileType.tendencyToEnter * tileType.tendencyToLeave;
                                     var shouldMove = probabilityToMove > Math.random();
-                                    var isMovingTowardsTarget = possibleNewPosition.position.distanceTo(target) < point.distanceTo(target);
-                                    if (target && shouldMove && (!mustMoveTowardsTarget || isMovingTowardsTarget)) {
+                                    var isMovingTowardsTarget = possibleNewPosition.position.distanceTo(nextMove) < point.distanceTo(nextMove);
+                                    if (nextMove && shouldMove && (!mustMoveTowardsTarget || isMovingTowardsTarget)) {
                                         possibleNewPosition.setMinion(minion);
                                         worldBlock.setMinion(null);
                                         break;
@@ -1058,8 +1081,8 @@ System.register("Simulator", ["Player", "TileType", "Minion"], function(exports_
                             }
                         }
                     }
-                    for (var _e = 0, _f = this.players; _e < _f.length; _e++) {
-                        var player = _f[_e];
+                    for (var _f = 0, _g = this.players; _f < _g.length; _f++) {
+                        var player = _g[_f];
                         player.resetStats();
                     }
                     for (var i = 0; i < this.autowired.WIDTH; i++) {
@@ -1074,8 +1097,8 @@ System.register("Simulator", ["Player", "TileType", "Minion"], function(exports_
                             }
                         }
                     }
-                    for (var _g = 0, _h = this.players; _g < _h.length; _g++) {
-                        var player = _h[_g];
+                    for (var _h = 0, _j = this.players; _h < _j.length; _h++) {
+                        var player = _j[_h];
                         player.gold += player.playerStats.totalGoldPerTurn();
                     }
                 };
@@ -1250,10 +1273,380 @@ System.register("UserControls", [], function(exports_28, context_28) {
         }
     }
 });
-System.register("Autowired", ["World", "Simulator", "UI", "UserControls", "AI"], function(exports_29, context_29) {
+//Modified
+//take from https://raw.githubusercontent.com/lemire/FastPriorityQueue.js/master/FastPriorityQueue.js
+/**
+ * FastPriorityQueue.js : a fast heap-based priority queue  in JavaScript.
+ * (c) the authors
+ * Licensed under the Apache License, Version 2.0.
+ *
+ * Speed-optimized heap-based priority queue for modern browsers and JavaScript engines.
+ *
+ * Usage :
+ Installation (in shell, if you use node):
+ $ npm install fastpriorityqueue
+
+ Running test program (in JavaScript):
+
+ // var FastPriorityQueue = require("fastpriorityqueue");// in node
+ var x = new FastPriorityQueue();
+ x.add(1);
+ x.add(0);
+ x.add(5);
+ x.add(4);
+ x.add(3);
+ x.peek(); // should return 0, leaves x unchanged
+ x.size; // should return 5, leaves x unchanged
+ while(!x.isEmpty()) {
+           console.log(x.poll());
+         } // will print 0 1 3 4 5
+ x.trim(); // (optional) optimizes memory usage
+ */
+System.register("PriorityQueue", [], function(exports_29, context_29) {
     "use strict";
     var __moduleName = context_29 && context_29.id;
-    var World_2, Simulator_1, UI_1, UserControls_1, AI_1;
+    var PriorityQueue;
+    return {
+        setters:[],
+        execute: function() {
+            PriorityQueue = (function () {
+                function PriorityQueue() {
+                    this.array = [];
+                    this.size = 0;
+                    this.compare = function (a, b) {
+                        return a.weight < b.weight;
+                    };
+                    this.add = function (myval) {
+                        var i = this.size;
+                        this.array[this.size] = myval;
+                        this.size += 1;
+                        var p;
+                        var ap;
+                        while (i > 0) {
+                            p = (i - 1) >> 1;
+                            ap = this.array[p];
+                            if (!this.compare(myval, ap)) {
+                                break;
+                            }
+                            this.array[i] = ap;
+                            i = p;
+                        }
+                        this.array[i] = myval;
+                    };
+                    this.heapify = function (arr) {
+                        this.array = arr;
+                        this.size = arr.length;
+                        var i;
+                        for (i = (this.size >> 1); i >= 0; i--) {
+                            this._percolateDown(i);
+                        }
+                    };
+                    this._percolateUp = function (i) {
+                        var myval = this.array[i];
+                        var p;
+                        var ap;
+                        while (i > 0) {
+                            p = (i - 1) >> 1;
+                            ap = this.array[p];
+                            if (!this.compare(myval, ap)) {
+                                break;
+                            }
+                            this.array[i] = ap;
+                            i = p;
+                        }
+                        this.array[i] = myval;
+                    };
+                    this._percolateDown = function (i) {
+                        var size = this.size;
+                        var hsize = this.size >>> 1;
+                        var ai = this.array[i];
+                        var l;
+                        var r;
+                        var bestc;
+                        while (i < hsize) {
+                            l = (i << 1) + 1;
+                            r = l + 1;
+                            bestc = this.array[l];
+                            if (r < size) {
+                                if (this.compare(this.array[r], bestc)) {
+                                    l = r;
+                                    bestc = this.array[r];
+                                }
+                            }
+                            if (!this.compare(bestc, ai)) {
+                                break;
+                            }
+                            this.array[i] = bestc;
+                            i = l;
+                        }
+                        this.array[i] = ai;
+                    };
+                    this.peek = function () {
+                        if (this.size == 0)
+                            return undefined;
+                        return this.array[0];
+                    };
+                    this.poll = function () {
+                        if (this.size == 0)
+                            return undefined;
+                        var ans = this.array[0];
+                        if (this.size > 1) {
+                            this.array[0] = this.array[--this.size];
+                            this._percolateDown(0 | 0);
+                        }
+                        else {
+                            this.size -= 1;
+                        }
+                        return ans;
+                    };
+                    this.trim = function () {
+                        this.array = this.array.slice(0, this.size);
+                    };
+                    this.isEmpty = function () {
+                        return this.size === 0;
+                    };
+                }
+                return PriorityQueue;
+            }());
+            exports_29("PriorityQueue", PriorityQueue);
+        }
+    }
+});
+// https://raw.githubusercontent.com/mburst/dijkstras-algorithm/master/dijkstras.js
+/**
+ * Basic priority queue implementation. If a better priority queue is wanted/needed,
+ * this code works with the implementation in google's closure library (https://code.google.com/p/closure-library/).
+ * Use goog.require('goog.structs.PriorityQueue'); and new goog.structs.PriorityQueue()
+ */
+System.register("ShortestPath", ["PriorityQueue"], function(exports_30, context_30) {
+    "use strict";
+    var __moduleName = context_30 && context_30.id;
+    var PriorityQueue_1;
+    var Graph;
+    return {
+        setters:[
+            function (PriorityQueue_1_1) {
+                PriorityQueue_1 = PriorityQueue_1_1;
+            }],
+        execute: function() {
+            /**
+             * Pathfinding starts here
+             */
+            Graph = (function () {
+                function Graph() {
+                    this.INFINITY = 1 / 0;
+                    this.vertices = {};
+                    this.addVertex = function (name, edges) {
+                        this.vertices[name] = edges;
+                    };
+                    this.shortestPath = function (start, finish) {
+                        var nodes = new PriorityQueue_1.PriorityQueue(), distances = {}, previous = {}, path = [], smallest, vertex, neighbor, alt;
+                        for (vertex in this.vertices) {
+                            if (vertex === start) {
+                                distances[vertex] = 0;
+                                nodes.add({ weight: 0, value: vertex });
+                            }
+                            else {
+                                distances[vertex] = this.INFINITY;
+                                nodes.add({ weight: this.INFINITY, value: vertex });
+                            }
+                            previous[vertex] = null;
+                        }
+                        while (!nodes.isEmpty()) {
+                            smallest = nodes.poll().value;
+                            if (smallest === finish) {
+                                path = [];
+                                while (previous[smallest]) {
+                                    path.push(smallest);
+                                    smallest = previous[smallest];
+                                }
+                                break;
+                            }
+                            if (!smallest || distances[smallest] === this.INFINITY) {
+                                continue;
+                            }
+                            for (neighbor in this.vertices[smallest]) {
+                                alt = distances[smallest] + this.vertices[smallest][neighbor];
+                                if (alt < distances[neighbor]) {
+                                    distances[neighbor] = alt;
+                                    previous[neighbor] = smallest;
+                                    nodes.add({ weight: alt, value: neighbor });
+                                }
+                            }
+                        }
+                        return path;
+                    };
+                }
+                return Graph;
+            }());
+            exports_30("Graph", Graph);
+        }
+    }
+});
+System.register("Pathfinder", ["ShortestPath", "TileType"], function(exports_31, context_31) {
+    "use strict";
+    var __moduleName = context_31 && context_31.id;
+    var ShortestPath_1, TileType_4;
+    var Vector2, Pathfinder;
+    return {
+        setters:[
+            function (ShortestPath_1_1) {
+                ShortestPath_1 = ShortestPath_1_1;
+            },
+            function (TileType_4_1) {
+                TileType_4 = TileType_4_1;
+            }],
+        execute: function() {
+            Vector2 = THREE.Vector2;
+            //wholeGraph.addVertex('A', {B: 7, C: 8});
+            //console.log(g.shortestPath('A', 'H').concat(['A']).reverse());
+            Pathfinder = (function () {
+                function Pathfinder(autowired) {
+                    this.resolution = 10;
+                    this.largeToLargeShortestPath = {};
+                    this.autowired = autowired;
+                    var buckets = {};
+                    for (var i = 0; i < this.autowired.WIDTH; i++) {
+                        for (var j = 0; j < this.autowired.HEIGHT; j++) {
+                            var point = new Vector2(i, j);
+                            var worldBlock = this.autowired.world.map[i][j];
+                            var key = this.largeBucketKey(point);
+                            if (buckets[key] == null) {
+                                buckets[key] = [];
+                            }
+                            buckets[key].push(worldBlock);
+                        }
+                    }
+                    var localLargeToLarge = {};
+                    var hasBeenCalculated = {};
+                    for (var a in buckets) {
+                        hasBeenCalculated[a] = {};
+                        for (var b in buckets) {
+                            hasBeenCalculated[a][b] = false;
+                        }
+                    }
+                    for (var a in buckets) {
+                        localLargeToLarge[a] = {};
+                        for (var b in buckets) {
+                            if (a == b) {
+                                localLargeToLarge[a][b] = [];
+                                continue;
+                            }
+                            if (hasBeenCalculated[b][a]) {
+                                localLargeToLarge[a][b] = localLargeToLarge[b][a];
+                            }
+                            hasBeenCalculated[a][b] = true;
+                            var subgraph = this.generateSubGraph([buckets[a], buckets[b]]);
+                            var aPosition = this.fromLargeBucketKey(a);
+                            var bPosition = this.fromLargeBucketKey(b);
+                            if (aPosition.distanceToManhattan(bPosition) > 10) {
+                                localLargeToLarge[a][b] = null;
+                            }
+                            else {
+                                var aSmall = this.smallBucketKey(aPosition);
+                                var bSmall = this.smallBucketKey(bPosition);
+                                var path = subgraph.shortestPath(aSmall, bSmall);
+                                if (path.length == 0) {
+                                    localLargeToLarge[a][b] = null;
+                                }
+                                localLargeToLarge[a][b] = path;
+                            }
+                        }
+                    }
+                    var globalGraph = new ShortestPath_1.Graph();
+                    for (var a in buckets) {
+                        var neighborMap = {};
+                        for (var b in buckets) {
+                            if (localLargeToLarge[a][b] != null) {
+                                neighborMap[b] = localLargeToLarge[a][b].length;
+                            }
+                        }
+                        globalGraph.addVertex(a, neighborMap);
+                    }
+                    for (var a in buckets) {
+                        this.largeToLargeShortestPath[a] = {};
+                        for (var b in buckets) {
+                            var shortestPath = globalGraph.shortestPath(a, b);
+                            if (shortestPath.length == 0) {
+                                this.largeToLargeShortestPath[a][b] = null;
+                            }
+                            else {
+                                shortestPath.push(a);
+                                shortestPath.reverse();
+                                this.largeToLargeShortestPath[a][b] = shortestPath;
+                            }
+                        }
+                    }
+                }
+                Pathfinder.prototype.largeBucketKey = function (point) {
+                    var bucketCorner = new Vector2(Math.round(point.x / this.resolution), Math.round(point.y / this.resolution));
+                    return bucketCorner.x + " " + bucketCorner.y;
+                };
+                Pathfinder.prototype.fromLargeBucketKey = function (key) {
+                    var pieces = key.split(' ');
+                    var unscaledX = parseInt(pieces[0]);
+                    var unscaledY = parseInt(pieces[1]);
+                    var x = unscaledX * this.resolution;
+                    var y = unscaledY * this.resolution;
+                    return new Vector2(x, y);
+                };
+                Pathfinder.prototype.smallBucketKey = function (point) {
+                    return point.x + " " + point.y;
+                };
+                Pathfinder.prototype.generateSubGraph = function (buckets) {
+                    var graph = new ShortestPath_1.Graph();
+                    var allPoints = _(buckets).flatten();
+                    for (var _i = 0, allPoints_1 = allPoints; _i < allPoints_1.length; _i++) {
+                        var worldblock = allPoints_1[_i];
+                        var neighborMap = {};
+                        for (var _a = 0, _b = this.autowired.world.neighborBlocks(worldblock.position); _a < _b.length; _a++) {
+                            var neighbor = _b[_a];
+                            //todo: exclude sea earlier
+                            if (worldblock.tileType != TileType_4.TileType.sea && neighbor.tileType != TileType_4.TileType.sea) {
+                                neighborMap[this.smallBucketKey(neighbor.position)] = 1;
+                            }
+                        }
+                        graph.addVertex(this.smallBucketKey(worldblock.position), neighborMap);
+                    }
+                    return graph;
+                };
+                Pathfinder.prototype.isReachable = function (currentPosition, desiredPosition) {
+                    return (this.nextPositionNullable(currentPosition, desiredPosition) != null);
+                };
+                Pathfinder.prototype.nextPositionNullable = function (currentPosition, desiredPosition) {
+                    var currentKey = this.largeBucketKey(currentPosition);
+                    var desiredKey = this.largeBucketKey(desiredPosition);
+                    if (currentKey == desiredKey) {
+                        //local pathfinding
+                        return desiredPosition;
+                    }
+                    else {
+                        //global pathfinding
+                        var largeShortestPath = this.largeToLargeShortestPath[currentKey][desiredKey];
+                        if (largeShortestPath == null) {
+                            //no way there
+                            return null;
+                        }
+                        return this.fromLargeBucketKey(largeShortestPath[1]);
+                    }
+                };
+                Pathfinder.prototype.nextPosition = function (currentPosition, desiredPosition) {
+                    var result = this.nextPositionNullable(currentPosition, desiredPosition);
+                    if (result == null) {
+                        return desiredPosition;
+                    }
+                    return result;
+                };
+                return Pathfinder;
+            }());
+            exports_31("Pathfinder", Pathfinder);
+        }
+    }
+});
+System.register("Autowired", ["World", "Simulator", "UI", "UserControls", "AI", "Pathfinder"], function(exports_32, context_32) {
+    "use strict";
+    var __moduleName = context_32 && context_32.id;
+    var World_2, Simulator_1, UI_1, UserControls_1, AI_1, Pathfinder_1;
     var ShadowMapType, PCFSoftShadowMap, Side, Vector2, Vector3, Autowired;
     return {
         setters:[
@@ -1271,6 +1664,9 @@ System.register("Autowired", ["World", "Simulator", "UI", "UserControls", "AI"],
             },
             function (AI_1_1) {
                 AI_1 = AI_1_1;
+            },
+            function (Pathfinder_1_1) {
+                Pathfinder_1 = Pathfinder_1_1;
             }],
         execute: function() {
             Autowired = (function () {
@@ -1293,6 +1689,7 @@ System.register("Autowired", ["World", "Simulator", "UI", "UserControls", "AI"],
                     this.ui = new UI_1.UI(this);
                     this.userControls = new UserControls_1.UserControls(this);
                     this.ai = new AI_1.AI(this);
+                    this.pathfinder = new Pathfinder_1.Pathfinder(this);
                     window.addEventListener('resize', function (event) {
                         _this.resetCameraAndRenderer();
                     });
@@ -1324,13 +1721,13 @@ System.register("Autowired", ["World", "Simulator", "UI", "UserControls", "AI"],
                 };
                 return Autowired;
             }());
-            exports_29("Autowired", Autowired);
+            exports_32("Autowired", Autowired);
         }
     }
 });
-System.register("AI", [], function(exports_30, context_30) {
+System.register("AI", [], function(exports_33, context_33) {
     "use strict";
-    var __moduleName = context_30 && context_30.id;
+    var __moduleName = context_33 && context_33.id;
     var AI;
     return {
         setters:[],
@@ -1353,7 +1750,6 @@ System.register("AI", [], function(exports_30, context_30) {
                     }
                     var safteyBreak = 0;
                     var isGainingMoney = npc.playerStats.totalGoldPerTurn() > 2000;
-                    console.log(worldBlocks);
                     while (npc.gold > 10000 && safteyBreak++ < 100) {
                         var randomBlock = worldBlocks[Math.floor(Math.random() * worldBlocks.length)];
                         var possibleUpgrades = randomBlock.tileType.possibleUpgrades;
@@ -1371,14 +1767,14 @@ System.register("AI", [], function(exports_30, context_30) {
                 };
                 return AI;
             }());
-            exports_30("AI", AI);
+            exports_33("AI", AI);
         }
     }
 });
 /// <reference path="definitions/underscore.d.ts" />
-System.register("Main", ["Autowired"], function(exports_31, context_31) {
+System.register("Main", ["Autowired"], function(exports_34, context_34) {
     "use strict";
-    var __moduleName = context_31 && context_31.id;
+    var __moduleName = context_34 && context_34.id;
     var Autowired_1;
     var Vector2, Main, main;
     return {
