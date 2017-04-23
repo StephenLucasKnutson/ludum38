@@ -2074,12 +2074,12 @@ declare namespace THREE {
      *
      * Events:
      *     load
-     *         Dispatched when the image has completed loading
-     *         content — loaded image
+     *         Dispatched when the imageSource has completed loading
+     *         content — loaded imageSource
      *
      *     error
      *
-     *          Dispatched when the image can't be loaded
+     *          Dispatched when the imageSource can't be loaded
      *          message — error message
      */
     export class Loader {
@@ -2105,7 +2105,7 @@ declare namespace THREE {
 
         /**
          * default — null.
-         * If set, assigns the crossOrigin attribute of the image to the value of crossOrigin, prior to starting the load.
+         * If set, assigns the crossOrigin attribute of the imageSource to the value of crossOrigin, prior to starting the load.
          */
         crossOrigin: string;
 
@@ -2153,7 +2153,7 @@ declare namespace THREE {
     }
 
     /**
-     * A loader for loading an image.
+     * A loader for loading an imageSource.
      * Unlike other loaders, this one emits events instead of using predefined callbacks. So if you're interested in getting notified when things happen, you need to add listeners to the object.
      */
     export class ImageLoader {
@@ -6261,7 +6261,7 @@ declare namespace THREE {
                     anisotropy?: number,
                     encoding?: TextureEncoding);
 
-        images: any; // returns and sets the value of Texture.image in the codde ?
+        images: any; // returns and sets the value of Texture.imageSource in the codde ?
     }
 
     export class CompressedTexture extends Texture {

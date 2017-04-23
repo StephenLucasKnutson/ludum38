@@ -1,8 +1,9 @@
 zoom in and out with keys
 zoom in and out with mouse
-textures for tiles
 fix random failures to click
 enemy AI
 multiselect
 viktory conditions
 pause when lose focus
+make ui prettier
+limited scroll distance

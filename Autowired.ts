@@ -31,7 +31,7 @@ export class Autowired {
         let aspectRatio = width / height;
         this.renderer.setSize(width, height);
 
-        let size: number = 650;
+        let size: number = 300;
         this.camera = new THREE.OrthographicCamera(-size, size, size / aspectRatio, -size / aspectRatio, 0, 10);
         this.camera.position.set(0, 0, 1);
         this.camera.lookAt(new THREE.Vector3(0, 0, 0));
