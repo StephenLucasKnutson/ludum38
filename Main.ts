@@ -1,4 +1,7 @@
 /// <reference path="definitions/underscore.d.ts" />
+/// <reference path="jsLib/jquery.js" />
+/// <reference path="jsLib/underscore.js" />
+/// <reference path="jsLib/three.js" />
 import {Autowired} from "./Autowired";
 import Vector2 = THREE.Vector2;
 
