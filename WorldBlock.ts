@@ -2,6 +2,7 @@ import {TileType} from "./TileType";
 import {Player} from "./Player";
 import {World} from "./World";
 import Vector2 = THREE.Vector2;
+import {Minion} from "./Minion";
 
 
 // https://i.stack.imgur.com/4laaY.jpg
@@ -11,21 +12,21 @@ export class WorldBlock {
     lastNatureState: TileType;
     tileMesh: THREE.Mesh;
     backgroundMesh: THREE.Mesh;
-    owningPlayer: Player;
     isSelected: boolean;
+    minion: Minion;
 
     constructor(position: Vector2) {
         this.position = position;
     }
 
-    setOwningPlayer(newOwningPlayer: Player) {
-        this.owningPlayer = newOwningPlayer;
+    setMinion(minion: Minion) {
         if (!this.isSelected) {
-            if (newOwningPlayer) {
-                this.backgroundMesh.material = newOwningPlayer.material;
+            if (!!minion) {
+                this.backgroundMesh.material = minion.owningPlayer.material;
             } else {
                 this.backgroundMesh.material = World.backgroundMaterial;
             }
+            this.minion = minion;
         }
     }
 
@@ -52,8 +53,10 @@ export class WorldBlock {
         if (isSelected) {
             this.backgroundMesh.material = World.backgroundSelectedMaterial;
         } else {
-            this.setOwningPlayer(this.owningPlayer)
+            this.setMinion(this.minion)
         }
-
+    }
+    getOwningPlayer() : Player {
+        return (!!this.minion) ? this.minion.owningPlayer : null;
     }
 }

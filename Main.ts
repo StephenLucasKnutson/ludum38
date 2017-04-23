@@ -15,7 +15,7 @@ class Main {
         this.autowired.userControls.update();
         this.autowired.simulator.update();
         this.autowired.ai.update();
-        this.autowired.ui.update()
+        this.autowired.ui.update();
 
         let winning: boolean = true;
         let defeated: boolean = true;
@@ -23,8 +23,9 @@ class Main {
         for (let i = 0; i < this.autowired.WIDTH; i++) {
             for (let j = 0; j < this.autowired.HEIGHT; j++) {
                 let worldBlock = this.autowired.world.getMap(new Vector2(i, j));
-                winning = winning && (worldBlock.owningPlayer == null || worldBlock.owningPlayer == player);
-                defeated = defeated && (worldBlock.owningPlayer != player);
+                let owner = worldBlock.getOwningPlayer();
+                winning = winning && (owner == null || owner == player);
+                defeated = defeated && (owner != player);
             }
         }
         if(winning) {

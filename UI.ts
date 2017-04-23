@@ -49,7 +49,7 @@ export class UI {
 
         let selected = this.autowired.world.selectedWorldBlock;
         if (selected) {
-            let selectedOwner = selected.owningPlayer;
+            let selectedOwner = selected.getOwningPlayer();
             let tileTypeString: string = "TYPE: " + selected.tileType.name;
             let player: string = "OWNER: " + ((!!selectedOwner) ? selectedOwner.name : "NONE");
             let rateOfGold: string = "GOLD GENERATED: " + this.nf.format(selected.tileType.goldPerTurn);

@@ -9,9 +9,6 @@ export class Player {
     material: THREE.Material;
     gold: number = 0;
 
-    attack: number = 0.1;
-    defense: number = 0.5;
-
     kills: number = 0;
     deaths: number = 0;
 

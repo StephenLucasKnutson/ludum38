@@ -4,6 +4,7 @@ import {Autowired} from "./Autowired";
 import {Player} from "./Player";
 import {WorldBlock} from "./WorldBlock";
 import {TileType} from "./TileType";
+import {Minion} from "./Minion";
 
 export class Simulator {
     autowired: Autowired;
@@ -21,7 +22,7 @@ export class Simulator {
             this.players.push(newPlayer);
 
             let startingWorldBlock: WorldBlock = this.autowired.world.map[startingPosition.x][startingPosition.y];
-            startingWorldBlock.setOwningPlayer(newPlayer);
+            startingWorldBlock.setMinion(new Minion(newPlayer));
             startingWorldBlock.setTileType(TileType.village);
             if (i == 0) {
                 this.playerCharacter = newPlayer;
@@ -46,8 +47,7 @@ export class Simulator {
         let neighborBlocks: WorldBlock[] = this.autowired.world.neighborBlocks(point);
         let returnValue: WorldBlock[] = [];
         for (let neighborBlock of neighborBlocks) {
-            let neighborTileIsEmpty = !neighborBlock.owningPlayer;
-            if (neighborTileIsEmpty) {
+            if (this.isEmptyBlock(neighborBlock)) {
                 returnValue.push(neighborBlock);
             }
         }
@@ -59,12 +59,27 @@ export class Simulator {
         let block: WorldBlock = this.autowired.world.getMap(point);
         let returnValue: WorldBlock[] = [];
         for (let neighborBlock of neighborBlocks) {
-            let isEnemyTile: boolean = neighborBlock.owningPlayer != null && neighborBlock.owningPlayer != block.owningPlayer;
-            if (isEnemyTile) {
+            if (this.isEnemyBlock(neighborBlock, block)) {
                 returnValue.push(neighborBlock);
             }
         }
         return returnValue;
+    }
+
+    isEmptyBlock(a: WorldBlock) {
+        return (a.getOwningPlayer() == null)
+    }
+
+    isEnemyBlock(a: WorldBlock, b: WorldBlock): boolean {
+        let player1 = a.getOwningPlayer();
+        let player2 = b.getOwningPlayer();
+        return (!!player1 && !!player2 && player1 != player2)
+    }
+
+    isFriendlyBlock(a: WorldBlock, b: WorldBlock): boolean {
+        let player1 = a.getOwningPlayer();
+        let player2 = b.getOwningPlayer();
+        return (!!player1 && player1 == player2)
     }
 
     worldBlocksAndEmptyNeighborsBlocksForPlayer(player: Player): WorldBlock[] {
@@ -72,7 +87,7 @@ export class Simulator {
         for (let i: number = 0; i < this.autowired.WIDTH; i++) {
             for (let j: number = 0; j < this.autowired.HEIGHT; j++) {
                 let worldBlock: WorldBlock = this.autowired.world.map[i][j];
-                if (worldBlock.owningPlayer != player) {
+                if (worldBlock.getOwningPlayer() != player) {
                     continue;
                 }
                 returnValue.push(worldBlock);
@@ -84,73 +99,79 @@ export class Simulator {
         return returnValue
     }
 
-    calculateCentersOfMass(): {[key: string]: Vector2;} {
-        let playerColorToNumberOfTiles: {[key: string]: number;} = {};
-        let playerColorToNetMassDistance: {[key: string]: Vector2;} = {};
+    playerColorToPoorSucker(): {[key: string]: Vector2;} {
+        let playerColorToPositions: {[key: string]: Vector2[];} = {};
         for (let i: number = 0; i < this.autowired.WIDTH; i++) {
             for (let j: number = 0; j < this.autowired.HEIGHT; j++) {
                 let worldBlock: WorldBlock = this.autowired.world.map[i][j];
-                let player = worldBlock.owningPlayer;
+                let player = (worldBlock.minion) ? worldBlock.minion.owningPlayer : null;
                 if (player) {
                     let playerColor = player.colorAsString;
-                    if (!playerColorToNumberOfTiles[playerColor]) {
-                        playerColorToNumberOfTiles[playerColor] = 0;
-                        playerColorToNetMassDistance[playerColor] = new Vector2();
+                    if (!playerColorToPositions[playerColor]) {
+                        playerColorToPositions[playerColor] = [];
                     }
-                    playerColorToNumberOfTiles[playerColor]++;
-                    playerColorToNetMassDistance[playerColor].add(new Vector2(i, j));
+                    playerColorToPositions[playerColor].push(new Vector2(i, j));
                 }
             }
         }
         let returnValue: {[key: string]: Vector2;} = {};
-        for (let color in playerColorToNumberOfTiles) {
-            let numberOfTiles = playerColorToNumberOfTiles[color];
-            let netMass = playerColorToNetMassDistance[color];
-            returnValue[color] = netMass.divideScalar(numberOfTiles);
+        let centerOfMap = new Vector2(this.autowired.WIDTH / 2, this.autowired.HEIGHT / 2);
+        for (let color in playerColorToPositions) {
+            let tiles: Vector2[] = playerColorToPositions[color];
+            let sortedTiles = _(tiles).sortBy(function (tile) {
+                return tile.distanceTo(centerOfMap);
+            });
+            returnValue[color] = sortedTiles[0];
         }
         return returnValue
     }
 
     update(): void {
-        let playerColorToCenterOfMass: {[key: string]: Vector2;} = this.calculateCentersOfMass();
+        let playerColorToPoorSucker: {[key: string]: Vector2;} = this.playerColorToPoorSucker();
         for (let i: number = 0; i < this.autowired.WIDTH; i++) {
             for (let j: number = 0; j < this.autowired.HEIGHT; j++) {
                 let point: THREE.Vector2 = new THREE.Vector2(i, j);
                 let worldBlock: WorldBlock = this.autowired.world.map[i][j];
                 let tileType: TileType = worldBlock.tileType;
-                if (worldBlock.owningPlayer) {
+                let minion = worldBlock.minion;
+                if (!!minion) {
                     for (let neighborBlock of this.openNeighborBlocks(point)) {
                         let shouldSpawn = tileType.chanceToSpawn > Math.random();
                         if (shouldSpawn) {
-                            neighborBlock.setOwningPlayer(worldBlock.owningPlayer);
+                            neighborBlock.setMinion(new Minion(minion.owningPlayer));
                         }
                     }
                     let enemyNeighbors: WorldBlock[] = this.enemyNeighborBlocks(point);
                     for (let neighborBlock of enemyNeighbors) {
-                        let shouldKill = worldBlock.owningPlayer.attack / neighborBlock.owningPlayer.defense > Math.random();
+                        let shouldKill = minion.attack / minion.defense > Math.random();
                         if (shouldKill) {
-                            neighborBlock.owningPlayer.deaths++;
-                            worldBlock.owningPlayer.kills++;
-                            neighborBlock.setOwningPlayer(null);
+                            neighborBlock.minion.owningPlayer.deaths++;
+                            minion.owningPlayer.kills++;
+                            neighborBlock.setMinion(null);
                             neighborBlock.resetToNature()
                         }
                     }
-                    let target: Vector2 = null;
-                    let colors = Object.keys(playerColorToCenterOfMass);
-                    _(colors).shuffle();
-                    for (let color of colors) {
-                        if (target == null && color != worldBlock.owningPlayer.colorAsString) {
-                            target = playerColorToCenterOfMass[color]
+                    let colors = Object.keys(playerColorToPoorSucker);
+                    if (!!minion.targetColor) {
+                        if (colors.indexOf(minion.targetColor) == -1) {
+                            minion.targetColor = null;
                         }
                     }
+
+                    if (minion.targetColor == null) {
+                        colors = _(colors).shuffle();
+                        minion.targetColor = colors[0];
+                    }
+                    let target: Vector2 = playerColorToPoorSucker[minion.targetColor];
+
                     let mustMoveTowardsTarget = (0.9 > Math.random());
                     for (let possibleNewPosition of  this.openNeighborBlocks(point)) {
                         let probabilityToMove = possibleNewPosition.tileType.tendencyToEnter * tileType.tendencyToLeave;
                         let shouldMove = probabilityToMove > Math.random();
                         let isMovingTowardsTarget = possibleNewPosition.position.distanceTo(target) < point.distanceTo(target);
                         if (target && shouldMove && (!mustMoveTowardsTarget || isMovingTowardsTarget)) {
-                            possibleNewPosition.setOwningPlayer(worldBlock.owningPlayer);
-                            worldBlock.setOwningPlayer(null);
+                            possibleNewPosition.setMinion(minion);
+                            worldBlock.setMinion(null);
                             break;
                         }
                     }
@@ -165,8 +186,9 @@ export class Simulator {
                 let point: THREE.Vector2 = new THREE.Vector2(i, j);
                 let worldBlock: WorldBlock = this.autowired.world.map[i][j];
                 let tileType: TileType = worldBlock.tileType;
-                if (worldBlock.owningPlayer) {
-                    let player: Player = worldBlock.owningPlayer;
+                let minion = worldBlock.minion;
+                if (!!minion && minion.owningPlayer) {
+                    let player: Player = minion.owningPlayer;
                     player.playerStats.incrementTileType(tileType);
                 }
             }

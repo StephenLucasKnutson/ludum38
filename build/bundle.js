@@ -538,8 +538,6 @@ System.register("Player", ["PlayerStats"], function(exports_22, context_22) {
             Player = (function () {
                 function Player() {
                     this.gold = 0;
-                    this.attack = 0.1;
-                    this.defense = 0.5;
                     this.kills = 0;
                     this.deaths = 0;
                     if (Player.nextPlayerColorIndex == Player.allPlayerColors.length) {
@@ -564,9 +562,28 @@ System.register("Player", ["PlayerStats"], function(exports_22, context_22) {
         }
     }
 });
-System.register("WorldBlock", ["World"], function(exports_23, context_23) {
+System.register("Minion", [], function(exports_23, context_23) {
     "use strict";
     var __moduleName = context_23 && context_23.id;
+    var Vector2, Minion;
+    return {
+        setters:[],
+        execute: function() {
+            Minion = (function () {
+                function Minion(owningPlayer) {
+                    this.attack = 0.1;
+                    this.defense = 0.5;
+                    this.owningPlayer = owningPlayer;
+                }
+                return Minion;
+            }());
+            exports_23("Minion", Minion);
+        }
+    }
+});
+System.register("WorldBlock", ["World"], function(exports_24, context_24) {
+    "use strict";
+    var __moduleName = context_24 && context_24.id;
     var World_1;
     var Vector2, WorldBlock;
     return {
@@ -580,15 +597,15 @@ System.register("WorldBlock", ["World"], function(exports_23, context_23) {
                 function WorldBlock(position) {
                     this.position = position;
                 }
-                WorldBlock.prototype.setOwningPlayer = function (newOwningPlayer) {
-                    this.owningPlayer = newOwningPlayer;
+                WorldBlock.prototype.setMinion = function (minion) {
                     if (!this.isSelected) {
-                        if (newOwningPlayer) {
-                            this.backgroundMesh.material = newOwningPlayer.material;
+                        if (!!minion) {
+                            this.backgroundMesh.material = minion.owningPlayer.material;
                         }
                         else {
                             this.backgroundMesh.material = World_1.World.backgroundMaterial;
                         }
+                        this.minion = minion;
                     }
                 };
                 WorldBlock.prototype.setTileType = function (newTileType) {
@@ -612,18 +629,21 @@ System.register("WorldBlock", ["World"], function(exports_23, context_23) {
                         this.backgroundMesh.material = World_1.World.backgroundSelectedMaterial;
                     }
                     else {
-                        this.setOwningPlayer(this.owningPlayer);
+                        this.setMinion(this.minion);
                     }
+                };
+                WorldBlock.prototype.getOwningPlayer = function () {
+                    return (!!this.minion) ? this.minion.owningPlayer : null;
                 };
                 return WorldBlock;
             }());
-            exports_23("WorldBlock", WorldBlock);
+            exports_24("WorldBlock", WorldBlock);
         }
     }
 });
-System.register("World", ["TileType", "WorldBlock"], function(exports_24, context_24) {
+System.register("World", ["TileType", "WorldBlock"], function(exports_25, context_25) {
     "use strict";
-    var __moduleName = context_24 && context_24.id;
+    var __moduleName = context_25 && context_25.id;
     var TileType_2, WorldBlock_1;
     var Vector2, World;
     return {
@@ -855,14 +875,14 @@ System.register("World", ["TileType", "WorldBlock"], function(exports_24, contex
                 });
                 return World;
             }());
-            exports_24("World", World);
+            exports_25("World", World);
         }
     }
 });
-System.register("Simulator", ["Player", "TileType"], function(exports_25, context_25) {
+System.register("Simulator", ["Player", "TileType", "Minion"], function(exports_26, context_26) {
     "use strict";
-    var __moduleName = context_25 && context_25.id;
-    var Player_1, TileType_3;
+    var __moduleName = context_26 && context_26.id;
+    var Player_1, TileType_3, Minion_1;
     var Vector2, nextPowerOfTwo, Simulator;
     return {
         setters:[
@@ -871,6 +891,9 @@ System.register("Simulator", ["Player", "TileType"], function(exports_25, contex
             },
             function (TileType_3_1) {
                 TileType_3 = TileType_3_1;
+            },
+            function (Minion_1_1) {
+                Minion_1 = Minion_1_1;
             }],
         execute: function() {
             Vector2 = THREE.Vector2;
@@ -884,7 +907,7 @@ System.register("Simulator", ["Player", "TileType"], function(exports_25, contex
                         var newPlayer = new Player_1.Player();
                         this.players.push(newPlayer);
                         var startingWorldBlock = this.autowired.world.map[startingPosition.x][startingPosition.y];
-                        startingWorldBlock.setOwningPlayer(newPlayer);
+                        startingWorldBlock.setMinion(new Minion_1.Minion(newPlayer));
                         startingWorldBlock.setTileType(TileType_3.TileType.village);
                         if (i == 0) {
                             this.playerCharacter = newPlayer;
@@ -908,8 +931,7 @@ System.register("Simulator", ["Player", "TileType"], function(exports_25, contex
                     var returnValue = [];
                     for (var _i = 0, neighborBlocks_1 = neighborBlocks; _i < neighborBlocks_1.length; _i++) {
                         var neighborBlock = neighborBlocks_1[_i];
-                        var neighborTileIsEmpty = !neighborBlock.owningPlayer;
-                        if (neighborTileIsEmpty) {
+                        if (this.isEmptyBlock(neighborBlock)) {
                             returnValue.push(neighborBlock);
                         }
                     }
@@ -921,19 +943,31 @@ System.register("Simulator", ["Player", "TileType"], function(exports_25, contex
                     var returnValue = [];
                     for (var _i = 0, neighborBlocks_2 = neighborBlocks; _i < neighborBlocks_2.length; _i++) {
                         var neighborBlock = neighborBlocks_2[_i];
-                        var isEnemyTile = neighborBlock.owningPlayer != null && neighborBlock.owningPlayer != block.owningPlayer;
-                        if (isEnemyTile) {
+                        if (this.isEnemyBlock(neighborBlock, block)) {
                             returnValue.push(neighborBlock);
                         }
                     }
                     return returnValue;
+                };
+                Simulator.prototype.isEmptyBlock = function (a) {
+                    return (a.getOwningPlayer() == null);
+                };
+                Simulator.prototype.isEnemyBlock = function (a, b) {
+                    var player1 = a.getOwningPlayer();
+                    var player2 = b.getOwningPlayer();
+                    return (!!player1 && !!player2 && player1 != player2);
+                };
+                Simulator.prototype.isFriendlyBlock = function (a, b) {
+                    var player1 = a.getOwningPlayer();
+                    var player2 = b.getOwningPlayer();
+                    return (!!player1 && player1 == player2);
                 };
                 Simulator.prototype.worldBlocksAndEmptyNeighborsBlocksForPlayer = function (player) {
                     var returnValue = [];
                     for (var i = 0; i < this.autowired.WIDTH; i++) {
                         for (var j = 0; j < this.autowired.HEIGHT; j++) {
                             var worldBlock = this.autowired.world.map[i][j];
-                            if (worldBlock.owningPlayer != player) {
+                            if (worldBlock.getOwningPlayer() != player) {
                                 continue;
                             }
                             returnValue.push(worldBlock);
@@ -945,84 +979,87 @@ System.register("Simulator", ["Player", "TileType"], function(exports_25, contex
                     }
                     return returnValue;
                 };
-                Simulator.prototype.calculateCentersOfMass = function () {
-                    var playerColorToNumberOfTiles = {};
-                    var playerColorToNetMassDistance = {};
+                Simulator.prototype.playerColorToPoorSucker = function () {
+                    var playerColorToPositions = {};
                     for (var i = 0; i < this.autowired.WIDTH; i++) {
                         for (var j = 0; j < this.autowired.HEIGHT; j++) {
                             var worldBlock = this.autowired.world.map[i][j];
-                            var player = worldBlock.owningPlayer;
+                            var player = (worldBlock.minion) ? worldBlock.minion.owningPlayer : null;
                             if (player) {
                                 var playerColor = player.colorAsString;
-                                if (!playerColorToNumberOfTiles[playerColor]) {
-                                    playerColorToNumberOfTiles[playerColor] = 0;
-                                    playerColorToNetMassDistance[playerColor] = new Vector2();
+                                if (!playerColorToPositions[playerColor]) {
+                                    playerColorToPositions[playerColor] = [];
                                 }
-                                playerColorToNumberOfTiles[playerColor]++;
-                                playerColorToNetMassDistance[playerColor].add(new Vector2(i, j));
+                                playerColorToPositions[playerColor].push(new Vector2(i, j));
                             }
                         }
                     }
                     var returnValue = {};
-                    for (var color in playerColorToNumberOfTiles) {
-                        var numberOfTiles = playerColorToNumberOfTiles[color];
-                        var netMass = playerColorToNetMassDistance[color];
-                        returnValue[color] = netMass.divideScalar(numberOfTiles);
+                    var centerOfMap = new Vector2(this.autowired.WIDTH / 2, this.autowired.HEIGHT / 2);
+                    for (var color in playerColorToPositions) {
+                        var tiles = playerColorToPositions[color];
+                        var sortedTiles = _(tiles).sortBy(function (tile) {
+                            return tile.distanceTo(centerOfMap);
+                        });
+                        returnValue[color] = sortedTiles[0];
                     }
                     return returnValue;
                 };
                 Simulator.prototype.update = function () {
-                    var playerColorToCenterOfMass = this.calculateCentersOfMass();
+                    var playerColorToPoorSucker = this.playerColorToPoorSucker();
                     for (var i = 0; i < this.autowired.WIDTH; i++) {
                         for (var j = 0; j < this.autowired.HEIGHT; j++) {
                             var point = new THREE.Vector2(i, j);
                             var worldBlock = this.autowired.world.map[i][j];
                             var tileType = worldBlock.tileType;
-                            if (worldBlock.owningPlayer) {
+                            var minion = worldBlock.minion;
+                            if (!!minion) {
                                 for (var _i = 0, _a = this.openNeighborBlocks(point); _i < _a.length; _i++) {
                                     var neighborBlock = _a[_i];
                                     var shouldSpawn = tileType.chanceToSpawn > Math.random();
                                     if (shouldSpawn) {
-                                        neighborBlock.setOwningPlayer(worldBlock.owningPlayer);
+                                        neighborBlock.setMinion(new Minion_1.Minion(minion.owningPlayer));
                                     }
                                 }
                                 var enemyNeighbors = this.enemyNeighborBlocks(point);
                                 for (var _b = 0, enemyNeighbors_1 = enemyNeighbors; _b < enemyNeighbors_1.length; _b++) {
                                     var neighborBlock = enemyNeighbors_1[_b];
-                                    var shouldKill = worldBlock.owningPlayer.attack / neighborBlock.owningPlayer.defense > Math.random();
+                                    var shouldKill = minion.attack / minion.defense > Math.random();
                                     if (shouldKill) {
-                                        neighborBlock.owningPlayer.deaths++;
-                                        worldBlock.owningPlayer.kills++;
-                                        neighborBlock.setOwningPlayer(null);
+                                        neighborBlock.minion.owningPlayer.deaths++;
+                                        minion.owningPlayer.kills++;
+                                        neighborBlock.setMinion(null);
                                         neighborBlock.resetToNature();
                                     }
                                 }
-                                var target = null;
-                                var colors = Object.keys(playerColorToCenterOfMass);
-                                _(colors).shuffle();
-                                for (var _c = 0, colors_1 = colors; _c < colors_1.length; _c++) {
-                                    var color = colors_1[_c];
-                                    if (target == null && color != worldBlock.owningPlayer.colorAsString) {
-                                        target = playerColorToCenterOfMass[color];
+                                var colors = Object.keys(playerColorToPoorSucker);
+                                if (!!minion.targetColor) {
+                                    if (colors.indexOf(minion.targetColor) == -1) {
+                                        minion.targetColor = null;
                                     }
                                 }
+                                if (minion.targetColor == null) {
+                                    colors = _(colors).shuffle();
+                                    minion.targetColor = colors[0];
+                                }
+                                var target = playerColorToPoorSucker[minion.targetColor];
                                 var mustMoveTowardsTarget = (0.9 > Math.random());
-                                for (var _d = 0, _e = this.openNeighborBlocks(point); _d < _e.length; _d++) {
-                                    var possibleNewPosition = _e[_d];
+                                for (var _c = 0, _d = this.openNeighborBlocks(point); _c < _d.length; _c++) {
+                                    var possibleNewPosition = _d[_c];
                                     var probabilityToMove = possibleNewPosition.tileType.tendencyToEnter * tileType.tendencyToLeave;
                                     var shouldMove = probabilityToMove > Math.random();
                                     var isMovingTowardsTarget = possibleNewPosition.position.distanceTo(target) < point.distanceTo(target);
                                     if (target && shouldMove && (!mustMoveTowardsTarget || isMovingTowardsTarget)) {
-                                        possibleNewPosition.setOwningPlayer(worldBlock.owningPlayer);
-                                        worldBlock.setOwningPlayer(null);
+                                        possibleNewPosition.setMinion(minion);
+                                        worldBlock.setMinion(null);
                                         break;
                                     }
                                 }
                             }
                         }
                     }
-                    for (var _f = 0, _g = this.players; _f < _g.length; _f++) {
-                        var player = _g[_f];
+                    for (var _e = 0, _f = this.players; _e < _f.length; _e++) {
+                        var player = _f[_e];
                         player.resetStats();
                     }
                     for (var i = 0; i < this.autowired.WIDTH; i++) {
@@ -1030,26 +1067,27 @@ System.register("Simulator", ["Player", "TileType"], function(exports_25, contex
                             var point = new THREE.Vector2(i, j);
                             var worldBlock = this.autowired.world.map[i][j];
                             var tileType = worldBlock.tileType;
-                            if (worldBlock.owningPlayer) {
-                                var player = worldBlock.owningPlayer;
+                            var minion = worldBlock.minion;
+                            if (!!minion && minion.owningPlayer) {
+                                var player = minion.owningPlayer;
                                 player.playerStats.incrementTileType(tileType);
                             }
                         }
                     }
-                    for (var _h = 0, _j = this.players; _h < _j.length; _h++) {
-                        var player = _j[_h];
+                    for (var _g = 0, _h = this.players; _g < _h.length; _g++) {
+                        var player = _h[_g];
                         player.gold += player.playerStats.totalGoldPerTurn();
                     }
                 };
                 return Simulator;
             }());
-            exports_25("Simulator", Simulator);
+            exports_26("Simulator", Simulator);
         }
     }
 });
-System.register("UI", [], function(exports_26, context_26) {
+System.register("UI", [], function(exports_27, context_27) {
     "use strict";
-    var __moduleName = context_26 && context_26.id;
+    var __moduleName = context_27 && context_27.id;
     var UI;
     return {
         setters:[],
@@ -1092,7 +1130,7 @@ System.register("UI", [], function(exports_26, context_26) {
                     this.scoreDiv.innerText = [gold, goldPerTurn, units, kills, deaths].join('\n');
                     var selected = this.autowired.world.selectedWorldBlock;
                     if (selected) {
-                        var selectedOwner = selected.owningPlayer;
+                        var selectedOwner = selected.getOwningPlayer();
                         var tileTypeString = "TYPE: " + selected.tileType.name;
                         var player = "OWNER: " + ((!!selectedOwner) ? selectedOwner.name : "NONE");
                         var rateOfGold = "GOLD GENERATED: " + this.nf.format(selected.tileType.goldPerTurn);
@@ -1127,13 +1165,13 @@ System.register("UI", [], function(exports_26, context_26) {
                 };
                 return UI;
             }());
-            exports_26("UI", UI);
+            exports_27("UI", UI);
         }
     }
 });
-System.register("UserControls", [], function(exports_27, context_27) {
+System.register("UserControls", [], function(exports_28, context_28) {
     "use strict";
-    var __moduleName = context_27 && context_27.id;
+    var __moduleName = context_28 && context_28.id;
     var ShadowMapType, PCFSoftShadowMap, Side, Vector2, Vector3, UserControls;
     return {
         setters:[],
@@ -1208,13 +1246,13 @@ System.register("UserControls", [], function(exports_27, context_27) {
                 ;
                 return UserControls;
             }());
-            exports_27("UserControls", UserControls);
+            exports_28("UserControls", UserControls);
         }
     }
 });
-System.register("Autowired", ["World", "Simulator", "UI", "UserControls", "AI"], function(exports_28, context_28) {
+System.register("Autowired", ["World", "Simulator", "UI", "UserControls", "AI"], function(exports_29, context_29) {
     "use strict";
-    var __moduleName = context_28 && context_28.id;
+    var __moduleName = context_29 && context_29.id;
     var World_2, Simulator_1, UI_1, UserControls_1, AI_1;
     var ShadowMapType, PCFSoftShadowMap, Side, Vector2, Vector3, Autowired;
     return {
@@ -1286,13 +1324,13 @@ System.register("Autowired", ["World", "Simulator", "UI", "UserControls", "AI"],
                 };
                 return Autowired;
             }());
-            exports_28("Autowired", Autowired);
+            exports_29("Autowired", Autowired);
         }
     }
 });
-System.register("AI", [], function(exports_29, context_29) {
+System.register("AI", [], function(exports_30, context_30) {
     "use strict";
-    var __moduleName = context_29 && context_29.id;
+    var __moduleName = context_30 && context_30.id;
     var AI;
     return {
         setters:[],
@@ -1333,14 +1371,14 @@ System.register("AI", [], function(exports_29, context_29) {
                 };
                 return AI;
             }());
-            exports_29("AI", AI);
+            exports_30("AI", AI);
         }
     }
 });
 /// <reference path="definitions/underscore.d.ts" />
-System.register("Main", ["Autowired"], function(exports_30, context_30) {
+System.register("Main", ["Autowired"], function(exports_31, context_31) {
     "use strict";
-    var __moduleName = context_30 && context_30.id;
+    var __moduleName = context_31 && context_31.id;
     var Autowired_1;
     var Vector2, Main, main;
     return {
@@ -1364,8 +1402,9 @@ System.register("Main", ["Autowired"], function(exports_30, context_30) {
                         for (var i = 0; i < _this.autowired.WIDTH; i++) {
                             for (var j = 0; j < _this.autowired.HEIGHT; j++) {
                                 var worldBlock = _this.autowired.world.getMap(new Vector2(i, j));
-                                winning = winning && (worldBlock.owningPlayer == null || worldBlock.owningPlayer == player);
-                                defeated = defeated && (worldBlock.owningPlayer != player);
+                                var owner = worldBlock.getOwningPlayer();
+                                winning = winning && (owner == null || owner == player);
+                                defeated = defeated && (owner != player);
                             }
                         }
                         if (winning) {
